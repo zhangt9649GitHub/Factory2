@@ -1,0 +1,358 @@
+package com.mingyuansoftware.aifactory.service.impl;
+
+import com.mingyuansoftware.aifactory.mapper.*;
+import com.mingyuansoftware.aifactory.model.*;
+import com.mingyuansoftware.aifactory.model.dto.NoteDocumentDto;
+import com.mingyuansoftware.aifactory.service.NoteDocumentService;
+import com.mingyuansoftware.aifactory.util.MyException;
+import com.mingyuansoftware.aifactory.util.RandomCodeUtil;
+import org.apache.poi.hssf.usermodel.HSSFCell;
+import org.apache.poi.hssf.usermodel.HSSFWorkbook;
+import org.apache.poi.ss.usermodel.Row;
+import org.apache.poi.ss.usermodel.Sheet;
+import org.apache.poi.ss.usermodel.Workbook;
+import org.apache.poi.xssf.usermodel.XSSFWorkbook;
+import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.stereotype.Service;
+import org.springframework.transaction.annotation.Propagation;
+import org.springframework.transaction.annotation.Transactional;
+import org.springframework.web.multipart.MultipartFile;
+
+import java.io.InputStream;
+import java.math.BigDecimal;
+import java.util.*;
+
+/**
+ * @author 张婷
+ * @date 2019/8/9 11:33
+ */
+
+@Service
+public class NoteDocumentServiceImpl implements NoteDocumentService {
+
+    @Autowired
+    private NoteDocumentMapper noteDocumentMapper;
+    @Autowired
+    private GoodsMapper goodsMapper;
+    @Autowired
+    private SupplierGoodsMapper supplierGoodsMapper;
+    @Autowired
+    private ProductionInstructionGoodsMapper productionInstructionGoodsMapper;
+    @Autowired
+    private ProductionInstructionDetailMapper productionInstructionDetailMapper;
+    @Autowired
+    private  StockKucunGoodsMapper stockKucunGoodsMapper;
+
+    @Override
+    public List<NoteDocumentDto> selectNoteDocumentList(NoteDocumentDto noteDocumentDto) {
+        try {
+            List<NoteDocumentDto> noteDocumentDtoList = noteDocumentMapper.selectNoteDocumentList(noteDocumentDto);
+            return noteDocumentDtoList;
+        } catch (Exception e) {
+            e.printStackTrace();
+        }
+        return null;
+    }
+
+    @Override
+    public int selectCount(NoteDocumentDto noteDocumentDto) {
+        try {
+            return noteDocumentMapper.selectCount(noteDocumentDto);
+        } catch (Exception e) {
+            e.printStackTrace();
+        }
+        return 0;
+    }
+
+    @Override
+    @Transactional(rollbackFor = Exception.class)
+    public List<NoteDocument> importNoteDocumentExcel(String fileName, MultipartFile file) {
+        List<NoteDocument> noteDocumentList = new ArrayList<>();
+        if (!fileName.matches("^.+\\.(?i)(xls)$") && !fileName.matches("^.+\\.(?i)(xlsx)$")) {
+            throw new MyException("上传文件格式不正确");
+        }
+        boolean isExcel2003 = true;
+        if (fileName.matches("^.+\\.(?i)(xlsx)$")) {
+            isExcel2003 = false;
+        }
+        try {
+            Workbook wb = null;
+            Set<Sheet> sheets = null;
+            InputStream is = file.getInputStream();
+            if (isExcel2003) {
+                wb = new HSSFWorkbook(is);
+            } else {
+                wb = new XSSFWorkbook(is);
+            }
+//            System.out.println("输出sheets:" + wb.getNumberOfSheets());
+            for (int i = 0; i < wb.getNumberOfSheets(); i++) {    //获取注文书Sheet表,一般是第二个
+                Sheet sheet = wb.getSheetAt(i);
+                String sheetName = sheet.getSheetName();
+//                int a = sheet.getPhysicalNumberOfRows();   //获取有记录的行数，即：最后有数据的行是第n行，前面有m行是空行没数据，则返回n-m；
+                if (sheetName.indexOf("注文") != -1) {  //截取"注文"字段,循环Sheet
+                    //循环工作表Sheet
+                    System.out.println("获取总数据数(从0开始):" + sheet.getLastRowNum());
+                    for (int r = 12; r < sheet.getLastRowNum(); r++) {  //测试从第13行开始读操作,直到和总行数一样结束    0,1
+                        Row row = sheet.getRow(r);
+                        System.out.println("i:" + i + ";r:" + r);//第二个Sheet,第13行内容
+
+                        row.getCell(1).setCellType(HSSFCell.CELL_TYPE_STRING);//统一将cell中的内容当做字符串  13行1格  供应商名称
+                        String supplerName = row.getCell(1).getStringCellValue();
+                        row.getCell(2).setCellType(HSSFCell.CELL_TYPE_STRING);//统一将cell中的内容当做字符串  13行2格  部品CD
+                        String partsCD = row.getCell(2).getStringCellValue();
+                    /*row.getCell(3).setCellType(HSSFCell.CELL_TYPE_STRING);//统一将cell中的内容当做字符串  13行3格  资材名
+                    String goodsName = row.getCell(3).getStringCellValue();*/
+                        row.getCell(4).setCellType(HSSFCell.CELL_TYPE_STRING);//统一将cell中的内容当做字符串  13行4格  数量
+                        String count = row.getCell(4).getStringCellValue();
+                        row.getCell(5).setCellType(HSSFCell.CELL_TYPE_STRING);//统一将cell中的内容当做字符串  13行5格  单价
+                        String price = row.getCell(5).getStringCellValue();
+                        row.getCell(6).setCellType(HSSFCell.CELL_TYPE_STRING);//统一将cell中的内容当做字符串  13行6格  生产指示书编号
+                        String produ = row.getCell(6).getStringCellValue();
+                        row.getCell(7).setCellType(HSSFCell.CELL_TYPE_STRING);//统一将cell中的内容当做字符串  13行7格  合计CNY
+                        String total = row.getCell(7).getStringCellValue();
+//                        row.getCell(7).setCellType(HSSFCell.CELL_TYPE_NUMERIC);
+//                        double total = row.getCell(7).getNumericCellValue();
+                        SupplierGoods supplierGoods = supplierGoodsMapper.selectSupplierByNameAndPartsCD(supplerName, partsCD);//截取供应商名字
+//                        SupplierGoods supplierGoods = supplierGoodsMapper.selectSupplierByNameAndPartsCD(supplerName.substring(1,supplerName.length()-1), partsCD);//截取供应商名字
+                        if (supplierGoods == null) {//供应商id没有查询出来就跳出循环
+                            break;
+                        }
+                        Goods goods = goodsMapper.selectGoodsByPartsCd(partsCD);
+                        NoteDocument noteDocument = new NoteDocument();
+                        noteDocument.setSupplierId(supplierGoods.getSupplierId());
+                        noteDocument.setGoodsId(Integer.valueOf(goods.getGoodsId()));
+                        noteDocument.setCount(new BigDecimal(count.replace(",", "")).setScale(2, BigDecimal.ROUND_HALF_UP));
+                        noteDocument.setPrice(new BigDecimal(price).setScale(3, BigDecimal.ROUND_HALF_UP));
+                        noteDocument.setProductionInstructionId(Integer.valueOf(produ.substring(0, produ.indexOf("回"))));
+                        noteDocument.setMoney(new BigDecimal(total).setScale(3, BigDecimal.ROUND_HALF_UP));
+                        noteDocumentList.add(noteDocument);
+                    }
+                }
+            }
+            return noteDocumentList;
+        } catch (Exception e) {
+            e.printStackTrace();
+        }
+        return null;
+    }
+
+    @Override
+    @Transactional(propagation = Propagation.REQUIRED, rollbackFor = Exception.class)
+    public int insertNoteDocument(NoteDocument noteDocument) {
+        if (noteDocument.getNdStatus() == null) {
+            noteDocument.setNdStatus((byte) 1);
+        }
+        if (noteDocument.getPurchaseOrderId() == null) {
+            noteDocument.setPurchaseOrderId(0);
+        }
+        int insert = noteDocumentMapper.insert(noteDocument);
+        return insert;
+    }
+
+    @Override
+    @Transactional(propagation = Propagation.REQUIRED, rollbackFor = Exception.class)
+    public int updateNoteDocumentInfo(NoteDocument noteDocument) {
+        NoteDocument noteDocument1 = noteDocumentMapper.selectByPrimaryKey(noteDocument.getNdid());
+        //注文书编号,状态,采购订单id不能修改, 生产指示书Id暂时不能修改
+        noteDocument.setNoteDcNumber(noteDocument1.getNoteDcNumber());
+        noteDocument.setNdStatus(noteDocument1.getNdStatus());
+        noteDocument.setPurchaseOrderId(noteDocument1.getPurchaseOrderId());
+        noteDocument.setProductionInstructionId(noteDocument1.getProductionInstructionId());// 生产指示书Id暂时不能修改
+        //查询货物的供应商id
+//        noteDocument.setSupplierId(goodsMapper.selectByPrimaryKey(noteDocument.getGoodsId()).getSupplierId());
+        int update = noteDocumentMapper.updateByPrimaryKey(noteDocument);
+        return update;
+    }
+
+    @Override
+    public int selectUpdateNoteDocumentInfo(int ndid) {
+        try {
+            return noteDocumentMapper.selectUpdateNoteDocumentInfo(ndid);
+        } catch (Exception e) {
+            e.printStackTrace();
+        }
+        return 0;
+    }
+
+    @Override
+    public NoteDocument selectNoteDocumentById(int ndid) {
+        try {
+            return noteDocumentMapper.selectByPrimaryKey(ndid);
+        } catch (Exception e) {
+            e.printStackTrace();
+        }
+        return null;
+    }
+
+    @Override
+    public List<NoteDocument> selectCPONoteDocumentSupplier(List<NoteDocument> noteDocument) {
+        try {
+            //Set集合不能存放重复的数据
+            Set<Integer> supplierIdSet = new TreeSet<>();
+            List<NoteDocument> noteDocumentList = new ArrayList<>();
+            for (NoteDocument noteDocument1 : noteDocument) {
+                //根据注文书id查询供应商id
+                NoteDocument noteDocument2 = noteDocumentMapper.selectByPrimaryKey(noteDocument1.getNdid());
+                if (noteDocument2.getSupplierId() == null) {
+                    return null;
+                }
+                supplierIdSet.add(noteDocument2.getSupplierId());//将查询出来的供应商id放入Set集合中
+                if (supplierIdSet.size() != 1) {  //供应商 > 1
+                    return null;
+                }
+                noteDocumentList.add(noteDocument2);
+            }
+            return noteDocumentList;
+        } catch (Exception e) {
+            e.printStackTrace();
+        }
+        return null;
+    }
+
+    @Override
+    @Transactional(propagation = Propagation.REQUIRED, rollbackFor = Exception.class)
+    public void importNoteDocument(MultipartFile file) {
+        try {
+            InputStream is = file.getInputStream();
+            Workbook wb = wb = new HSSFWorkbook(is);
+//            System.out.println("输出sheets:" + wb.getNumberOfSheets());
+            String noteDcNumber = "21" + RandomCodeUtil.getRandomCode();
+            for (int i = 0; i < wb.getNumberOfSheets(); i++) {    //获取注文书Sheet表,一般是第二个
+                Sheet sheet = wb.getSheetAt(i);
+                String sheetName = sheet.getSheetName();
+//                int a = sheet.getPhysicalNumberOfRows();   //获取有记录的行数，即：最后有数据的行是第n行，前面有m行是空行没数据，则返回n-m；
+                if (sheetName.indexOf("注文") != -1) {  //截取"注文"字段,循环Sheet
+                    //循环工作表Sheet
+                    System.out.println("获取总数据数(从0开始):" + sheet.getLastRowNum());
+                    for (int r = 12; r < sheet.getLastRowNum(); r++) {  //测试从第13行开始读操作,直到和总行数一样结束    0,1
+                        Row row = sheet.getRow(r);
+                        System.out.println("i:" + i + ";r:" + r);//第二个Sheet,第13行内容
+
+                        row.getCell(1).setCellType(HSSFCell.CELL_TYPE_STRING);//统一将cell中的内容当做字符串  13行1格  供应商名称
+                        String supplerName = row.getCell(1).getStringCellValue();
+                        row.getCell(2).setCellType(HSSFCell.CELL_TYPE_STRING);//统一将cell中的内容当做字符串  13行2格  部品CD
+                        String partsCD = row.getCell(2).getStringCellValue();
+                    /*row.getCell(3).setCellType(HSSFCell.CELL_TYPE_STRING);//统一将cell中的内容当做字符串  13行3格  资材名
+                    String goodsName = row.getCell(3).getStringCellValue();*/
+                        row.getCell(4).setCellType(HSSFCell.CELL_TYPE_STRING);//统一将cell中的内容当做字符串  13行4格  数量
+                        String count = row.getCell(4).getStringCellValue();
+                        row.getCell(5).setCellType(HSSFCell.CELL_TYPE_STRING);//统一将cell中的内容当做字符串  13行5格  单价
+                        String price = row.getCell(5).getStringCellValue();
+                        row.getCell(6).setCellType(HSSFCell.CELL_TYPE_STRING);//统一将cell中的内容当做字符串  13行6格  生产指示书编号
+                        String produ = row.getCell(6).getStringCellValue();
+                        row.getCell(7).setCellType(HSSFCell.CELL_TYPE_STRING);//统一将cell中的内容当做字符串  13行7格  合计CNY
+                        String total = row.getCell(7).getStringCellValue();
+//                        row.getCell(7).setCellType(HSSFCell.CELL_TYPE_NUMERIC);
+//                        double total = row.getCell(7).getNumericCellValue();
+                        SupplierGoods supplierGoods = supplierGoodsMapper.selectSupplierByNameAndPartsCD(supplerName, partsCD);
+                        if (supplierGoods != null) {        //查到供应商Id再进行添加
+                            Goods goods = goodsMapper.selectGoodsByPartsCd(partsCD);
+                            //根据货物Id查询注文书中的内容,如果存在返回注文书Id,然后将查询出来的注文书中的数量和合计金额与导入的数量和合计金额进行叠加,然后修改注文书的内容;如果不存在,添加数据到注文书
+//                            NoteDocument noteDocument1 = noteDocumentMapper.selectNoteDocumentByGoodsId(goods.getGoodsId(), new BigDecimal(price), new BigDecimal(total));
+                            NoteDocument noteDocument = new NoteDocument();
+                            noteDocument.setGoodsId(Integer.valueOf(goods.getGoodsId()));
+                            noteDocument.setCount(new BigDecimal(count.replace(",", "")).setScale(2, BigDecimal.ROUND_HALF_UP));
+                            noteDocument.setPrice(new BigDecimal(price).setScale(3, BigDecimal.ROUND_HALF_UP));
+                            noteDocument.setMoney(new BigDecimal(total).setScale(3, BigDecimal.ROUND_HALF_UP));
+                            noteDocument.setNoteDcNumber(noteDcNumber);
+//                            noteDocument.setProductionInstructionId(143);
+                            noteDocument.setProductionInstructionId(Integer.valueOf(produ.substring(0, produ.indexOf("回"))));
+                            noteDocument.setSupplierId(supplierGoods.getSupplierId());
+                            noteDocument.setNdStatus((byte) 1);
+                            noteDocument.setPurchaseOrderId(0);
+                            noteDocumentMapper.insert(noteDocument);
+
+                        }
+                    }
+                }
+            }
+        } catch (Exception e) {
+            e.printStackTrace();
+        }
+    }
+
+    @Override
+    public NoteDocumentDto selectGoodInfoByNote(Integer ndid) {
+        try {
+            return noteDocumentMapper.selectGoodInfoByNote(ndid);
+        } catch (Exception e) {
+            e.printStackTrace();
+        }
+        return null;
+    }
+
+    @Override
+//    @Transactional(propagation = Propagation.REQUIRED, rollbackFor = Exception.class)
+    public void updateNoteDocumentData() {
+            int state = 1;
+            // 1.合并同一货物数量和总价
+            // 根据货物Id和注文书状态为1.无采购,查询注文书Id(放在list中),货物Id,数量(和),单价,合计金额(和),注文书编号,生产指示书Id,供应商Id,注文书状态,采购订单Id,发注残
+            NoteDocumentDto noteDocumentDto1 = new NoteDocumentDto();
+            noteDocumentDto1.setNdStatus((byte) state);
+            List<NoteDocumentDto> noteDocumentDtoList1 = noteDocumentMapper.selectNoteDocumentList(noteDocumentDto1);
+            for (NoteDocumentDto noteDocumentDto : noteDocumentDtoList1) {
+                //查询同一货物的注文书Id
+                List<Integer> ndIdList = noteDocumentMapper.selectNoteDocumentId(noteDocumentDto.getGoodsId(), noteDocumentDto.getNdStatus());
+                //根据货物Id和注文书状态1.无采购,查询数据(数量之和,合计金额之和)
+                NoteDocument noteDocument = noteDocumentMapper.selectNoteDocumentInfo(noteDocumentDto.getGoodsId(), noteDocumentDto.getNdStatus());
+                noteDocumentMapper.insert(noteDocument);
+                //根据注文书Id删除注文书信息
+                for (Integer ndId : ndIdList) {
+                    noteDocumentMapper.deleteByPrimaryKey(ndId);
+                }
+            }
+            // 2. 修改发注残
+            // 查询注文书内容
+            /*NoteDocumentDto noteDocumentDtoBySelect = new NoteDocumentDto();
+            List<NoteDocumentDto> noteDocumentDtoList2 = noteDocumentMapper.selectNoteDocumentList(noteDocumentDtoBySelect);
+            for (NoteDocumentDto noteDocumentDto3 : noteDocumentDtoList2) {
+                //将注文书中重复的货物的数量和合计金额进行叠加
+                NoteDocument noteDocument2 = noteDocumentMapper.selectAllCountByGoodsId(noteDocumentDto3.getGoodsId(), state);
+                //修改注文书发注残字段
+                noteDocumentMapper.updateCountByGoodsId(noteDocument2.getCount(), noteDocumentDto3.getGoodsId(), state);   //根据货物id和注文书状态1.无采购修改注文书中货物发注残
+            }*/
+            //3.修改引当残
+        NoteDocumentDto noteDocumentDtoBySelect = new NoteDocumentDto();
+        List<NoteDocumentDto> noteDocumentDtoList3 = noteDocumentMapper.selectNoteDocumentList(noteDocumentDtoBySelect);
+            for (NoteDocumentDto noteDocumentDto4:noteDocumentDtoList3){
+                // 2. 修改发注残
+                //将注文书中重复的货物的数量和合计金额进行叠加
+                NoteDocument noteDocument2 = noteDocumentMapper.selectAllCountByGoodsId(noteDocumentDto4.getGoodsId(), state);
+                //修改注文书发注残字段
+                noteDocumentMapper.updateCountByGoodsId(noteDocument2.getCount(), noteDocumentDto4.getGoodsId(), state);   //根据货物id和注文书状态1.无采购修改注文书中货物发注残
+
+                //根据生产指示书Id(回次)查询生产指示书货物内容(货物Id,生产预定数,未完成数量,生产指示书)
+                List<ProductionInstructionGoods> productionInstructionGoodsList = productionInstructionGoodsMapper.selectProInsGoodsInfoByNDProid(noteDocumentDto4.getProductionInstructionId());
+                for(ProductionInstructionGoods productionInstructionGoods:productionInstructionGoodsList){
+                    //根据生产指示书货物Id和注文书货物Id查询生产指示书详情中的货物信息(货物Id,生产必要数)
+                    List<ProductionInstructionDetail> productionInstructionDetailList = productionInstructionDetailMapper.selectProductionInstructionDetailsByIdAndGoodsId(productionInstructionGoods.getProductionInstructionGoodsId(),noteDocumentDto4.getGoodsId());
+                    if (!(productionInstructionDetailList.isEmpty())) { //如果在生产指示书详情中根据生产指示书货物Id和货物Id查询到数据的话
+                        for(ProductionInstructionDetail productionInstructionDetail:productionInstructionDetailList){
+                            /*加法 add()函数     减法subtract()函数  乘法multipy()函数    除法divide()函数    绝对值abs()函数*/
+                            BigDecimal yinDangCan = null;
+                            if (productionInstructionGoods.getProductionSchedule().compareTo(BigDecimal.ZERO)!=0) {
+                                //引当残=生产必要数(生产指示书详情)/生产预定数(生产指示书货物)*未完成数量(生产指示书货物)
+                                yinDangCan = productionInstructionDetail.getProductionSchedule().divide(productionInstructionGoods.getProductionSchedule(),3, BigDecimal.ROUND_HALF_UP).multiply(productionInstructionGoods.getUnfinishedQuantity());
+                                System.out.println("所有的值是:" +  productionInstructionDetail.getProductionSchedule() + "--" + productionInstructionGoods.getProductionSchedule() + "--" +  productionInstructionGoods.getUnfinishedQuantity() + "--" + yinDangCan);
+                                //根据注文书Id查询引当残,如果不为空,进行叠加,否则直接修改引当残的值
+                                BigDecimal ydc = noteDocumentMapper.selectByPrimaryKey(noteDocumentDto4.getNdid()).getYinDangCan();
+                                if( ydc!=null ){
+                                    yinDangCan = yinDangCan.add(ydc);
+                                }
+                                //根据注文书Id修改注文书引当残
+                                noteDocumentMapper.updateYDCByNdId(noteDocumentDto4.getNdid(),productionInstructionDetail.getGoodsId(),yinDangCan);
+//                                System.out.println("输出结果是--ndid:" + noteDocumentDto4.getNdid() + ",goodsId:" + productionInstructionDetail.getGoodsId() + ",yinDangCan;" + yinDangCan);
+                                //4.修改注文不足或多余在库(如果满足:任务量-在库数量; 任务量-在库-注文书数=正数(多余在库),负数(注文不足))
+                                KucunGoods goodsKuCun = stockKucunGoodsMapper.getStockKucunGoodsCountByGoodsId(productionInstructionDetail.getGoodsId());
+                                if (goodsKuCun != null) {
+                                    BigDecimal annotation = yinDangCan.subtract(goodsKuCun.getSkgCount().add(noteDocumentDto4.getCount()));
+                                    noteDocumentMapper.updateAnnoByNdId(noteDocumentDto4.getNdid(),productionInstructionDetail.getGoodsId(),annotation);
+                                }
+                            }
+                        }
+                    }
+                }
+            }
+
+    }
+}

@@ -1,0 +1,17 @@
+.zq-wrap .index-table .layui-table thead th{
+	padding-bottom: 0;
+}
+.zq-wrap .index-table .layui-table-header{
+	padding-bottom: 40px;
+}
+.zq-wrap .zq-search-form{
+	top: 90px;
+}
+.zq-wrap .index-table .layui-table-header th{
+	border-right: 2px solid #fff;
+	border-bottom: 2px solid #fff;
+}
+.zq-wrap .zq-search-form .search .item:nth-child(4){
+	flex: unset;
+	width: 202px;
+}

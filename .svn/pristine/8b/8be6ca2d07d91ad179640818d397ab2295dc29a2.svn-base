@@ -1,0 +1,46 @@
+package com.mingyuansoftware.aifactory.model;
+
+import io.swagger.annotations.ApiModel;
+import io.swagger.annotations.ApiModelProperty;
+
+import java.io.Serializable;
+import java.math.BigDecimal;
+
+/**
+ * 材料
+ */
+@ApiModel(description = "郝腾")
+public class Material implements Serializable {
+
+    private static final long serialVersionUID = 1L;
+
+    @ApiModelProperty(value = "所需材料", example = "material")
+    private String material;
+
+    @ApiModelProperty(value = "所需数量", example = "1")
+    private BigDecimal amount;
+
+    public String getMaterial() {
+        return material;
+    }
+
+    public void setMaterial(String material) {
+        this.material = material;
+    }
+
+    public BigDecimal getAmount() {
+        return amount;
+    }
+
+    public void setAmount(BigDecimal amount) {
+        this.amount = amount;
+    }
+
+    @Override
+    public String toString() {
+        return "Material{" +
+                "material='" + material + '\'' +
+                ", amount=" + amount +
+                '}';
+    }
+}

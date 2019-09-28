@@ -1,0 +1,390 @@
+package com.mingyuansoftware.aifactory.controller;
+
+import com.github.pagehelper.PageHelper;
+import com.mingyuansoftware.aifactory.config.LogConfig;
+import com.mingyuansoftware.aifactory.constants.Constants;
+import com.mingyuansoftware.aifactory.enums.HtCode;
+import com.mingyuansoftware.aifactory.model.*;
+import com.mingyuansoftware.aifactory.model.dto.PDAProductionEntryDto;
+import com.mingyuansoftware.aifactory.model.dto.SalesOrderDetailsListDto;
+import com.mingyuansoftware.aifactory.model.dto.SalesOrderDto;
+import com.mingyuansoftware.aifactory.pojo.LayuiCommonResponse;
+import com.mingyuansoftware.aifactory.service.*;
+import com.mingyuansoftware.aifactory.util.BaseToString;
+import com.mingyuansoftware.aifactory.util.DateUtil;
+import com.mingyuansoftware.aifactory.util.DeleteFileUtil;
+import com.mingyuansoftware.aifactory.util.MyException;
+import io.swagger.annotations.*;
+import io.swagger.models.auth.In;
+import net.sf.json.JSONArray;
+import org.apache.poi.hssf.usermodel.HSSFRow;
+import org.apache.poi.hssf.usermodel.HSSFSheet;
+import org.apache.poi.hssf.usermodel.HSSFWorkbook;
+import org.apache.poi.ss.util.CellRangeAddress;
+import org.apache.shiro.SecurityUtils;
+import org.apache.shiro.authz.annotation.RequiresPermissions;
+import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.validation.annotation.Validated;
+import org.springframework.web.bind.annotation.*;
+import org.springframework.web.multipart.MultipartFile;
+
+import javax.servlet.ServletOutputStream;
+import javax.servlet.http.HttpServletResponse;
+import java.io.ByteArrayOutputStream;
+import java.io.IOException;
+import java.math.BigDecimal;
+import java.net.URLEncoder;
+import java.util.ArrayList;
+import java.util.HashMap;
+import java.util.List;
+import java.util.Map;
+
+@Api(value = "SalesOrder", description = "销售订单API", tags = {"销售订单"})
+@RestController
+@RequestMapping("/salesOrder")
+public class SalesOrderController {
+
+    @Autowired
+    private SalesOrderService salesOrderService;
+    @Autowired
+    private LogService logService;
+    @Autowired
+    private ProductionInstructionGoodsService productionInstructionGoodsService;
+    @Autowired
+    private GoodsService goodsService;
+    @Autowired
+    private SalesOrderDetailsService salesOrderDetailsService;
+
+    @ApiOperation(value = "获取销售订单列表", notes = "获取销售订单列表", tags = {"@郝腾"})
+    @ApiImplicitParams({
+            @ApiImplicitParam(name = "page", value = "第几页", paramType = "query", dataType = "int"),
+            @ApiImplicitParam(name = "limit", value = "每页容量", paramType = "query", dataType = "int"),
+            @ApiImplicitParam(name = "salesOrderDto", value = "销售订单参数实体类", paramType = "query", dataType = "SalesOrderDto"),
+    })
+    @RequestMapping(value = "/getSalesOrderList", method = RequestMethod.GET)
+    @ResponseBody
+    @RequiresPermissions(value = {"getSalesOrderList"})
+    public LayuiCommonResponse getSalesOrderList(@Validated @RequestParam(defaultValue = "1") int page,
+                                            @Validated @RequestParam(defaultValue = "10") int limit,
+                                            @Validated SalesOrderDto salesOrderDto) {
+        LayuiCommonResponse response = new LayuiCommonResponse();
+        try {
+            PageHelper.startPage(page, limit);
+            List<SalesOrder> salesOrderList =salesOrderService.selectSalesOrderList(salesOrderDto);
+            int count = salesOrderService.selectSalesOrderCount(salesOrderDto);
+            response.setMsg(HtCode.SUCCESS_GET.getInfo());
+            response.setCode(HtCode.SUCCESS_GET.getCode());
+            response.setCount(count);
+            response.setData(salesOrderList);
+        } catch (Exception e) {
+            e.printStackTrace();
+            response.setCode(HtCode.FAIL_GET.getCode());
+            response.setMsg(HtCode.FAIL_GET.getInfo());
+        }
+        return response;
+    }
+
+    @ApiOperation(value = "删除销售订单", notes = "删除销售订单", tags = {"@郝腾"})
+    @ApiImplicitParam(name = "salesOrderId", value = "销售订单id", required = true, dataType = "int", paramType = "query")
+    @RequestMapping(value = "/deleteSalesOrderById", method = RequestMethod.POST)
+    @ResponseBody
+    @RequiresPermissions(value = {"deleteSalesOrderById"})
+    public LayuiCommonResponse deleteSalesOrderById(int salesOrderId) {
+        LayuiCommonResponse response = new LayuiCommonResponse();
+        try {
+            SalesOrder salesOrder =salesOrderService.selectSalesOrderById(salesOrderId);
+          /*  if(salesOrder.getState()==2){
+                response.setCode(HtCode.FAIL_DELETE_STATE_DISTRIBUTION.getCode());
+                response.setMsg(HtCode.FAIL_DELETE_STATE_DISTRIBUTION.getInfo());
+                return response;
+            }*/
+            if(salesOrder.getState()==3){
+                response.setCode(HtCode.FAIL_DELETE_STATE_OUT.getCode());
+                response.setMsg(HtCode.FAIL_DELETE_STATE_OUT.getInfo());
+                return response;
+            }
+            if(salesOrder.getPaymentStatus()>1){
+                response.setCode(HtCode.FAIL_DELETE_PAYMENTSTATE.getCode());
+                response.setMsg(HtCode.FAIL_DELETE_PAYMENTSTATE.getInfo());
+                return response;
+            }
+            salesOrderService.deleteSalesOrderById(salesOrderId);
+            if(LogConfig.STATE){
+                String[] str= new String[]{salesOrderId+""};
+                Map<String, String[]> a_mMap= new HashMap<>();
+                a_mMap.put("salesOrderId",str);
+                String text = BaseToString.MapToString(a_mMap);
+                Staff staff =(Staff) SecurityUtils.getSubject().getSession().getAttribute("user");
+                int staffId = staff.getStaffId();
+                logService.saveLog(staffId,3,text);
+            }
+            response.setCode(HtCode.SUCCESS_DELETE.getCode());
+            response.setMsg(HtCode.SUCCESS_DELETE.getInfo());
+        } catch (Exception e) {
+            e.printStackTrace();
+            response.setCode(HtCode.FAIL_DELETE.getCode());
+            response.setMsg(HtCode.FAIL_DELETE.getInfo());
+            return response;
+        }
+        return response;
+    }
+
+    @ApiOperation(value = "查看销售订单", notes = "查看销售订单", tags = {"@郝腾"})
+    @ApiImplicitParam(name = "salesOrderId", value = "销售订单id", required = true, dataType = "int", paramType = "query")
+    @RequestMapping(value = "/getSalesOrderById", method = RequestMethod.POST)
+    @ResponseBody
+    public LayuiCommonResponse getSalesOrderById(int salesOrderId) {
+        LayuiCommonResponse response = new LayuiCommonResponse();
+        try {
+            SalesOrder salesOrder =salesOrderService.selectSalesOrderById(salesOrderId);
+            response.setMsg(HtCode.SUCCESS_GET.getInfo());
+            response.setCode(HtCode.SUCCESS_GET.getCode());
+            response.setData(salesOrder);
+        } catch (Exception e) {
+            e.printStackTrace();
+            response.setCode(HtCode.FAIL_GET.getCode());
+            response.setMsg(HtCode.FAIL_GET.getInfo());
+        }
+        return response;
+    }
+
+    @ApiOperation(value = "获取销售订单的货物列表", notes = "获取日本出口的货物列表", tags = {"@郝腾"})
+    @ApiImplicitParams({
+            @ApiImplicitParam(name = "page", value = "第几页", paramType = "query", dataType = "int"),
+            @ApiImplicitParam(name = "limit", value = "每页容量", paramType = "query", dataType = "int"),
+            @ApiImplicitParam(name = "goodsId", value = "货物id", paramType = "query", dataType = "Integer"),
+            @ApiImplicitParam(name = "partsCd", value = "部品CD", paramType = "query", dataType = "String"),
+            @ApiImplicitParam(name = "goodsName", value = "品名", paramType = "query", dataType = "String"),
+            @ApiImplicitParam(name = "orderType", value = "订单类型  1.日本出口 2.天津贩卖",required = true,paramType = "query", dataType = "Integer")
+    })
+    @RequestMapping(value = "/getJPExportsGoodsList", method = RequestMethod.GET)
+    @ResponseBody
+    public LayuiCommonResponse getJPExportsGoodsList(@Validated @RequestParam(defaultValue = "1") int page,
+                                                     @Validated @RequestParam(defaultValue = "10") int limit,
+                                                     @Validated Integer goodsId, @Validated String partsCd,@Validated String goodsName,Integer orderType) {
+        LayuiCommonResponse response = new LayuiCommonResponse();
+        try {
+            PageHelper.startPage(page, limit);
+            if(orderType==1){
+                List<KucunGoods> kucunGoodsList = productionInstructionGoodsService.selectJPExportsGoodsList(goodsId,partsCd,goodsName);
+                int count = productionInstructionGoodsService.selectJPExportsGoodsCount(goodsId,partsCd,goodsName);
+                response.setMsg(HtCode.SUCCESS_GET.getInfo());
+                response.setCode(HtCode.SUCCESS_GET.getCode());
+                response.setCount(count);
+                response.setData(kucunGoodsList);
+            }else if(orderType==2){
+                List<KucunGoods> kucunGoodsList = goodsService.selectAllGoodsList(goodsId,partsCd,goodsName);
+                int count = goodsService.selectAllGoodsCount(goodsId,partsCd,goodsName);
+                response.setMsg(HtCode.SUCCESS_GET.getInfo());
+                response.setCode(HtCode.SUCCESS_GET.getCode());
+                response.setCount(count);
+                response.setData(kucunGoodsList);
+            }
+        } catch (Exception e) {
+            e.printStackTrace();
+            response.setCode(HtCode.FAIL_GET.getCode());
+            response.setMsg(HtCode.FAIL_GET.getInfo());
+        }
+        return response;
+    }
+
+    @ApiOperation(value = "新增销售订单", notes = "新增销售订单", tags = {"@郝腾"})
+    @ApiImplicitParam(name = "salesOrder", value = "销售订单实体类", required = true, dataType = "SalesOrder")
+    @RequestMapping(value = "/insertSalesOrder", method = RequestMethod.POST)
+    @ResponseBody
+    @RequiresPermissions(value = {"insertSalesOrder"})
+    public LayuiCommonResponse insertSalesOrder( @RequestBody SalesOrder salesOrder) {
+        LayuiCommonResponse response = new LayuiCommonResponse();
+        try {
+            salesOrderService.insertSalesOrder(salesOrder);
+            if(LogConfig.STATE){
+                String text = BaseToString.BaseEntityToString(salesOrder);
+                Staff staff =(Staff) SecurityUtils.getSubject().getSession().getAttribute("user");
+                int staffId = staff.getStaffId();
+                logService.saveLog(staffId,1,text);
+            }
+            response.setCode(HtCode.SUCCESS_ADD.getCode());
+            response.setMsg(HtCode.SUCCESS_ADD.getInfo());
+        } catch (MyException e) {
+            e.printStackTrace();
+            response.setCode(HtCode.FAIL_ADD.getCode());
+            response.setMsg(e.getMessage());
+            return response;
+        }catch (Exception e) {
+            e.printStackTrace();
+            response.setCode(HtCode.FAIL_ADD.getCode());
+            response.setMsg(HtCode.FAIL_ADD.getInfo());
+            return response;
+        }
+        return response;
+    }
+
+    @ApiOperation(value = "更新销售订单", notes = "更新销售订单", tags = {"@郝腾"})
+    @ApiImplicitParam(name = "salesOrder", value = "销售订单及详情", dataType = "SalesOrder")
+    @RequestMapping(value = "/updateSalesOrderInfo", method = RequestMethod.POST)
+    @ResponseBody
+    @RequiresPermissions(value = {"updateSalesOrderInfo"})
+    public LayuiCommonResponse updateSalesOrderInfo(@RequestBody SalesOrder salesOrder) {
+        LayuiCommonResponse response = new LayuiCommonResponse();
+        try {
+            SalesOrder salesOrder1 =salesOrderService.selectSalesOrderById(salesOrder.getSalesOrderId());
+           /* if(salesOrder1.getState()==2){
+                response.setCode(HtCode.FAIL_UPDATE_STATE_ING.getCode());
+                response.setMsg(HtCode.FAIL_UPDATE_STATE_ING.getInfo());
+                return response;
+            }*/
+            if(salesOrder1.getState()==3){
+                response.setCode(HtCode.FAIL_UPDATE_STATE_DO.getCode());
+                response.setMsg(HtCode.FAIL_UPDATE_STATE_DO.getInfo());
+                return response;
+            }
+            if(salesOrder1.getPaymentStatus()>1){
+                response.setCode(HtCode.FAIL_UPDATE_PAYMENTSTATE.getCode());
+                response.setMsg(HtCode.FAIL_UPDATE_PAYMENTSTATE.getInfo());
+                return response;
+            }
+            salesOrderService.updateRequisitionInfo(salesOrder);
+            if(LogConfig.STATE){
+                String text = BaseToString.BaseEntityToString(salesOrder);
+                Staff staff =(Staff) SecurityUtils.getSubject().getSession().getAttribute("user");
+                int staffId = staff.getStaffId();
+                logService.saveLog(staffId,2,text);
+            }
+            response.setCode(HtCode.SUCCESS_UPDATE.getCode());
+            response.setMsg(HtCode.SUCCESS_UPDATE.getInfo());
+        } catch (Exception e) {
+            e.printStackTrace();
+            response.setCode(HtCode.FAIL_UPDATE.getCode());
+            response.setMsg(HtCode.FAIL_UPDATE.getInfo());
+            return response;
+        }
+        return response;
+    }
+
+  /*  @ApiOperation(value = "更新销售订单状态为已出库", notes = "更新销售订单状态为已出库", tags = {"@郝腾"})
+    @ApiImplicitParam(name = "salesOrderId", value = "销售订单id", required = true, dataType = "int", paramType = "query")
+    @RequestMapping(value = "/updateSalesOrderState", method = RequestMethod.POST)
+    @ResponseBody
+    @RequiresPermissions(value = {"updateSalesOrderState"})
+    public LayuiCommonResponse updateSalesOrderState(int salesOrderId) {
+        LayuiCommonResponse response = new LayuiCommonResponse();
+        try {
+            SalesOrder salesOrder =salesOrderService.selectSalesOrderById(salesOrderId);
+            if(salesOrder.getState()==1){
+                response.setCode(HtCode.FAIL_UPDATE_COMPLETE.getCode());
+                response.setMsg(HtCode.FAIL_UPDATE_COMPLETE.getInfo());
+                return response;
+            }
+            if(salesOrder.getState()==2) {
+                salesOrderService.updateSalesOrderState(salesOrderId);
+                List<SalesOrderDetails> salesOrderDetailsList =salesOrder.getSalesOrderDetailsList();
+                if(!(salesOrderDetailsList.isEmpty())){
+                    for (SalesOrderDetails salesOrderDetails:salesOrderDetailsList
+                    ) {
+                        Map<String,Object> parameters = new HashMap<>();
+                        parameters.put("skgCount",salesOrderDetails.getQuantity().multiply(new BigDecimal(-1)));
+                        //获取仓库列表
+                        List<Warehouse> warehouseList = warehouseService.selectWarehouseNameList();
+                        if(!(warehouseList.isEmpty())){
+                            for (Warehouse warehouse:warehouseList
+                            ) {
+                                if(warehouse.getWarehouseName().equals("商品仓库")){
+                                    parameters.put("warehouseId",warehouse.getWarehouseId());
+                                }
+                            }
+                        }
+                        parameters.put("skgType", Constants.MAP_KUCUN.get(Constants.KUCUN_SALES_OUTBOUND));
+                        parameters.put("gid",salesOrderDetails.getGoods().getGoodsId());
+                        parameters.put("skgDanJia",salesOrderDetails.getGoods().getAveragePrice());
+                        parameters.put("skgSerialNumber",salesOrder.getSalesOrderNumber());
+                        parameters.put("skgWanglaiDanwei",salesOrder.getCustomer().getCustomerName());
+                        parameters.put("changeType","1");
+                        stockKucunGoodsService.insertStockKucunGoods(parameters);
+                    }
+                }
+            }
+            response.setCode(HtCode.SUCCESS_UPDATE.getCode());
+            response.setMsg(HtCode.SUCCESS_UPDATE.getInfo());
+        } catch (Exception e) {
+            e.printStackTrace();
+            response.setCode(HtCode.FAIL_UPDATE.getCode());
+            response.setMsg(HtCode.FAIL_UPDATE.getInfo());
+            return response;
+        }
+        return response;
+    }*/
+
+    @ApiOperation(value = "导入销售订单", notes = "导入销售订单", tags = {"@郝腾"})
+    @RequestMapping(value = "/importSalesOrder", method = RequestMethod.POST)
+    @ResponseBody
+    public LayuiCommonResponse importSalesOrder(@ApiParam(value = "MultipartFile", required = true) MultipartFile file) {
+        LayuiCommonResponse response = new LayuiCommonResponse();
+        try {
+            String fileName = file.getOriginalFilename();
+            salesOrderService.importSalesOrder(fileName,file);
+            response.setCode(HtCode.SUCCESS_IMPORT.getCode());
+            response.setMsg(HtCode.SUCCESS_IMPORT.getInfo());
+        } catch (MyException e) {
+            e.printStackTrace();
+            response.setCode(HtCode.FAIL_IMPORT.getCode());
+            response.setMsg(e.getMessage());
+        }catch (Exception e) {
+            e.printStackTrace();
+            response.setCode(HtCode.FAIL_IMPORT.getCode());
+            response.setMsg(HtCode.FAIL_IMPORT.getInfo());
+        }
+        return response;
+    }
+
+    @ApiOperation(value = "导出销售订单详情", notes = "导出销售订单详情",tags = {"@郝腾"})
+    @ApiImplicitParam(name = "salesOrderDetailsListDtoList", value = "销售订单详情id集合", required = true, dataType = "String")
+    @RequestMapping(value = "/exportSalesOrderDetailsList", method = RequestMethod.GET)
+    @ResponseBody
+    public void exportSalesOrderDetailsList(HttpServletResponse response,String salesOrderDetailsListDtoList)
+            throws IOException {
+        JSONArray jsonArray = JSONArray.fromObject(salesOrderDetailsListDtoList);
+        //Java集合
+        List<SalesOrderDetailsListDto> salesOrderDetailsListDtoList1 = (List<SalesOrderDetailsListDto>) jsonArray.toCollection(jsonArray, SalesOrderDetailsListDto.class);
+        List<ShipmentDetails>  shipmentDetailsList  =  salesOrderDetailsService.updateSaleOrderDetailsQuantity(salesOrderDetailsListDtoList1);
+        String fileName = DateUtil.getStringTodayMillisecond()  + ".xls";//设置要导出的文件的名字
+        response.setContentType("application/application/vnd.ms-excel");
+        response.setHeader("Content-disposition",
+                "attachment;filename=" + URLEncoder.encode(DateUtil.getStringTodayMillisecond() + ".xls", "UTF-8"));
+        ServletOutputStream out = response.getOutputStream();
+        HSSFWorkbook workbook = new HSSFWorkbook();
+        HSSFSheet sheet = workbook.createSheet();
+        HSSFRow row = sheet.createRow(0);
+        row.createCell(0).setCellValue("货柜信息");
+        row.createCell(1).setCellValue("部品CD");
+        row.createCell(2).setCellValue("製品品番");
+        row.createCell(3).setCellValue("批次");
+        row.createCell(4).setCellValue("何回便発送");
+        row.createCell(5).setCellValue("出荷予定数");
+        row.createCell(6).setCellValue("箱量");
+        ByteArrayOutputStream arrayInputStream = new ByteArrayOutputStream();
+        int index = 1;
+        try {
+            for (ShipmentDetails shipmentDetails : shipmentDetailsList) {
+                row = sheet.createRow(index);
+                row.createCell(0).setCellValue(shipmentDetails.getContainerInfo());
+                row.createCell(1).setCellValue(shipmentDetails.getGoods().getPartsCd());
+                row.createCell(2).setCellValue(shipmentDetails.getGoods().getGoodsName());
+                row.createCell(3).setCellValue(shipmentDetails.getLotNumber());
+                row.createCell(4).setCellValue(shipmentDetails.getReturnNumber());
+                row.createCell(5).setCellValue(String.valueOf(shipmentDetails.getOutQuantity()));
+                if(shipmentDetails.getBoxesNumber()!=null){
+                    row.createCell(6).setCellValue(shipmentDetails.getBoxesNumber());
+                }
+                index++;
+            }
+        } catch (Exception e) {
+            e.printStackTrace();
+        }
+        workbook.write(arrayInputStream);
+        byte[] bytes = arrayInputStream.toByteArray();
+        out.write(bytes);
+        out.close();
+    }
+
+
+}

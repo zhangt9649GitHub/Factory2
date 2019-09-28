@@ -1,0 +1,179 @@
+package com.mingyuansoftware.aifactory.model;
+
+import io.swagger.annotations.ApiModel;
+import io.swagger.annotations.ApiModelProperty;
+
+import java.io.Serializable;
+import java.math.BigDecimal;
+import java.util.ArrayList;
+import java.util.List;
+
+/**
+ * 商品
+ */
+@ApiModel(description = "郝腾")
+public class ProductionPlanningAnalysis implements Serializable {
+
+    private static final long serialVersionUID = 1L;
+
+    @ApiModelProperty(value = "排产单详情id", example = "1")
+    private Integer productionOrderDetailsId;
+
+    @ApiModelProperty(value = "货物id", example = "1")
+    private Integer goodsId;
+
+    @ApiModelProperty(value = "部品CD", example = "部品CD")
+    private String partsCd;
+
+    @ApiModelProperty(value = "商品名", example = "品名")
+    private String goodsName;
+
+    @ApiModelProperty(value = "月贩卖量", example = "1")
+    private BigDecimal monthlySalesVolume;
+
+    @ApiModelProperty(value = "商品在库量", example = "1")
+    private BigDecimal skgCount;
+
+    @ApiModelProperty(value = "总任务量  (之前所有的任务和)", example = "1")
+    private BigDecimal totalTaskAmount;
+
+    @ApiModelProperty(value = "剩余量 (所有未完成的任务量)", example = "1")
+    private BigDecimal remainingAmount;
+
+    @ApiModelProperty(value = "新增任务 (最新的一期任务的量)", example = "1")
+    private BigDecimal newTask;
+
+    @ApiModelProperty(value = "完成品集合", example = "finishedProductList")
+    private List<FinishedProduct> finishedProductList;
+
+    @ApiModelProperty(value = "成型品集合", example = "moldingProductionList")
+    private List<MoldingProduction> moldingProductionList;
+
+    @ApiModelProperty(value = "材料集合", example = "materialList")
+    private List<Material> materialList;
+
+    @ApiModelProperty(value = "最大集合名称", example = "maxListName")
+    private String maxListName;
+
+    public Integer getProductionOrderDetailsId() {
+        return productionOrderDetailsId;
+    }
+
+    public void setProductionOrderDetailsId(Integer productionOrderDetailsId) {
+        this.productionOrderDetailsId = productionOrderDetailsId;
+    }
+
+    public Integer getGoodsId() {
+        return goodsId;
+    }
+
+    public void setGoodsId(Integer goodsId) {
+        this.goodsId = goodsId;
+    }
+
+    public String getPartsCd() {
+        return partsCd;
+    }
+
+    public void setPartsCd(String partsCd) {
+        this.partsCd = partsCd;
+    }
+
+    public String getGoodsName() {
+        return goodsName;
+    }
+
+    public void setGoodsName(String goodsName) {
+        this.goodsName = goodsName;
+    }
+
+    public BigDecimal getMonthlySalesVolume() {
+        return monthlySalesVolume;
+    }
+
+    public void setMonthlySalesVolume(BigDecimal monthlySalesVolume) {
+        this.monthlySalesVolume = monthlySalesVolume;
+    }
+
+    public BigDecimal getSkgCount() {
+        return skgCount;
+    }
+
+    public void setSkgCount(BigDecimal skgCount) {
+        this.skgCount = skgCount;
+    }
+
+    public BigDecimal getTotalTaskAmount() {
+        return totalTaskAmount;
+    }
+
+    public void setTotalTaskAmount(BigDecimal totalTaskAmount) {
+        this.totalTaskAmount = totalTaskAmount;
+    }
+
+    public BigDecimal getRemainingAmount() {
+        return remainingAmount;
+    }
+
+    public void setRemainingAmount(BigDecimal remainingAmount) {
+        this.remainingAmount = remainingAmount;
+    }
+
+    public BigDecimal getNewTask() {
+        return newTask;
+    }
+
+    public void setNewTask(BigDecimal newTask) {
+        this.newTask = newTask;
+    }
+
+
+    public List<MoldingProduction> getMoldingProductionList() {
+        return moldingProductionList;
+    }
+
+    public void setMoldingProductionList(List<MoldingProduction> moldingProductionList) {
+        this.moldingProductionList = moldingProductionList;
+    }
+
+    public List<Material> getMaterialList() {
+        return materialList;
+    }
+
+    public void setMaterialList(List<Material> materialList) {
+        this.materialList = materialList;
+    }
+
+    public String getMaxListName() {
+        return maxListName;
+    }
+
+    public void setMaxListName(String maxListName) {
+        this.maxListName = maxListName;
+    }
+
+    public List<FinishedProduct> getFinishedProductList() {
+        return finishedProductList;
+    }
+
+    public void setFinishedProductList(List<FinishedProduct> finishedProductList) {
+        this.finishedProductList = finishedProductList;
+    }
+
+    @Override
+    public String toString() {
+        return "ProductionPlanningAnalysis{" +
+                "goodsId=" + goodsId +
+                ", partsCd='" + partsCd + '\'' +
+                ", goodsName='" + goodsName + '\'' +
+                ", monthlySalesVolume=" + monthlySalesVolume +
+                ", skgCount=" + skgCount +
+                ", totalTaskAmount=" + totalTaskAmount +
+                ", remainingAmount=" + remainingAmount +
+                ", newTask=" + newTask +
+                ", moldingProductionList=" + moldingProductionList +
+                ", materialList=" + materialList +
+                ", maxListName='" + maxListName + '\'' +
+                '}';
+    }
+}

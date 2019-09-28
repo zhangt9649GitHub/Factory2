@@ -1,0 +1,199 @@
+package com.mingyuansoftware.aifactory.controller;
+
+import com.github.pagehelper.PageHelper;
+import com.mingyuansoftware.aifactory.config.LogConfig;
+import com.mingyuansoftware.aifactory.enums.HtCode;
+import com.mingyuansoftware.aifactory.model.Payroll;
+import com.mingyuansoftware.aifactory.model.PayrollDetails;
+import com.mingyuansoftware.aifactory.model.Staff;
+import com.mingyuansoftware.aifactory.model.dto.PayrollDto;
+import com.mingyuansoftware.aifactory.pojo.LayuiCommonResponse;
+import com.mingyuansoftware.aifactory.service.LogService;
+import com.mingyuansoftware.aifactory.service.PayrollService;
+import com.mingyuansoftware.aifactory.util.BaseToString;
+import com.mingyuansoftware.aifactory.util.MyException;
+import io.swagger.annotations.*;
+import org.apache.shiro.SecurityUtils;
+import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.validation.annotation.Validated;
+import org.springframework.web.bind.annotation.*;
+import org.springframework.web.multipart.MultipartFile;
+
+import java.util.HashMap;
+import java.util.List;
+import java.util.Map;
+
+@Api(value = "Payroll", description = "工资单API", tags = {"工资单"})
+@RestController
+@RequestMapping("/payroll")
+public class PayrollController {
+
+    @Autowired
+    private PayrollService payrollService;
+    @Autowired
+    private LogService logService;
+
+    @ApiOperation(value = "获取工资单列表", notes = "获取工资单列表", tags = {"@郝腾"})
+    @ApiImplicitParams({
+            @ApiImplicitParam(name = "page", value = "第几页", paramType = "query", dataType = "int"),
+            @ApiImplicitParam(name = "limit", value = "每页容量", paramType = "query", dataType = "int"),
+            @ApiImplicitParam(name = "payrollDto", value = "工资单参数实体类", paramType = "query", dataType = "PayrollDto"),
+    })
+    @RequestMapping(value = "/getPayrollList", method = RequestMethod.GET)
+    @ResponseBody
+    public LayuiCommonResponse getPayrollList(@Validated @RequestParam(defaultValue = "1") int page,
+                                            @Validated @RequestParam(defaultValue = "10") int limit,
+                                            @Validated PayrollDto payrollDto) {
+        LayuiCommonResponse response = new LayuiCommonResponse();
+        try {
+            PageHelper.startPage(page, limit);
+            List<Payroll> payrollList = payrollService.selectPayrollList(payrollDto);
+            int count = payrollService.selectCountPayrollList(payrollDto);
+            response.setMsg(HtCode.SUCCESS_GET.getInfo());
+            response.setCode(HtCode.SUCCESS_GET.getCode());
+            response.setCount(count);
+            response.setData(payrollList);
+        } catch (Exception e) {
+            e.printStackTrace();
+            response.setCode(HtCode.FAIL_GET.getCode());
+            response.setMsg(HtCode.FAIL_GET.getInfo());
+        }
+        return response;
+    }
+
+    @ApiOperation(value = "导入工资单信息", notes = "导入Excel表格", tags = {"@郝腾"})
+    @RequestMapping(value = "/importExcel", method = RequestMethod.POST)
+    @ResponseBody
+    public LayuiCommonResponse importPayrollExcel(@ApiParam(value = "MultipartFile", required = true) MultipartFile file) {
+        LayuiCommonResponse response = new LayuiCommonResponse();
+        try {
+            String fileName = file.getOriginalFilename();
+            List<PayrollDetails> payrollDetailsList =payrollService.importPayrollExcel(fileName,file);
+            response.setCode(HtCode.SUCCESS_IMPORT.getCode());
+            response.setMsg(HtCode.SUCCESS_IMPORT.getInfo());
+            response.setData(payrollDetailsList);
+        } catch (MyException e) {
+            e.printStackTrace();
+            response.setCode(HtCode.FAIL_IMPORT.getCode());
+            response.setMsg(e.getMessage());
+        }catch (Exception e) {
+            e.printStackTrace();
+            response.setCode(HtCode.FAIL_IMPORT.getCode());
+            response.setMsg(HtCode.FAIL_IMPORT.getInfo());
+        }
+        return response;
+    }
+
+    @ApiOperation(value = "新增工资单", notes = "新增工资单", tags = {"@郝腾"})
+    @ApiImplicitParam(name = "payroll", value = "工资单实体类", required = true, dataType = "Payroll")
+    @RequestMapping(value = "/insertPayroll", method = RequestMethod.POST)
+    @ResponseBody
+    public LayuiCommonResponse insertPayroll(@RequestBody Payroll payroll) {
+        LayuiCommonResponse response = new LayuiCommonResponse();
+        try {
+            payrollService.insertPayroll(payroll);
+            response.setCode(HtCode.SUCCESS_ADD.getCode());
+            response.setMsg(HtCode.SUCCESS_ADD.getInfo());
+        } catch (Exception e) {
+            e.printStackTrace();
+            response.setCode(HtCode.FAIL_ADD.getCode());
+            response.setMsg(HtCode.FAIL_ADD.getInfo());
+            return response;
+        }
+        return response;
+    }
+
+    @ApiOperation(value = "删除工资单", notes = "删除工资单", tags = {"@郝腾"})
+    @ApiImplicitParam(name = "payrollId", value = "工资单id", required = true, dataType = "int", paramType = "query")
+    @RequestMapping(value = "/deletePayrollById", method = RequestMethod.POST)
+    @ResponseBody
+    public LayuiCommonResponse deletePayrollById(int payrollId) {
+        LayuiCommonResponse response = new LayuiCommonResponse();
+        try {
+            Payroll payroll = payrollService.selectPayrollById(payrollId);
+            if(payroll.getState()==2){
+                response.setCode(HtCode.FAIL_DELETE_STATE_AUDIT.getCode());
+                response.setMsg(HtCode.FAIL_DELETE_STATE_AUDIT.getInfo());
+                return response;
+            }
+            if(payroll.getState()==3){
+                response.setCode(HtCode.FAIL_DELETE_STATE_PAYMENT.getCode());
+                response.setMsg(HtCode.FAIL_DELETE_STATE_PAYMENT.getInfo());
+                return response;
+            }
+            payrollService.deletePayrollById(payrollId);
+            if(LogConfig.STATE){
+                String[] str= new String[]{payrollId+""};
+                Map<String, String[]> a_mMap= new HashMap<>();
+                a_mMap.put("payrollId",str);
+                String text = BaseToString.MapToString(a_mMap);
+                Staff staff =(Staff) SecurityUtils.getSubject().getSession().getAttribute("user");
+                int staffId = staff.getStaffId();
+                logService.saveLog(staffId,3,text);
+            }
+            response.setCode(HtCode.SUCCESS_DELETE.getCode());
+            response.setMsg(HtCode.SUCCESS_DELETE.getInfo());
+        } catch (Exception e) {
+            e.printStackTrace();
+            response.setCode(HtCode.FAIL_DELETE.getCode());
+            response.setMsg(HtCode.FAIL_DELETE.getInfo());
+            return response;
+        }
+        return response;
+    }
+
+    @ApiOperation(value = "查看工资单信息", notes = "查看工资单信息", tags = {"@郝腾"})
+    @ApiImplicitParam(name = "payrollId", value = "工资单id", required = true, dataType = "int", paramType = "query")
+    @RequestMapping(value = "/getPayrollById", method = RequestMethod.POST)
+    @ResponseBody
+    public LayuiCommonResponse getPayrollById(int payrollId) {
+        LayuiCommonResponse response = new LayuiCommonResponse();
+        try {
+            Payroll payroll = payrollService.selectPayrollById(payrollId);
+            response.setMsg(HtCode.SUCCESS_GET.getInfo());
+            response.setCode(HtCode.SUCCESS_GET.getCode());
+            response.setData(payroll);
+        } catch (Exception e) {
+            e.printStackTrace();
+            response.setCode(HtCode.FAIL_GET.getCode());
+            response.setMsg(HtCode.FAIL_GET.getInfo());
+        }
+        return response;
+    }
+
+    @ApiOperation(value = "更新工资单信息", notes = "更新工资单信息", tags = {"@郝腾"})
+    @ApiImplicitParam(name = "payroll", value = "工资单及详情", dataType = "Payroll")
+    @RequestMapping(value = "/updatePayrollInfo", method = RequestMethod.POST)
+    @ResponseBody
+    public LayuiCommonResponse updatePayrollInfo(@RequestBody Payroll payroll) {
+        LayuiCommonResponse response = new LayuiCommonResponse();
+        try {
+            Payroll payroll1 = payrollService.selectPayrollById(payroll.getPayrollId());
+            if(payroll1.getState()==2){
+                response.setCode(HtCode.FAIL_UPDATE_STATE_AUDIT.getCode());
+                response.setMsg(HtCode.FAIL_UPDATE_STATE_AUDIT.getInfo());
+                return response;
+            }
+            if(payroll1.getState()==3){
+                response.setCode(HtCode.FAIL_UPDATE_STATE_PAYMENT.getCode());
+                response.setMsg(HtCode.FAIL_UPDATE_STATE_PAYMENT.getInfo());
+                return response;
+            }
+            payrollService.updatePayrollInfo(payroll);
+            if(LogConfig.STATE){
+                String text = BaseToString.BaseEntityToString(payroll);
+                Staff staff =(Staff) SecurityUtils.getSubject().getSession().getAttribute("user");
+                int staffId = staff.getStaffId();
+                logService.saveLog(staffId,2,text);
+            }
+            response.setCode(HtCode.SUCCESS_UPDATE.getCode());
+            response.setMsg(HtCode.SUCCESS_UPDATE.getInfo());
+        } catch (Exception e) {
+            e.printStackTrace();
+            response.setCode(HtCode.FAIL_UPDATE.getCode());
+            response.setMsg(HtCode.FAIL_UPDATE.getInfo());
+            return response;
+        }
+        return response;
+    }
+}

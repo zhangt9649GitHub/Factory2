@@ -1,0 +1,136 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="com.mingyuansoftware.aifactory.mapper.PayrollMapper">
+  <resultMap id="BaseResultMap" type="com.mingyuansoftware.aifactory.model.Payroll">
+    <id column="payroll_id" jdbcType="INTEGER" property="payrollId" />
+    <result column="payroll_number" jdbcType="VARCHAR" property="payrollNumber" />
+    <result column="add_time" jdbcType="DATE" property="addTime" />
+    <result column="staff_id" jdbcType="INTEGER" property="staffId" />
+    <result column="start_time" jdbcType="DATE" property="startTime" />
+    <result column="end_time" jdbcType="DATE" property="endTime" />
+    <result column="state" jdbcType="TINYINT" property="state" />
+    <result column="payment_time" jdbcType="TIMESTAMP" property="paymentTime" />
+    <result column="is_delete" jdbcType="TINYINT" property="isDelete" />
+    <result column="name" jdbcType="VARCHAR" property="name" />
+    <result column="total_wages" property="totalWages" jdbcType="DECIMAL" />
+    <association column="staff_id" property="staff"
+                 select="com.mingyuansoftware.aifactory.mapper.StaffMapper.selectByPrimaryKey"></association>
+  </resultMap>
+  <delete id="deleteByPrimaryKey" parameterType="java.lang.Integer">
+    delete from payroll
+    where payroll_id = #{payrollId,jdbcType=INTEGER}
+  </delete>
+  <insert id="insert" parameterType="com.mingyuansoftware.aifactory.model.Payroll">
+    <selectKey keyProperty="payrollId" order="AFTER" resultType="java.lang.Integer">
+      SELECT LAST_INSERT_ID()
+    </selectKey>
+    insert into payroll (payroll_number, add_time, staff_id, 
+      start_time, end_time, `state`, 
+      payment_time, is_delete,total_wages)
+    values (#{payrollNumber,jdbcType=VARCHAR}, #{addTime,jdbcType=DATE}, #{staffId,jdbcType=INTEGER}, 
+      #{startTime,jdbcType=DATE}, #{endTime,jdbcType=DATE}, #{state,jdbcType=TINYINT},
+      #{paymentTime,jdbcType=TIMESTAMP}, #{isDelete,jdbcType=TINYINT},#{totalWages,jdbcType=DECIMAL})
+  </insert>
+  <update id="updateByPrimaryKey" parameterType="com.mingyuansoftware.aifactory.model.Payroll">
+    update payroll
+    set payroll_number = #{payrollNumber,jdbcType=VARCHAR},
+      add_time = #{addTime,jdbcType=DATE},
+      staff_id = #{staffId,jdbcType=INTEGER},
+      start_time = #{startTime,jdbcType=DATE},
+      end_time = #{endTime,jdbcType=DATE},
+      `state` = #{state,jdbcType=TINYINT},
+      payment_time = #{paymentTime,jdbcType=TIMESTAMP},
+      is_delete = #{isDelete,jdbcType=TINYINT},
+      total_wages = #{totalWages,jdbcType=DECIMAL}
+    where payroll_id = #{payrollId,jdbcType=INTEGER}
+  </update>
+  <select id="selectByPrimaryKey" parameterType="java.lang.Integer" resultMap="BaseResultMap">
+    select payroll_id, payroll_number, add_time, staff_id, start_time, end_time, `state`, 
+    payment_time, is_delete,total_wages
+    from payroll
+    where payroll_id = #{payrollId,jdbcType=INTEGER}
+  </select>
+  <select id="selectAll" resultMap="BaseResultMap">
+    select payroll_id, payroll_number, add_time, staff_id, start_time, end_time, `state`, 
+    payment_time, is_delete,total_wages
+    from payroll
+  </select>
+
+  <select id="selectPayrollList" resultMap="BaseResultMap">
+    select pr.payroll_id, pr.payroll_number, pr.add_time, pr.staff_id, pr.start_time, pr.end_time, pr.`state`,
+    pr.payment_time, pr.is_delete,sf.name,pr.total_wages
+    from payroll as pr
+    LEFT JOIN staff AS sf ON (pr.staff_id =sf.staff_id)
+    <where>
+      <if test="payrollDto.payrollNumber != null and payrollDto.payrollNumber != ''">
+        and pr.payroll_number like "%"#{payrollDto.payrollNumber}"%"
+      </if>
+      <if test="payrollDto.addTime != null and payrollDto.addTime != ''">
+        and pr.add_time like "%"#{payrollDto.addTime}"%"
+      </if>
+      <if test="payrollDto.name != null and payrollDto.name != ''">
+        and sf.name like "%"#{payrollDto.name}"%"
+      </if>
+      <if test="payrollDto.startTime != null and payrollDto.startTime  != ''">
+        and pr.start_time like "%"#{payrollDto.startTime}"%"
+      </if>
+      <if test="payrollDto.endTime != null and payrollDto.endTime  != ''">
+        and pr.end_time like "%"#{payrollDto.endTime}"%"
+      </if>
+      <if test="payrollDto.state != null and payrollDto.state != ''">
+        and pr.`state`  =  #{payrollDto.state}
+      </if>
+      <if test="payrollDto.paymentTime != null and payrollDto.paymentTime != ''">
+        and pr.payment_time like "%"#{payrollDto.paymentTime}"%"
+      </if>
+      and  pr.is_delete = 0
+    </where>
+    ORDER BY pr.payroll_id DESC
+  </select>
+
+  <select id="selectCountPayrollList" resultType="java.lang.Integer">
+    select count(pr.payroll_id)
+    from payroll as pr
+    LEFT JOIN staff AS sf ON (pr.staff_id =sf.staff_id)
+    <where>
+      <if test="payrollDto.payrollNumber != null and payrollDto.payrollNumber != ''">
+        and pr.payroll_number like "%"#{payrollDto.payrollNumber}"%"
+      </if>
+      <if test="payrollDto.addTime != null and payrollDto.addTime != ''">
+        and pr.add_time like "%"#{payrollDto.addTime}"%"
+      </if>
+      <if test="payrollDto.name != null and payrollDto.name != ''">
+        and sf.name like "%"#{payrollDto.name}"%"
+      </if>
+      <if test="payrollDto.startTime != null and payrollDto.startTime  != ''">
+        and pr.start_time like "%"#{payrollDto.startTime}"%"
+      </if>
+      <if test="payrollDto.endTime != null and payrollDto.endTime  != ''">
+        and pr.end_time like "%"#{payrollDto.endTime}"%"
+      </if>
+      <if test="payrollDto.state != null and payrollDto.state != ''">
+        and pr.`state`  =  #{payrollDto.state}
+      </if>
+      <if test="payrollDto.paymentTime != null and payrollDto.paymentTime != ''">
+        and pr.payment_time like "%"#{payrollDto.paymentTime}"%"
+      </if>
+      and  pr.is_delete = 0
+    </where>
+    ORDER BY pr.payroll_id DESC
+  </select>
+
+  <update id="updatePayrollById">
+    update payroll
+    set
+      is_delete = 1
+    where payroll_id = #{payrollId,jdbcType=INTEGER}
+  </update>
+  <update id="updateStateById">
+    update payroll
+    set
+      `state` = #{state,jdbcType=TINYINT},
+      payment_time = now()
+    where payroll_id = #{associatedDocumentId,jdbcType=INTEGER}
+  </update>
+
+</mapper>

@@ -1,0 +1,16 @@
+
+.zq-search-form .zq-search-fixed .item{
+	width: 120px;
+}
+.zq-search-form .zq-search-fixed .item.checkbox,
+.zq-search-form .search .item.checkbox{
+	width: 30px;
+	flex: unset;
+}
+.zq-search-form .search .item.tjStock,
+.zq-search-form .search .item.field1{
+	width: 180px;
+	flex: unset;
+}
+
+

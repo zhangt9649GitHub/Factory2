@@ -1,0 +1,13 @@
+.layui-table-fixed.layui-table-fixed-r{
+	z-index: 1001;
+}
+
+.zq-search-fixed.right{
+	right: -1px;
+	left: unset;
+}
+.zq-search-fixed.right .item,
+.zq-search.search .item:last-child{
+	flex: unset;
+	width: 120px;
+}

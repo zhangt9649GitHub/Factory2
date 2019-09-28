@@ -1,0 +1,173 @@
+package com.mingyuansoftware.aifactory.service;
+
+import com.mingyuansoftware.aifactory.model.*;
+import com.mingyuansoftware.aifactory.model.dto.GoodsDto;
+import com.mingyuansoftware.aifactory.model.dto.InventoryWarningDto;
+import com.mingyuansoftware.aifactory.model.dto.PDAGoodsDto;
+import com.mingyuansoftware.aifactory.model.dto.TjGoodsKucunDto;
+import org.apache.ibatis.annotations.Param;
+import org.springframework.stereotype.Service;
+import org.springframework.validation.annotation.Validated;
+import org.springframework.web.multipart.MultipartFile;
+
+import java.util.List;
+import java.util.Map;
+
+@Service
+public interface GoodsService {
+
+    /**
+     * 获取货物列表
+     * @param goodsDto
+     * @return
+     */
+    List<Goods> selectGoodsList(GoodsDto goodsDto);
+
+    /**
+     * 获取货物列表总条数
+     * @param goodsDto
+     * @return
+     */
+    int selectCount(GoodsDto goodsDto);
+
+    /**
+     * 新增货物信息
+     * @param goods
+     */
+    void insertGoods(Goods goods);
+
+    /**
+     * 删除货物信息
+     * @param goodsId
+     */
+    void deleteGoodsById(Integer goodsId);
+
+    /**
+     * 根据货物id查询货物信息
+     * @param goodsId
+     * @return
+     */
+    Goods selectGoodsById(int goodsId);
+
+    /**
+     * 更新货物信息
+     * @param goods
+     */
+    void updateGoodsInfo(Goods goods);
+
+    /**
+     * 获取导出的货物列表信息
+     * @return
+     */
+    List<Goods> selectExportGoodsList();
+
+    /**
+     * 获取所有货物列表
+     * @return
+     */
+    List<KucunGoods> selectAllGoodsList(Integer goodsId,String partsCd);
+
+    /**
+     * 获取所有货物总条数
+     * @return
+     */
+    int selectAllGoodsCount(Integer goodsId,String partsCd);
+
+    /**
+     * 获取天津货物库存表
+     * @param tjGoodsKucunDto
+     * @return
+     */
+    List<TjGoodsKucunDto> selectTjGoodsKucunList(TjGoodsKucunDto tjGoodsKucunDto);
+
+    /**
+     * 获取天津货物库存表总条数
+     * @param tjGoodsKucunDto
+     * @return
+     */
+    int selectTjGoodsKucunCount(TjGoodsKucunDto tjGoodsKucunDto);
+
+    /**
+     * 获取库存预警列表
+     * @param inventoryWarningDto
+     * @return
+     */
+    List<InventoryWarningDto> selectInventoryWarningList(InventoryWarningDto inventoryWarningDto);
+
+    /**
+     * 获取库存预警列表总条数
+     * @param inventoryWarningDto
+     * @return
+     */
+    int selecInventoryWarningtCount(InventoryWarningDto inventoryWarningDto);
+
+    /**
+     * 获取排产货物列表
+     * @param partsCd
+     * @param goodsName
+     * @return
+     */
+    List<ProductionOrderGoods> selectProductionOrderGoodsList( String partsCd, String goodsName);
+
+    /**
+     * 获取排产货物列表总条目
+     * @param partsCd
+     * @param goodsName
+     * @return
+     */
+    int selectProductionOrderGoodsCount( String partsCd, String goodsName);
+
+    /**
+     * 导入货物文件
+     * @param file
+     */
+    void importGoods(MultipartFile file);
+
+    /**
+     * 获取天津库存表详情
+     * @return
+     */
+    TjKucunGoodsInfo selectTjGoodsKucunInfoById(int goodsId);
+
+    /**
+     * 根据货物编号获取货物信息
+     * @param goodsNumber
+     * @return
+     */
+    Goods selectGoodsInfoByGoodsNumber(String goodsNumber);
+
+    /**
+     * 更新货物信息
+     * @param pdaGoodsDto
+     */
+    void updateGoods(PDAGoodsDto pdaGoodsDto);
+
+
+    /**
+     * 修改货物的打印状态
+     * @param goodsId
+     * @param isPrint
+     */
+    void updateGoodsPrintByGoodsId(int goodsId,int isPrint,int printNumber);
+
+    /**
+     * 获取打印货物的信息
+     * @return
+     */
+    Goods selectGoodsPrint();
+
+    /**
+     * 根据供应商Id获取货物列表
+     * @param supplierId
+     * @return
+     */
+    List<Goods> selectGoodsListBySupplierId(int supplierId);
+
+    /**
+     * 获取材料需求清单
+     * @param materialRequirements
+     * @return
+     */
+    List<MaterialRequirements> selectMaterialRequirementList(MaterialRequirements materialRequirements);
+
+}

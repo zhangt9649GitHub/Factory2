@@ -1,0 +1,302 @@
+//货物管理
+$(document).ready(function() {
+	layui.use(['form', 'table', 'layer','upload'], function() {
+
+		var layer = layui.layer,
+			form = layui.form,
+			upload = layui.upload,
+			table = layui.table,
+			row;
+			
+		// 导入
+		upload.render({
+			elem: '#upload-file',
+			url: '/goods/importGoods',
+			method: 'post',
+			accept: 'file',
+			field: 'file', // 字段名
+			before: function(){
+				layer.load(1, {
+					shade: [0.5,'#fff'] //0.1透明度的白色背景
+				});
+			},
+			done: function(res){
+				layer.closeAll('loading'); //关闭加载层
+				if(res.code == 10014){
+					layer.msg(res.msg, {
+						icon: 1
+					});
+					layui.table.reload('idTest');
+				}else{
+					layer.msg(res.msg, {
+						icon: 2
+					});
+				}
+			},
+			error: function(){
+				layer.msg('上传失败',{icon:2})
+			}
+		
+		});
+
+		table.render({
+			elem: '#idTest',
+			height: 520,
+			page: true,
+			cellMinWidth: 140, // 定义所有常规单元格的最小宽度
+			url: '/goods/getGoodsList',
+			cols: [
+				[
+					{
+						field: 'partsCd',
+						title: '部品CD',
+						unresize: true,
+						templet: '#partsCd'
+					}, {
+						field: 'goodsName',
+						title: '品名',
+						unresize: true
+					}, {
+						field: 'variety',
+						title: '品种',
+						unresize: true
+					}, {
+						field: 'unit',
+						title: '单位',
+						unresize: true
+					}, {
+						field: 'specification',
+						title: '规格',
+						unresize: true
+					}, {
+						field: 'weight',
+						title: '重量',
+						unresize: true
+					}, {
+						field: 'unitPrice',
+						title: '日元单价',
+						unresize: true
+					}, {
+						field: 'aPrice',
+						title: 'a单价（进货价）',
+						unresize: true
+					}, {
+						field: 'bPrice',
+						title: 'b单价（加工价）',
+						unresize: true
+					}, {
+						field: 'sellingPrice',
+						title: '销售价格',
+						unresize: true
+					}, {
+						field: 'wholesalePrices',
+						title: '批发价格',
+						unresize: true
+					}, {
+						field: 'minimumStock',
+						title: '最低库存',
+						unresize: true
+					}, {
+						field: 'japanStock',
+						title: '日本侧库存',
+						unresize: true
+					}, {
+						field: 'tjStock',
+						title: '天津侧库存',
+						unresize: true
+					}
+
+				]
+			],
+			done: function(response){
+
+				row = '';
+				//初始化
+				$('.zq-search-form .search').css('margin-left',0);
+				$(".layui-table-body.layui-table-main").scrollLeft(0);
+
+				// 设置搜索滚动
+				$('.zq-search-form .search').width($('.layui-table-view .layui-table-header table').width());
+
+
+				// 监听查询滚动条的变化
+				$(".layui-table-body.layui-table-main").scroll(function() {
+					console.log();
+					$('.zq-search-form .search').css('margin-left',-($(this).scrollLeft()));
+				});
+
+			}
+		});
+
+
+		// 监听数据表格行单击事件
+
+		table.on('row(demo)', function(obj) {
+			//标注选中样式
+			// console.log(obj.data); //得到当前行数据
+			row = obj.data;
+			obj.tr.addClass('layui-table-click').siblings().removeClass('layui-table-click');
+		});
+
+
+		let exportField = {
+			partsCd: '',
+			goodsName: '',
+			variety: '',
+			unit: '',
+			specification: '',
+			weight: '',
+			unitPrice: '',
+			aPrice: '',
+			bPrice: '',
+			sellingPrice: '',
+			wholesalePrices: '',
+			minimumStock: '',
+			japanStock: '',
+			tjStock: ''
+		};
+		form.on('submit(*)', function(data){
+			//执行重载
+			table.reload('idTest', {
+				page: {
+					curr: 1 //重新从第 1 页开始
+				}
+				,where: {
+					partsCd: $.trim(data.field.partsCd),
+					goodsName: $.trim(data.field.goodsName),
+					variety: $.trim(data.field.variety),
+					unit: $.trim(data.field.unit),
+					specification: $.trim(data.field.specification),
+					weight: $.trim(data.field.weight),
+					unitPrice: $.trim(data.field.unitPrice),
+					aPrice: $.trim(data.field.aPrice),
+					bPrice: $.trim(data.field.bPrice),
+					sellingPrice:$.trim(data.field.sellingPrice),
+					wholesalePrices: $.trim(data.field.wholesalePrices),
+					minimumStock: $.trim(data.field.minimumStock),
+					japanStock: $.trim(data.field.japanStock),
+					tjStock: $.trim(data.field.tjStock)
+
+				}
+			});
+			exportField = data.field;
+			return false;
+		});
+
+		// 触发事件
+		var active = {
+			// 新增
+			add: function(that, href) {
+				if (href) {
+					// location.href = href;
+					zqIframeView('新增',href)
+				} else {
+					layer.msg('页面开发中')
+				}
+			},
+			// 编辑
+			edit: function(that, href) {
+		
+				if (row) {
+					if (href) {
+						// location.href = href;
+						let url = href + '?goodsId='+ row.goodsId;
+						zqIframeView('编辑',url)
+					} else {
+						layer.msg('页面开发中')
+					}
+				} else {
+					layer.msg('请选择一条数据')
+				}
+			},
+			// 查看
+			open: function(that, href){
+				if (row) {
+					if (href) {
+						// location.href = href;
+						zqIframeView('查看',href)
+					} else {
+						layer.msg('页面开发中')
+					}
+				} else {
+					layer.msg('请选择一条数据')
+				}
+			},
+			// 删除
+			delete: function() {
+				if (row) {
+					layer.confirm('您确定删除此货物吗?', {
+						icon: 3,
+						title: '提示'
+					}, function(index) {
+						var formdata = new FormData();
+						formdata.append('goodsId', parseInt(row.goodsId ));
+						axios.post('/goods/deleteGoodsById',formdata
+						).then(function (response) {
+							layer.close(index);
+							layer.msg(response.data.msg);
+							if(response.data.code == 10004){
+
+								layui.table.reload('idTest');
+								row = '';
+							}
+
+						});
+					});
+		
+				} else {
+					layer.msg('请选择一条数据')
+				}
+			},
+			// 导出
+			export: function(){
+				location.href= '/goods/exportGoodsList?partsCd='+$.trim(exportField.partsCd)+'&goodsName='+ $.trim(exportField.goodsName) +'&variety='+ $.trim(exportField.variety) +'&unit='+ $.trim(exportField.unit) +'&specification='+ $.trim(exportField.specification) +'&weight='+ $.trim(exportField.weight) +'&unitPrice='+ $.trim(exportField.unitPrice)+'&aPrice='+ $.trim(exportField.aPrice)+'&bPrice='+ $.trim(exportField.bPrice)+'&sellingPrice='+ $.trim(exportField.sellingPrice)+'&wholesalePrices='+ $.trim(exportField.wholesalePrices)+'&minimumStock='+ $.trim(exportField.minimumStock)+'&japanStock='+ $.trim(exportField.japanStock)+'&tjStock='+ $.trim(exportField.tjStock);
+			},
+			// 重置
+			reset: function () {
+				$('.zq-search-form button[type="reset"]').click();
+			},
+			// 打印
+			printing: function () {
+				if (row) {
+					layer.prompt(
+						{title: '输入打印张数，并确认', formType: 0}
+						,function(pass, index){
+							if($.trim(pass).length == 0 || isNaN($.trim(pass))){
+								layer.msg('请输入打印张数，并且只能输入数字');
+								return;
+							}
+
+							let field = {
+								goodsId: row.goodsId,
+								isPrint: 1,
+								printNumber: $.trim(pass)
+							};
+							axios.post('/pdaGoods/updateGoodsPrint',field)
+								.then(function (response) {
+									layer.close(index);
+									layer.msg(response.data.msg)
+									// if(response.data.code == 10040){
+									//
+									// }
+
+								})
+
+					});
+				} else {
+					layer.msg('请选择一条数据')
+				}
+			}
+		};
+		// 点击调用
+		$('body').on('click','.zq-active', function() {
+			var othis = $(this),
+				type = othis.data('type'),
+				href = othis.data('href');
+			active[type] ? active[type].call(this, othis, href) : '';
+		});
+
+
+	})
+
+});

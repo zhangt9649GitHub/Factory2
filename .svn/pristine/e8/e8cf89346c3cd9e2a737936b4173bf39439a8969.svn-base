@@ -1,0 +1,119 @@
+html,
+body {
+	width: 100%;
+	height: 100%;
+	/* background-color: #364150; */
+	background:  url(../../img/bg1.jpg) center;
+	background-size: cover;
+}
+
+.wrap {
+	width: 400px;
+	position: absolute;
+	left: 50%;
+	top: 50%;
+
+	background-color: #ffffff;
+	box-shadow: 0 0px 24px 0 rgba(0, 0, 0, 0.06), 0 1px 0px 0 rgba(0, 0, 0, 0.02);
+	border-radius: 5px;
+	box-sizing: border-box;
+
+	margin-left: -250px;
+	margin-top: -170px;
+}
+
+.wrap .content {
+	padding: 10px 30px 30px;
+	/* border-bottom: 1px solid #eee; */
+	/* margin-bottom: 30px; */
+	position: relative;
+	border-radius: 4px;
+	box-shadow: 0px 10px 40px rgba(0, 0, 0, 0.4), 0px 0px 80px rgba(0, 0, 0, 0.4);
+}
+
+.logo {
+	position: absolute;
+	top: -150px;
+	left: 0;
+	right: 0;
+}
+
+.form .error-prompt {
+	padding: 15px 10px;
+	background-color: #fbe1e3;
+	border: 1px solid #fbe1e3;
+	color: #e73d4a;
+}
+
+.form .error-prompt .layui-icon {
+	display: inline-block;
+	float: right;
+}
+
+.logo .title {
+	color: #fff;
+	text-align: center;
+	font-weight: 400;
+	font-size: 30px;
+	letter-spacing: 5px;
+}
+
+.form .title {
+	color: #fff;
+	text-align: center;
+	font-size: 28px;
+	font-weight: 400;
+	margin-bottom: 20px;
+	margin-top: 20px;
+	letter-spacing: 5px;
+}
+
+.form input {
+	background-color: #FFFFFF!important;
+	border: 1px solid #E3E3E3!important;
+	border-radius: 4px!important;
+	color: #565656!important;
+}
+
+.form input:hover {
+	background-color: #FFFFFF!important;
+	border: 1px solid #E3E3E3!important;
+	border-radius: 4px!important;
+	color: #565656!important;
+}
+.form input:focus {
+	background-color: #FFFFFF!important;
+	border: 1px solid #AAAAAA!important;
+	color: #333333!important;
+
+}
+.form input::-webkit-input-placeholder {
+	/* WebKit, Blink, Edge */
+	color: #C4A699;
+}
+
+.form input:-moz-placeholder {
+	/* Mozilla Firefox 4 to 18 */
+	color: #C4A699;
+}
+
+.form input::-moz-placeholder {
+	/* Mozilla Firefox 19+ */
+	color: #8290a3;
+}
+
+.form input:-ms-input-placeholder {
+	/* Internet Explorer 10-11 */
+	color: #8290a3;
+}
+
+.submit {
+	background-color: #71b6f9;
+	border-bottom: 2px solid #4fa4f8 !important;
+	width: 100%;
+	font-size: 18px;
+	letter-spacing: 5px;
+	height: 48px;
+	line-height: 48px;
+	margin-top: 30px;
+}

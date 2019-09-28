@@ -1,0 +1,126 @@
+package com.mingyuansoftware.aifactory.controller;
+
+import com.github.pagehelper.PageHelper;
+import com.mingyuansoftware.aifactory.enums.HtCode;
+import com.mingyuansoftware.aifactory.model.*;
+import com.mingyuansoftware.aifactory.pojo.CommonResponse;
+import com.mingyuansoftware.aifactory.service.SalesOrderDetailsService;
+import com.mingyuansoftware.aifactory.service.SalesOrderService;
+import com.mingyuansoftware.aifactory.service.ShipmentDetailsService;
+import com.mingyuansoftware.aifactory.service.ShipmentService;
+import io.swagger.annotations.Api;
+import io.swagger.annotations.ApiImplicitParam;
+import io.swagger.annotations.ApiImplicitParams;
+import io.swagger.annotations.ApiOperation;
+import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.validation.annotation.Validated;
+import org.springframework.web.bind.annotation.*;
+
+import java.util.List;
+
+@Api(value = "PDAOutboundGoods", description = "PDA商品出库API", tags = {"PDA商品出库"})
+@RestController
+@RequestMapping("/PdaOutboundGoods")
+public class PDAOutboundGoodsController {
+
+    @Autowired
+    private SalesOrderService salesOrderService;
+    @Autowired
+    private SalesOrderDetailsService salesOrderDetailsService;
+    @Autowired
+    private ShipmentService shipmentService;
+    @Autowired
+    private ShipmentDetailsService shipmentDetailsService;
+
+    @ApiOperation(value = "获取商品出库任务列表", notes = "获取商品出库任务列表", tags = {"@郝腾"})
+    @ApiImplicitParams({
+            @ApiImplicitParam(name = "page", value = "第几页", paramType = "query", dataType = "int"),
+            @ApiImplicitParam(name = "limit", value = "每页容量", paramType = "query", dataType = "int")
+    })
+    @RequestMapping(value = "/getPdaOutboundGoodsTaskList", method = RequestMethod.GET)
+    @ResponseBody
+    public CommonResponse getPdaOutboundGoodsTaskList(@Validated @RequestParam(defaultValue = "1") int page,
+                                            @Validated @RequestParam(defaultValue = "10") int limit) {
+        CommonResponse response = new CommonResponse();
+        try {
+            PageHelper.startPage(page, limit);
+           // List<PdaOutBoundGoodsTask>  pdaOutBoundGoodsTasks =salesOrderService.selectPdaOutboundGoodsTaskList();
+            List<PdaOutBoundGoodsTask>  pdaOutBoundGoodsTasks = shipmentService.selectPdaOutboundGoodsTaskList();
+            response.setMessage(HtCode.SUCCESS_GET.getInfo());
+            response.setCode(HtCode.SUCCESS_GET.getCode());
+             response.setData(pdaOutBoundGoodsTasks);
+        } catch (Exception e) {
+            e.printStackTrace();
+            response.setCode(HtCode.FAIL_GET.getCode());
+            response.setMessage(HtCode.FAIL_GET.getInfo());
+        }
+        return response;
+    }
+
+
+    @ApiOperation(value = "获取商品出库货物列表", notes = "获取商品出库货物列表", tags = {"@郝腾"})
+    @ApiImplicitParams({
+            @ApiImplicitParam(name = "page", value = "第几页", paramType = "query", dataType = "int"),
+            @ApiImplicitParam(name = "limit", value = "每页容量", paramType = "query", dataType = "int"),
+            @ApiImplicitParam(name = "shipmentId", value = "出货单id", required = true, dataType = "int", paramType = "query")
+    })
+    @RequestMapping(value = "/getPdaOutboundGoodsList", method = RequestMethod.GET)
+    @ResponseBody
+    public CommonResponse getPdaOutboundGoodsList(@Validated @RequestParam(defaultValue = "1") int page,
+                                                 @Validated @RequestParam(defaultValue = "10") int limit,
+                                                 @Validated int shipmentId) {
+        CommonResponse response = new CommonResponse();
+        try {
+            PageHelper.startPage(page, limit);
+            List<PDAOutboundGoods> pdaOutboundGoodsList  =shipmentDetailsService.selectPdaOutboundGoodsList(shipmentId);
+            response.setMessage(HtCode.SUCCESS_GET.getInfo());
+            response.setCode(HtCode.SUCCESS_GET.getCode());
+            response.setData(pdaOutboundGoodsList);
+        } catch (Exception e) {
+            e.printStackTrace();
+            response.setCode(HtCode.FAIL_GET.getCode());
+            response.setMessage(HtCode.FAIL_GET.getInfo());
+        }
+        return response;
+    }
+
+    @ApiOperation(value = "获取商品出库货物的数量和箱数", notes = "获取商品出库货物的数量和箱数", tags = {"@郝腾"})
+    @ApiImplicitParams({
+            @ApiImplicitParam(name = "goodsId", value = "货物id",  required = true,paramType = "query", dataType = "int"),
+            @ApiImplicitParam(name = "shipmentId", value = "出货单id", required = true, dataType = "int", paramType = "query")
+    })
+    @RequestMapping(value = "/getPdaOutboundGoodsCount", method = RequestMethod.POST)
+    @ResponseBody
+    public CommonResponse getPdaOutboundGoodsCount(@Validated int goodsId,@Validated int shipmentId) {
+        CommonResponse response = new CommonResponse();
+        try {
+            ShipmentDetails shipmentDetails  =shipmentDetailsService.selectPdaOutboundGoodsCount(goodsId,shipmentId);
+            response.setMessage(HtCode.SUCCESS_GET.getInfo());
+            response.setCode(HtCode.SUCCESS_GET.getCode());
+            response.setData(shipmentDetails);
+        } catch (Exception e) {
+            e.printStackTrace();
+            response.setCode(HtCode.FAIL_GET.getCode());
+            response.setMessage(HtCode.FAIL_GET.getInfo());
+        }
+        return response;
+    }
+
+    @ApiOperation(value = "保存提交", notes = "保存提交", tags = {"@郝腾"})
+    @ApiImplicitParam(name = "shipmentDetailsId", value = "出货单详情id", required = true, dataType = "int", paramType = "query")
+    @RequestMapping(value = "/updateShipmentStatus", method = RequestMethod.POST)
+    @ResponseBody
+    public CommonResponse updateShipmentStatus(int shipmentDetailsId) {
+        CommonResponse response = new CommonResponse();
+        try {
+            shipmentDetailsService.updateShipmentStatus(shipmentDetailsId);
+            response.setMessage(HtCode.SUCCESS_SAVE.getInfo());
+            response.setCode(HtCode.SUCCESS_SAVE.getCode());
+        } catch (Exception e) {
+            e.printStackTrace();
+            response.setCode(HtCode.FAIL_SAVE.getCode());
+            response.setMessage(HtCode.FAIL_SAVE.getInfo());
+        }
+        return response;
+    }
+}

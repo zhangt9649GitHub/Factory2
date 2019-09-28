@@ -1,0 +1,10 @@
+#Mybatis Generator configuration
+#dao类和实体类的位置
+project=src/main/java
+#mapper文件的位置
+resources=src/main/resources
+#根据数据库中的表生成对应的pojo类、**Mapper、**Mapper.xml
+jdbc_driver=com.mysql.jdbc.Driver
+jdbc_url=jdbc:mysql://rm-bp1i1x1kx2lhwyx01eo.mysql.rds.aliyuncs.com:3306/factory_dev_db?useUnicode=true&characterEncoding=utf8
+jdbc_user=factory
+jdbc_password=Factory123456

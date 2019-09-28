@@ -1,0 +1,109 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd" >
+<mapper namespace="com.mingyuansoftware.aifactory.mapper.StyleBookMapper" >
+  <resultMap id="BaseResultMap" type="com.mingyuansoftware.aifactory.model.StyleBook" >
+    <id column="style_book_id" property="styleBookId" jdbcType="INTEGER" />
+    <result column="style_book_number" property="styleBookNumber" jdbcType="VARCHAR" />
+    <result column="goods_name" property="goodsName" jdbcType="VARCHAR" />
+    <result column="staff_id" property="staffId" jdbcType="INTEGER" />
+    <result column="create_time" property="createTime" jdbcType="TIMESTAMP" />
+    <result column="update_time" property="updateTime" jdbcType="TIMESTAMP" />
+    <result column="date" property="date" jdbcType="TIMESTAMP" />
+    <result column="is_delete" property="isDelete" jdbcType="TINYINT" />
+    <result column="introduction" property="introduction" jdbcType="LONGVARCHAR" />
+  </resultMap>
+  <delete id="deleteByPrimaryKey" parameterType="java.lang.Integer" >
+    delete from style_book
+    where style_book_id = #{styleBookId,jdbcType=INTEGER}
+  </delete>
+  <insert id="insert" parameterType="com.mingyuansoftware.aifactory.model.StyleBook" >
+    <selectKey resultType="java.lang.Integer" keyProperty="styleBookId" order="AFTER" >
+      SELECT LAST_INSERT_ID()
+    </selectKey>
+    insert into style_book (style_book_number, goods_name, staff_id,
+      create_time, update_time, `date`,
+      is_delete, introduction)
+    values (#{styleBookNumber,jdbcType=VARCHAR}, #{goodsName,jdbcType=VARCHAR}, #{staffId,jdbcType=INTEGER},
+      #{createTime,jdbcType=TIMESTAMP}, #{updateTime,jdbcType=TIMESTAMP}, #{date,jdbcType=TIMESTAMP},
+      #{isDelete,jdbcType=TINYINT}, #{introduction,jdbcType=LONGVARCHAR})
+  </insert>
+  <update id="updateByPrimaryKey" parameterType="com.mingyuansoftware.aifactory.model.StyleBook" >
+    update style_book
+    set style_book_number = #{styleBookNumber,jdbcType=VARCHAR},
+      goods_name = #{goodsName,jdbcType=VARCHAR},
+      staff_id = #{staffId,jdbcType=INTEGER},
+      update_time = #{updateTime,jdbcType=TIMESTAMP},
+      `date` = #{date,jdbcType=TIMESTAMP},
+      is_delete = #{isDelete,jdbcType=TINYINT},
+      introduction = #{introduction,jdbcType=LONGVARCHAR}
+    where style_book_id = #{styleBookId,jdbcType=INTEGER}
+  </update>
+  <select id="selectByPrimaryKey" resultMap="BaseResultMap" parameterType="java.lang.Integer" >
+    select style_book_id, style_book_number, goods_name, staff_id, create_time, update_time, 
+    `date`, is_delete, introduction
+    from style_book
+    where style_book_id = #{styleBookId,jdbcType=INTEGER}
+  </select>
+  <select id="selectAll" resultMap="BaseResultMap" >
+    select style_book_id, style_book_number, goods_name, staff_id, create_time, update_time, 
+    `date`, is_delete, introduction
+    from style_book
+  </select>
+  <select id="selectStyleBookList" resultMap="BaseResultMap" parameterType="com.mingyuansoftware.aifactory.model.dto.StyleBookDto" >
+    select sb.style_book_id, sb.style_book_number, sb.goods_name, sf.staff_id,sf.`name`,
+           sb.create_time, sb.update_time,sb.`date`, sb.is_delete, sb.introduction
+    from style_book as sb
+	left join staff as sf on (sb.staff_id = sf.staff_id)
+    <where>
+      <if test=" styleBookDto.styleBookNumber != '' and styleBookDto.styleBookNumber != null">
+        and sb.style_book_number like "%"#{styleBookDto.styleBookNumber}"%"
+      </if>
+      <if test=" styleBookDto.goodsName != '' and styleBookDto.goodsName != null">
+        and sb.goods_name like "%"#{styleBookDto.goodsName}"%"
+      </if>
+      <if test=" styleBookDto.date != '' and styleBookDto.date != null">
+        and sb.`date` like "%"#{styleBookDto.date}"%"
+      </if>
+      <if test=" styleBookDto.staffName != '' and styleBookDto.staffName != null">
+        and sf.name like "%"#{styleBookDto.staffName}"%"
+      </if>
+      and sb.is_delete = 0
+    </where>
+	order by sb.style_book_id desc
+  </select>
+  <select id="selectCount" resultType="java.lang.Integer" parameterType="com.mingyuansoftware.aifactory.model.dto.StyleBookDto">
+    select count(sb.style_book_id)
+    from style_book as sb
+	left join staff as sf on (sb.staff_id = sf.staff_id)
+    <where>
+      <if test=" styleBookDto.styleBookNumber != '' and styleBookDto.styleBookNumber != null">
+        and sb.style_book_number like "%"#{styleBookDto.styleBookNumber}"%"
+      </if>
+      <if test=" styleBookDto.goodsName != '' and styleBookDto.goodsName != null">
+        and sb.goods_name like "%"#{styleBookDto.goodsName}"%"
+      </if>
+      <if test=" styleBookDto.date != '' and styleBookDto.date != null">
+        and sb.`date` like "%"#{styleBookDto.date}"%"
+      </if>
+      <if test=" styleBookDto.staffName != '' and styleBookDto.staffName != null">
+        and sf.name like "%"#{styleBookDto.staffName}"%"
+      </if>
+      and sb.is_delete = 0
+    </where>
+    order by sb.style_book_id desc
+  </select>
+  <update id="deleteStyleBookById" parameterType="java.lang.Integer">
+    update style_book
+    set
+    update_time = now(),
+    is_delete = 1
+    where style_book_id = #{styleBookId,jdbcType=INTEGER}
+  </update>
+  <select id="selectStyleBookById" resultType="java.lang.Integer" resultMap="BaseResultMap" >
+    select sb.style_book_id,sb.style_book_number,sb.goods_name,sf.staff_id,sf.`name`,
+    sb.introduction,sb.create_time,sb.update_time,sb.date,sb.is_delete
+    from style_book as sb
+    left join staff as sf on (sb.staff_id = sf.staff_id)
+    where sb.style_book_id = #{styleBookId,jdbcType=INTEGER}
+  </select>
+</mapper>

@@ -1,0 +1,112 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd" >
+<mapper namespace="com.mingyuansoftware.aifactory.mapper.BomFormMapper" >
+  <resultMap id="BaseResultMap" type="com.mingyuansoftware.aifactory.model.BomForm" >
+    <id column="bom_id" property="bomId" jdbcType="INTEGER" />
+    <result column="good_id" property="goodId" jdbcType="INTEGER" />
+    <result column="bom_number" property="bomNumber" jdbcType="VARCHAR" />
+    <result column="quantity" property="quantity" jdbcType="DECIMAL" />
+    <result column="create_time" property="createTime" jdbcType="TIMESTAMP" />
+    <result column="update_time" property="updateTime" jdbcType="TIMESTAMP" />
+    <result column="define_date" property="defineDate" jdbcType="DATE" />
+    <result column="comment" property="comment" jdbcType="VARCHAR" />
+  </resultMap>
+  <delete id="deleteByPrimaryKey" parameterType="java.lang.Integer" >
+    delete from bom_form
+    where bom_id = #{bomId,jdbcType=INTEGER}
+  </delete>
+  <insert id="insert" parameterType="com.mingyuansoftware.aifactory.model.BomForm" >
+    <selectKey resultType="java.lang.Integer" keyProperty="bomId" order="AFTER" >
+      SELECT LAST_INSERT_ID()
+    </selectKey>
+    insert into bom_form (good_id, bom_number, quantity, 
+      create_time, update_time, define_date, 
+      `comment`)
+    values (#{goodId,jdbcType=INTEGER}, #{bomNumber,jdbcType=VARCHAR}, #{quantity,jdbcType=DECIMAL},
+      now(), #{updateTime,jdbcType=TIMESTAMP}, now(),
+      #{comment,jdbcType=VARCHAR})
+  </insert>
+  <update id="updateByPrimaryKey" parameterType="com.mingyuansoftware.aifactory.model.BomForm" >
+    update bom_form
+    set good_id = #{goodId,jdbcType=INTEGER},
+      bom_number = #{bomNumber,jdbcType=VARCHAR},
+      quantity = #{quantity,jdbcType=DECIMAL},
+      create_time = #{createTime,jdbcType=TIMESTAMP},
+      update_time = #{updateTime,jdbcType=TIMESTAMP},
+      define_date = #{defineDate,jdbcType=DATE},
+      `comment` = #{comment,jdbcType=VARCHAR}
+    where bom_id = #{bomId,jdbcType=INTEGER}
+  </update>
+  <select id="selectByPrimaryKey" resultMap="BaseResultMap" parameterType="java.lang.Integer" >
+    select bom_id, good_id, bom_number, quantity, create_time, update_time, define_date, 
+    `comment`
+    from bom_form
+    where bom_id = #{bomId,jdbcType=INTEGER}
+  </select>
+  <select id="selectAll" resultMap="BaseResultMap" >
+    select bom_id, good_id, bom_number, quantity, create_time, update_time, define_date, 
+    `comment`
+    from bom_form
+  </select>
+  <select id="selectBomFormList" resultMap="BaseResultMap" parameterType="com.mingyuansoftware.aifactory.model.dto.BomFormDto">
+    select bf.bom_id, bf.good_id,g.parts_cd,g.goods_name, bf.bom_number, bf.quantity, bf.create_time, bf.update_time, bf.define_date,
+    bf.`comment`
+    from bom_form as bf
+	left join goods as g on (bf.good_id = g.goods_id)
+	<where>
+      <if test=" bomFormDto.partsCd != null and bomFormDto.partsCd != '' ">
+        and g.parts_cd like "%"#{bomFormDto.partsCd}"%"
+      </if>
+      <if test=" bomFormDto.goodsName != null and bomFormDto.goodsName != '' ">
+        and g.goods_name like "%"#{bomFormDto.goodsName}"%"
+      </if>
+      <if test=" bomFormDto.defineDate != null and bomFormDto.defineDate != '' ">
+        and bf.define_date like "%"#{bomFormDto.defineDate}"%"
+      </if>
+    </where>
+	order by bf.bom_id desc
+  </select>
+  <select id="selectCount" resultType="java.lang.Integer" parameterType="com.mingyuansoftware.aifactory.model.dto.BomFormDto">
+    select count(bf.bom_id)
+    from bom_form as bf
+	left join goods as g on (bf.good_id = g.goods_id)
+	<where>
+      <if test=" bomFormDto.partsCd != null and bomFormDto.partsCd != '' ">
+        and g.parts_cd like "%"#{bomFormDto.partsCd}"%"
+      </if>
+      <if test=" bomFormDto.goodsName != null and bomFormDto.goodsName != '' ">
+        and g.goods_name like "%"#{bomFormDto.goodsName}"%"
+      </if>
+      <if test=" bomFormDto.defineDate != null and bomFormDto.defineDate != '' ">
+        and bf.define_date like "%"#{bomFormDto.defineDate}"%"
+      </if>
+    </where>
+    order by bf.bom_id desc
+  </select>
+  <select id="selectBomFormById" parameterType="java.lang.Integer" resultType="com.mingyuansoftware.aifactory.model.BomForm">
+    select bf.bom_id,bf.bom_number,bf.create_time,bf.update_time,bf.define_date,
+    bf.good_id,g.parts_cd,g.goods_name,gv.cn_name as variety,g.specification,g.unit,
+    bf.quantity,bf.`comment`
+    from bom_form as bf
+    left join goods as g on (bf.good_id = g.goods_id)
+    left join goods_variety as gv on (g.variety_value = gv.variety_value)
+    where bf.bom_id = #{bomId}
+  </select>
+  <select id="selectLastId" resultType="java.lang.Integer">
+    select @@Identity
+  </select>
+  <!--<update id="updateBomFormById" parameterType="java.lang.Integer">
+    update bom_form
+    set
+    update_time = now(),
+    where bom_id = #{bomId,jdbcType=INTEGER}
+  </update>-->
+
+  <select id="selectBomFormByGoodsId" resultMap="BaseResultMap" >
+    select bom_id, good_id, bom_number, quantity, create_time, update_time, define_date,
+    `comment`
+    from bom_form
+    where good_id = #{goodsId}
+  </select>
+
+</mapper>

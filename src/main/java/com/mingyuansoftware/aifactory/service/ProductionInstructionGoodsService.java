@@ -1,0 +1,102 @@
+package com.mingyuansoftware.aifactory.service;
+
+import com.mingyuansoftware.aifactory.model.KucunGoods;
+import com.mingyuansoftware.aifactory.model.ProductionCosting;
+import com.mingyuansoftware.aifactory.model.ProductionInstructionGoods;
+import com.mingyuansoftware.aifactory.model.ProductionScheduleAnalysis;
+import com.mingyuansoftware.aifactory.model.dto.ProductionInstructionGoodsDto;
+import com.mingyuansoftware.aifactory.model.dto.ProductionScheduleAnalysisDto;
+import com.mingyuansoftware.aifactory.model.dto.ValueEstimationDto;
+import org.springframework.stereotype.Service;
+import org.springframework.web.multipart.MultipartFile;
+
+import java.util.List;
+
+@Service
+public interface ProductionInstructionGoodsService {
+
+    /**
+     * 根据生产指示书id查询详情
+     * @param productionInstructionId
+     * @return
+     */
+    List<ProductionInstructionGoods> getProductionInstructionDetailByPId(int productionInstructionId);
+
+    /**
+     * 获取生产指示数详细表
+     * @param productionInstructionGoodsDto
+     * @return
+     */
+    List<ProductionInstructionGoodsDto> selectProductionInstructionGoodsList(ProductionInstructionGoodsDto productionInstructionGoodsDto);
+
+    /**
+     * 获取生产指示数详细表总条数
+     * @param productionInstructionGoodsDto
+     * @return
+     */
+    int selectCountProductionInstructionGoods(ProductionInstructionGoodsDto productionInstructionGoodsDto);
+
+    /**
+     * 导入压缩包
+     * @param file
+     */
+    void importProductionInstructionZip(MultipartFile file);
+
+    /**
+     *
+     * @return
+     */
+    ProductionInstructionGoods selectProductionInstructionGoods(int productionInstructionId,int goodsId);
+
+    /**
+     * 获取在产产值估算列表
+     * @param valueEstimationDto
+     * @return
+     */
+    List<ValueEstimationDto> selectValueEstimationList(ValueEstimationDto valueEstimationDto);
+
+    /**
+     * 获取在产产值估算列表总数量
+     * @param valueEstimationDto
+     * @return
+     */
+    int selectValueEstimationCount(ValueEstimationDto valueEstimationDto);
+
+    /**
+     * 获取生产进度分析列表
+     * @param productionScheduleAnalysisDto
+     * @return
+     */
+    List<ProductionScheduleAnalysis> selectProductionScheduleAnalysisList(int page,int limit,ProductionScheduleAnalysisDto productionScheduleAnalysisDto);
+
+    /**
+     * 根据货物id查询生产进度分析详情
+     * @param goodsId
+     * @return
+     */
+    List<ProductionScheduleAnalysis> selectInfoByGoodsId(int page,int limit,int goodsId);
+
+    /**
+     * 获取生产成本计算列表
+     * @param productionCosting
+     * @return
+     */
+    List<ProductionCosting> selectProductionCostingList(ProductionCosting productionCosting);
+
+    /**
+     * 获取生产指示书完成的货物列表
+     * @param goodsId
+     * @param partsCd
+     * @return
+     */
+    List<KucunGoods> selectJPExportsGoodsList(Integer goodsId, String partsCd,String goodsName);
+
+    /**
+     * 获取生产指示书完成的货物列表总条数
+     * @param goodsId
+     * @param partsCd
+     * @return
+     */
+    int  selectJPExportsGoodsCount(Integer goodsId,String partsCd,String goodsName);
+
+}

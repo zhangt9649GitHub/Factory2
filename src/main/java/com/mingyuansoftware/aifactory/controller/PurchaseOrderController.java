@@ -1,0 +1,769 @@
+package com.mingyuansoftware.aifactory.controller;
+
+import com.github.pagehelper.PageHelper;
+import com.mingyuansoftware.aifactory.enums.ZtCode;
+import com.mingyuansoftware.aifactory.model.*;
+import com.mingyuansoftware.aifactory.model.dto.PurchaseOrderDetailsDto;
+import com.mingyuansoftware.aifactory.model.dto.PurchaseOrderDto;
+import com.mingyuansoftware.aifactory.pojo.LayuiCommonResponse;
+import com.mingyuansoftware.aifactory.service.BizDictionaryService;
+import com.mingyuansoftware.aifactory.service.PurchaseOrderService;
+import com.mingyuansoftware.aifactory.util.DateUtil;
+import io.swagger.annotations.*;
+import org.apache.poi.hssf.usermodel.HSSFRow;
+import org.apache.poi.hssf.usermodel.HSSFSheet;
+import org.apache.poi.hssf.usermodel.HSSFWorkbook;
+import org.apache.poi.ss.util.CellRangeAddress;
+import org.apache.shiro.authz.annotation.RequiresPermissions;
+import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.validation.annotation.Validated;
+import org.springframework.web.bind.annotation.*;
+import org.springframework.web.multipart.MultipartFile;
+
+import javax.servlet.ServletOutputStream;
+import javax.servlet.http.HttpServletResponse;
+import java.io.*;
+import java.math.BigDecimal;
+import java.net.URLEncoder;
+import java.util.*;
+
+/**
+ * @author 张婷
+ * @date 2019/7/13 17:41
+ */
+
+@Api(value = "PurchaseOrder", description = "采购订单API", tags = {"采购订单-采购订单列表"})
+@RestController
+@RequestMapping("/purchaseOrder")
+public class PurchaseOrderController {
+
+    @Autowired
+    private PurchaseOrderService purchaseOrderService;
+    @Autowired
+    private BizDictionaryService bizDictionaryService;
+
+    @ApiOperation(value = "采购订单列表", nickname = "/selectPurchaseOrderList", notes = "获取采购订单列表", tags = {"@张婷"})
+    @ApiImplicitParams({
+            @ApiImplicitParam(name = "page", value = "第几页", paramType = "query", dataType = "int"),
+            @ApiImplicitParam(name = "limit", value = "每页容量", paramType = "query", dataType = "int"),
+            @ApiImplicitParam(name = "purchaseOrderDto", value = "采购订单参数实体类", paramType = "query", dataType = "PurchaseOrderDto"),
+    })
+    @RequestMapping(value = "/getPurchaseOrderList", method = RequestMethod.GET)
+    @ResponseBody
+    @RequiresPermissions(value = {"getPurchaseOrderList"})
+    public LayuiCommonResponse getPurchaseOrderList(@Validated @RequestParam(defaultValue = "1") int page,
+                                                    @Validated @RequestParam(defaultValue = "10") int limit,
+                                                    @Validated PurchaseOrderDto purchaseOrderDto) {
+        LayuiCommonResponse response = new LayuiCommonResponse();
+        try {
+            PageHelper.startPage(page, limit);
+            List<PurchaseOrderDetailsDto> purchaseOrderList = purchaseOrderService.selectPurchaseOrderList(purchaseOrderDto);
+            for (PurchaseOrderDetailsDto purchaseOrderDetailsDto : purchaseOrderList) {
+                if (purchaseOrderDetailsDto.getDiscountAmount() == null) {
+                    purchaseOrderDetailsDto.setDiscountAmount(BigDecimal.ZERO);
+                }
+                if (purchaseOrderDetailsDto.getActuallyPaidAmount() == null) {
+                    purchaseOrderDetailsDto.setActuallyPaidAmount(BigDecimal.ZERO);
+                }
+                if (purchaseOrderDetailsDto.getFileAttachment() == null) {
+                    purchaseOrderDetailsDto.setFileAttachment("0");
+                }
+            }
+            int count = purchaseOrderService.selectCount(purchaseOrderDto);
+            response.setCode(ZtCode.SUCCESS_GET.getCode());
+            response.setMsg(ZtCode.SUCCESS_GET.getInfo());
+            response.setCount(count);
+            response.setData(purchaseOrderList);
+        } catch (Exception e) {
+            e.printStackTrace();
+            response.setCode(ZtCode.FAIL_GET.getCode());
+            response.setMsg(ZtCode.FAIL_GET.getInfo());
+        }
+        return response;
+    }
+
+    @ApiOperation(value = "采购订单货物列表(新增使用)", nickname = "/getPurchaseOrderGoodsInsert", notes = "供应商id", tags = {"@张婷"})
+    @ApiImplicitParams({
+            @ApiImplicitParam(name = "page", value = "第几页", paramType = "query", dataType = "int"),
+            @ApiImplicitParam(name = "limit", value = "每页容量", paramType = "query", dataType = "int"),
+            @ApiImplicitParam(name = "supplierId", value = "供应商id", paramType = "query", dataType = "Integer"),
+            @ApiImplicitParam(name = "partsCd", value = "部品CD", paramType = "query", dataType = "String"),
+            @ApiImplicitParam(name = "goodsName", value = "品名", paramType = "query", dataType = "String")
+    })
+    @RequestMapping(value = "/getPurchaseOrderGoodsInsert", method = RequestMethod.POST)
+    @ResponseBody
+    public LayuiCommonResponse getPurchaseOrderGoodsInsert(@Validated @RequestParam(defaultValue = "1") int page,
+                                                           @Validated @RequestParam(defaultValue = "10") int limit,
+                                                           @Validated Integer supplierId,@Validated String partsCd,@Validated String goodsName) {
+        LayuiCommonResponse response = new LayuiCommonResponse();
+        try {
+            PageHelper.startPage(page, limit);
+            List<PurchaseOrderDetails> purchaseOrderGoodsInsertList = purchaseOrderService.selectPurchaseOrderGoodsInsert(supplierId,partsCd,goodsName);
+            int count = purchaseOrderService.selectGoodsInsertCount(supplierId,partsCd,goodsName);
+            response.setCode(ZtCode.SUCCESS_GET.getCode());
+            response.setMsg(ZtCode.SUCCESS_GET.getInfo());
+            response.setCount(count);
+            response.setData(purchaseOrderGoodsInsertList);
+        } catch (Exception e) {
+            e.printStackTrace();
+            response.setCode(ZtCode.FAIL_GET.getCode());
+            response.setMsg(ZtCode.FAIL_GET.getInfo());
+        }
+        return response;
+    }
+
+    @ApiOperation(value = "新增采购订单", nickname = "/insertPurchaseOrder", notes = "添加采购订单", tags = {"@张婷"})
+    @ApiImplicitParam(name = "purchaseOrder", value = "采购订单实体类", required = true, dataType = "PurchaseOrder")
+    @RequestMapping(value = "/insertPurchaseOrder", method = RequestMethod.POST)
+    @ResponseBody
+    @RequiresPermissions(value = {"insertPurchaseOrder"})
+    public LayuiCommonResponse insertPurchaseOrder(@RequestBody PurchaseOrder purchaseOrder) {
+        LayuiCommonResponse response = new LayuiCommonResponse();
+        try {
+            int insertPurchaseOrder = purchaseOrderService.insertPurchaseOrder(purchaseOrder);
+            //登录验证
+            if (insertPurchaseOrder < 1) {
+                response.setCode(ZtCode.FAIL_ADD.getCode());
+                response.setMsg(ZtCode.FAIL_ADD.getInfo());
+                return response;
+            }
+            response.setCode(ZtCode.SUCCESS_ADD.getCode());
+            response.setMsg(ZtCode.SUCCESS_ADD.getInfo());
+        } catch (Exception e) {
+            e.printStackTrace();
+            response.setCode(ZtCode.FAIL_ADD.getCode());
+            response.setMsg(ZtCode.FAIL_ADD.getInfo());
+        }
+        return response;
+    }
+
+    @ApiOperation(value = "删除采购订单", nickname = "/deletePurchaseOrder", notes = "删除采购订单", tags = {"@张婷"})
+    @ApiImplicitParam(name = "purchaseOrderId", value = "采购订单id", required = true, dataType = "int", paramType = "query")
+    @RequestMapping(value = "/deletePurchaseOrder", method = RequestMethod.POST)
+    @ResponseBody
+    @RequiresPermissions(value = {"deletePurchaseOrder"})
+    public LayuiCommonResponse deletePurchaseOrder(int purchaseOrderId) {
+        LayuiCommonResponse response = new LayuiCommonResponse();
+        try {
+            int deletePurchaseOrder = purchaseOrderService.deletePurchaseOrder(purchaseOrderId);
+            //登录验证
+            if (deletePurchaseOrder < 1) {
+                response.setCode(ZtCode.FAIL_DELETE.getCode());
+                response.setMsg(ZtCode.FAIL_DELETE.getInfo());
+                return response;
+            }
+            response.setCode(ZtCode.SUCCESS_DELETE.getCode());
+            response.setMsg(ZtCode.SUCCESS_DELETE.getInfo());
+        } catch (Exception e) {
+            e.printStackTrace();
+            response.setCode(ZtCode.FAIL_DELETE.getCode());
+            response.setMsg(ZtCode.FAIL_DELETE.getInfo());
+        }
+        return response;
+    }
+
+    @ApiOperation(value = "查看采购订单", nickname = "/getPurchaseOrderById", notes = "通过采购订单id获取采购订单详情(编辑使用)", tags = {"@张婷"})
+    @ApiImplicitParam(name = "purchaseOrderId", value = "采购订单id", required = true, paramType = "query", dataType = "int")
+    @RequestMapping(value = "/getPurchaseOrderById", method = RequestMethod.POST)
+    @ResponseBody
+    public LayuiCommonResponse getPurchaseOrderById(int purchaseOrderId) {
+        LayuiCommonResponse response = new LayuiCommonResponse();
+        try {
+            PurchaseOrder purchaseOrder = purchaseOrderService.selectPurchaseOrderById(purchaseOrderId);
+            response.setCode(ZtCode.SUCCESS_GET.getCode());
+            response.setMsg(ZtCode.SUCCESS_GET.getInfo());
+            response.setData(purchaseOrder);
+        } catch (Exception e) {
+            e.printStackTrace();
+            response.setCode(ZtCode.FAIL_GET.getCode());
+            response.setMsg(ZtCode.FAIL_GET.getInfo());
+        }
+        return response;
+    }
+
+    @ApiOperation(value = "更新采购订单", nickname = "/updatePurchaseOrderInfo", notes = "更新采购订单", tags = {"@张婷"})
+    @ApiImplicitParam(name = "purchaseOrder", value = "采购订单实体类", dataType = "PurchaseOrder")
+    @RequestMapping(value = "/updatePurchaseOrderInfo", method = RequestMethod.POST)
+    @ResponseBody
+    @RequiresPermissions(value = {"updatePurchaseOrderInfo"})
+    public LayuiCommonResponse updatePurchaseOrderInfo(@RequestBody PurchaseOrder purchaseOrder) {
+        LayuiCommonResponse response = new LayuiCommonResponse();
+        try {
+            //如果入库状态为已入库,不能编辑
+            //如果付款状态为已付款,不能编辑
+            /*int selectLimit = purchaseOrderService.selectLimit(purchaseOrder);
+            if (selectLimit == 0) {
+                response.setCode(ZtCode.UNABLE_EDIT.getCode());
+                response.setMsg(ZtCode.UNABLE_EDIT.getInfo());
+                return response;
+            }*/
+            int updatePurchaseOrderInfo = purchaseOrderService.updatePurchaseOrderInfo(purchaseOrder);
+            //登录验证
+            if (updatePurchaseOrderInfo < 1) {
+                response.setCode(ZtCode.UNABLE_EDIT.getCode());
+                response.setMsg(ZtCode.UNABLE_EDIT.getInfo());
+                return response;
+            }
+            response.setCode(ZtCode.SUCCESS_EDIT.getCode());
+            response.setMsg(ZtCode.SUCCESS_EDIT.getInfo());
+        } catch (Exception e) {
+            e.printStackTrace();
+            response.setCode(ZtCode.FAIL_EDIT.getCode());
+            response.setMsg(ZtCode.FAIL_EDIT.getInfo());
+        }
+        return response;
+    }
+
+    @ApiOperation(value = "上传附件", nickname = "/uploadFileAttachment", notes = "编辑采购订单附件字段", tags = {"@张婷"})
+    @RequestMapping(value = "/uploadFileAttachment", method = RequestMethod.POST)
+    @ResponseBody
+    @RequiresPermissions(value = {"uploadFileAttachment"})
+    public LayuiCommonResponse uploadFileAttachment(@ApiParam(value = "MultipartFile", required = true) MultipartFile fileAttachment,
+                                                    @RequestParam int purchaseOrderId) {
+        LayuiCommonResponse response = new LayuiCommonResponse();
+        try {
+            //修改附件内容
+            UploadFileAttachment uploadFileAttachment = purchaseOrderService.updatePurchaseOrderById(fileAttachment, purchaseOrderId);
+            if(uploadFileAttachment == null){
+                response.setCode(ZtCode.FAIL_UPLOAD.getCode());
+                response.setMsg(ZtCode.FAIL_UPLOAD.getInfo());
+                return response;
+            }
+            response.setCode(ZtCode.SUCCESS_UPLOAD.getCode());
+            response.setMsg(ZtCode.SUCCESS_UPLOAD.getInfo());
+            response.setData(uploadFileAttachment);
+        } catch (Exception e) {
+            e.printStackTrace();
+            response.setCode(ZtCode.FAIL_UPLOAD.getCode());
+            response.setMsg(ZtCode.FAIL_UPLOAD.getInfo());
+        }
+        return response;
+    }
+
+    @ApiOperation(value = "查看附件", nickname = "/selectFileAttachment", notes = "下载附件(图片(jpg,jpeg,bmp,tiff)或者pdf)", tags = {"@张婷"})
+    @ApiImplicitParam(name = "purchaseOrderId", value = "采购订单id", required = true, paramType = "query", dataType = "int")
+    @RequestMapping(value = "/selectFileAttachment", method = RequestMethod.GET)
+    @ResponseBody
+    @RequiresPermissions(value = {"selectFileAttachment"})
+    public LayuiCommonResponse uploadFileAttachment(HttpServletResponse response, int purchaseOrderId)
+            throws IOException {
+        LayuiCommonResponse response1 = new LayuiCommonResponse();
+        FileInputStream is = null;
+        BufferedInputStream bs = null;
+        OutputStream os = null;
+        try {
+            PurchaseOrder purchaseOrder = null;
+            try {
+                purchaseOrder = purchaseOrderService.selectFileAttachment(purchaseOrderId);
+                String substring = purchaseOrder.getFileAttachment().substring(purchaseOrder.getFileAttachment().lastIndexOf("/") + 1);
+                System.out.println(substring);
+                String separator = File.separator;//用于区分window系统还是linux系统
+                File csvFile = null;
+                String str = "";
+                if ("\\".equals(separator)){
+                    //window下
+                    str = "D:/" + "importAttachment/" + purchaseOrder.getFileAttachment().substring(purchaseOrder.getFileAttachment().lastIndexOf("/")+1);
+                    System.out.println("window路径--" + str);
+                    str = str.replace("/","\\");
+                    System.out.println("window路径--" + str);
+                    csvFile = new File(str);
+                }
+                if ("/".equals(separator)){
+                    //linux下
+                    str = "/usr/local/csv/" + purchaseOrder.getFileAttachment().substring(purchaseOrder.getFileAttachment().lastIndexOf("/")+1);
+                    System.out.println("linux路径--" + str);
+                    str = str.replace("\\","/");
+                    System.out.println("linux路径--" + str);
+                    csvFile = new File(str);
+                }
+                File parent = csvFile.getParentFile();
+                if (parent != null && !parent.exists()) {
+                    parent.mkdirs();
+                }
+                csvFile.createNewFile();
+
+                String ext = purchaseOrder.getFileAttachment().substring(purchaseOrder.getFileAttachment().lastIndexOf(".") + 1);
+
+                if (ext == "pdf") {
+                    response.setContentType("application/pdf;charset=UTF-8");
+                } else if (ext == "jpeg") {
+                    response.setContentType("image/jpeg;charset=UTF-8");
+                } else if (ext == "bmp") {
+                    response.setContentType("image/bmp;charset=UTF-8");
+                } else if (ext == "tiff") {
+                    response.setContentType("image/tiff;charset=UTF-8");
+                }
+                response.setHeader("Content-Disposition","application/octet-stream");
+                response.setHeader("Content-Disposition", "attachment; filename=" + URLEncoder.encode("" + purchaseOrder.getFileAttachment().substring(purchaseOrder.getFileAttachment().lastIndexOf("/")+1), "UTF-8"));
+                response.setCharacterEncoding("UTF-8");
+
+                is = new FileInputStream(csvFile);
+                bs =new BufferedInputStream(is);
+                os = response.getOutputStream();
+                byte[] buffer = new byte[1024];
+                int len = 0;
+                while((len = bs.read(buffer)) != -1){
+                    os.write(buffer,0,len);
+                }
+            }finally {
+                try{
+                    if(is != null){
+                        is.close();
+                    }
+                    if( bs != null ){
+                        bs.close();
+                    }
+                    if( os != null){
+                        os.flush();
+                        os.close();
+                    }
+                }catch (IOException e){
+                    e.printStackTrace();
+                }
+            }
+            response1.setCode(ZtCode.SUCCESS_GET.getCode());
+            response1.setMsg(ZtCode.SUCCESS_GET.getInfo());
+            response1.setData(purchaseOrder);
+        } catch (Exception e) {
+            e.printStackTrace();
+            response1.setCode(ZtCode.FAIL_GET.getCode());
+            response1.setMsg(ZtCode.FAIL_GET.getInfo());
+        }
+        return response1;
+    }
+
+    @ApiOperation(value = "重置附件", nickname = "/editFileAttachment", notes = "编辑采购订单附件字段为null", tags = {"@张婷"})
+    @ApiImplicitParam(name = "purchaseOrderId", value = "采购订单id", required = true, paramType = "query", dataType = "int")
+    @RequestMapping(value = "/editFileAttachment", method = RequestMethod.POST)
+    @ResponseBody
+    @RequiresPermissions(value = {"editFileAttachment"})
+    public LayuiCommonResponse editFileAttachment(int purchaseOrderId) {
+        LayuiCommonResponse response = new LayuiCommonResponse();
+        try {
+            int editFileAttachment = purchaseOrderService.editFileAttachment(purchaseOrderId);
+            //登录验证
+            if (editFileAttachment < 1) {
+                response.setCode(ZtCode.SUCCESS_RESET.getCode());
+                response.setMsg(ZtCode.SUCCESS_RESET.getInfo());
+                return response;
+            }
+            response.setCode(ZtCode.FAIL_RESET.getCode());
+            response.setMsg(ZtCode.FAIL_RESET.getInfo());
+        } catch (Exception e) {
+            e.printStackTrace();
+            response.setCode(ZtCode.SUCCESS_RESET.getCode());
+            response.setMsg(ZtCode.SUCCESS_RESET.getInfo());
+        }
+        return response;
+    }
+
+    @ApiOperation(value = "判断采购订单确认合同", nickname = "/selectPurchaseOrderStatus", notes = "判断能否确认合同", tags = {"@张婷"})
+    @ApiImplicitParam(name = "purchaseOrderId", value = "采购订单id", required = true, dataType = "int", paramType = "query")
+    @RequestMapping(value = "/getPurchaseOrderStatus", method = RequestMethod.POST)
+    @ResponseBody
+    public LayuiCommonResponse getPurchaseOrderStatus(int purchaseOrderId) {
+        LayuiCommonResponse response = new LayuiCommonResponse();
+        try {
+            int purchaseOrderStatus = purchaseOrderService.selectPurchaseOrderStatus(purchaseOrderId);
+            //如果采购订单状态为(2)已确认,不能重复确认合同
+            if (purchaseOrderStatus == 2) {
+                response.setCode(ZtCode.UNABLE_AFFIRM.getCode());
+                response.setMsg(ZtCode.UNABLE_AFFIRM.getInfo());
+                return response;
+            }
+            response.setCode(ZtCode.CAN_AFFIRM.getCode());
+            response.setMsg(ZtCode.CAN_AFFIRM.getInfo());
+        } catch (Exception e) {
+            e.printStackTrace();
+            response.setCode(ZtCode.UNABLE_AFFIRM.getCode());
+            response.setMsg(ZtCode.UNABLE_AFFIRM.getInfo());
+        }
+        return response;
+    }
+
+    @ApiOperation(value = "采购订单确认合同", nickname = "/affirmationContract", notes = "编辑采购订单确认合同按钮", tags = {"@张婷"})
+    @ApiImplicitParam(name = "purchaseOrderId", value = "采购订单id", required = true, dataType = "int", paramType = "query")
+    @RequestMapping(value = "/affirmationContract", method = RequestMethod.POST)
+    @ResponseBody
+    public LayuiCommonResponse affirmationContract(int purchaseOrderId) {
+        LayuiCommonResponse response = new LayuiCommonResponse();
+        try {
+            //先根据采购订单Id查询订单状态
+            PurchaseOrder purchaseOrder = purchaseOrderService.selectPurchaseOrderById(purchaseOrderId);
+            if(purchaseOrder.getOrderStatus() == 2){     //如果订单状态为2.已确认
+                response.setCode(ZtCode.FAIL_SAVE_PO.getCode());
+                response.setMsg(ZtCode.FAIL_SAVE_PO.getInfo());
+                return response;
+            }
+            int affirmationContract = purchaseOrderService.affirmationContract(purchaseOrderId);
+            //登录验证
+            if (affirmationContract < 1) {
+                response.setCode(ZtCode.FAIL_EDIT.getCode());
+                response.setMsg(ZtCode.FAIL_EDIT.getInfo());
+                return response;
+            }
+            response.setCode(ZtCode.SUCCESS_EDIT.getCode());
+            response.setMsg(ZtCode.SUCCESS_EDIT.getInfo());
+        } catch (Exception e) {
+            e.printStackTrace();
+            response.setCode(ZtCode.FAIL_EDIT.getCode());
+            response.setMsg(ZtCode.FAIL_EDIT.getInfo());
+        }
+        return response;
+    }
+
+    @ApiOperation(value = "获取采购类型列表", nickname = "getPurchaseTypeList", notes = "获取采购类型列表", tags = {"@张婷"})
+    @RequestMapping(value = "/getPurchaseTypeList", method = RequestMethod.POST)
+    @ResponseBody
+    public LayuiCommonResponse getPurchaseTypeList() {
+        LayuiCommonResponse response = new LayuiCommonResponse();
+        try {
+            int parentId = 38;
+            List<Bizdictionary> bizdictionaryList = bizDictionaryService.selectListByParentId(parentId);
+            response.setMsg(ZtCode.SUCCESS_GET.getInfo());
+            response.setCode(ZtCode.SUCCESS_GET.getCode());
+            response.setData(bizdictionaryList);
+        } catch (Exception e) {
+            e.printStackTrace();
+            response.setCode(ZtCode.FAIL_GET.getCode());
+            response.setMsg(ZtCode.FAIL_GET.getInfo());
+        }
+        return response;
+    }
+
+    @ApiOperation(value = "获取销售订单", nickname = "/getSalesOrder", notes = "获取销售订单", tags = {"@张婷"})
+    @RequestMapping(value = "/getSalesOrder", method = RequestMethod.POST)
+    @ResponseBody
+    public LayuiCommonResponse getSalesOrder() {
+        LayuiCommonResponse response = new LayuiCommonResponse();
+        try {
+            List<SalesOrder> selectSalesOrder = purchaseOrderService.selectSalesOrder();
+            response.setCode(ZtCode.SUCCESS_GET.getCode());
+            response.setMsg(ZtCode.SUCCESS_GET.getInfo());
+            response.setData(selectSalesOrder);
+        } catch (Exception e) {
+            e.printStackTrace();
+            response.setCode(ZtCode.FAIL_GET.getCode());
+            response.setMsg(ZtCode.FAIL_GET.getInfo());
+        }
+        return response;
+    }
+
+    @ApiOperation(value = "导出采购订单列表", nickname = "/exportPurchaseOrderList", notes = "导出采购订单列表",tags = {"@张婷"})
+    @ApiImplicitParams({
+            @ApiImplicitParam(name = "purchaseOrderNumber", value = "采购订单编号", paramType = "query", dataType = "String"),
+            @ApiImplicitParam(name = "defineDate", value = "创建时间", paramType = "query", dataType = "String"),
+            @ApiImplicitParam(name = "name", value = "创建人", paramType = "query", dataType = "String"),
+            @ApiImplicitParam(name = "supplierName", value = "供应商", paramType = "query", dataType = "String"),
+            @ApiImplicitParam(name = "orderStatus", value = "订单状态", paramType = "query", dataType = "Byte"),
+            @ApiImplicitParam(name = "deliveryDate", value = "交货日期", paramType = "query", dataType = "String"),
+            @ApiImplicitParam(name = "storageTime", value = "入库时间", paramType = "query", dataType = "String"),
+            @ApiImplicitParam(name = "storageState", value = "入库状态", paramType = "query", dataType = "Byte"),
+            @ApiImplicitParam(name = "purchaseAmount", value = "采购金额", paramType = "query", dataType = "BigDecimal"),
+            @ApiImplicitParam(name = "discountAmount", value = "折扣金额", paramType = "query", dataType = "BigDecimal"),
+            @ApiImplicitParam(name = "actuallyPaidAmount", value = "实付金额", paramType = "query", dataType = "BigDecimal"),
+            @ApiImplicitParam(name = "pendingAmount", value = "待付金额", paramType = "query", dataType = "BigDecimal"),
+            @ApiImplicitParam(name = "paymentDate", value = "付款日期", paramType = "query", dataType = "String"),
+            @ApiImplicitParam(name = "paymentStatus", value = "付款状态", paramType = "query", dataType = "Byte"),
+            @ApiImplicitParam(name = "purchaseType", value = "采购类型", paramType = "query", dataType = "String"),
+            @ApiImplicitParam(name = "comment", value = "备注", paramType = "query", dataType = "String")
+    })
+    @RequestMapping(value = "/exportPurchaseOrderList", method = RequestMethod.GET)
+    @ResponseBody
+//    @RequiresPermissions(value = {"exportPurchaseOrderList"})
+    public void exportPurchaseOrderList(HttpServletResponse response,@Validated String purchaseOrderNumber, @Validated String defineDate,
+                                        @Validated String name, @Validated String supplierName, @Validated Byte orderStatus,
+                                        @Validated String deliveryDate, @Validated String storageTime, @Validated Byte storageState,
+                                        @Validated BigDecimal purchaseAmount, @Validated BigDecimal discountAmount, @Validated BigDecimal actuallyPaidAmount,
+                                        @Validated BigDecimal pendingAmount, @Validated String paymentDate, @Validated Byte paymentStatus,
+                                        @Validated String purchaseType, @Validated String comment)
+            throws IOException{
+        PurchaseOrderDto purchaseOrderDto = new PurchaseOrderDto();
+        purchaseOrderDto.setPurchaseOrderNumber(purchaseOrderNumber);
+        purchaseOrderDto.setDefineDate(defineDate);
+        purchaseOrderDto.setName(name);
+        purchaseOrderDto.setSupplierName(supplierName);
+        purchaseOrderDto.setOrderStatus(orderStatus);
+        purchaseOrderDto.setDeliveryDate(deliveryDate);
+        purchaseOrderDto.setStorageTime(storageTime);
+        purchaseOrderDto.setStorageState(storageState);
+        purchaseOrderDto.setPurchaseAmount(purchaseAmount);
+        purchaseOrderDto.setDiscountAmount(discountAmount);
+        purchaseOrderDto.setActuallyPaidAmount(actuallyPaidAmount);
+        purchaseOrderDto.setPendingAmount(pendingAmount);
+        purchaseOrderDto.setPaymentDate(paymentDate);
+        purchaseOrderDto.setPaymentStatus(paymentStatus);
+        purchaseOrderDto.setPurchaseType(purchaseType);
+        purchaseOrderDto.setComment(comment);
+        List<PurchaseOrderDetailsDto> purchaseOrderList = purchaseOrderService.selectPurchaseOrderList(purchaseOrderDto);
+        String fileName = DateUtil.getStringTodayMillisecond()  + ".xls";//设置要导出的文件的名字
+        response.setContentType("application/application/vnd.ms-excel");
+        response.setHeader("Content-disposition",
+                "attachment;filename=" + URLEncoder.encode(DateUtil.getStringTodayMillisecond() + ".xls", "UTF-8"));
+        ServletOutputStream out = response.getOutputStream();
+        HSSFWorkbook workbook = new HSSFWorkbook();
+        HSSFSheet sheet = workbook.createSheet();
+        HSSFRow row = sheet.createRow(0);
+        row.createCell(0).setCellValue("编号");
+        row.createCell(1).setCellValue("创建时间");
+        row.createCell(2).setCellValue("创建人");
+        row.createCell(3).setCellValue("供应商");
+        row.createCell(4).setCellValue("订单状态");
+        row.createCell(5).setCellValue("交货日期");
+        row.createCell(6).setCellValue("入库时间");
+        row.createCell(7).setCellValue("入库状态");
+        row.createCell(8).setCellValue("采购金额");
+        row.createCell(9).setCellValue("折扣金额");
+        row.createCell(10).setCellValue("实付金额");
+        row.createCell(11).setCellValue("待付金额");
+        row.createCell(12).setCellValue("付款日期");
+        row.createCell(13).setCellValue("付款状态");
+        row.createCell(14).setCellValue("采购类型");
+        row.createCell(15).setCellValue("备注");
+        ByteArrayOutputStream arrayInputStream = new ByteArrayOutputStream();
+        int index = 1;
+        try {
+            for (PurchaseOrderDetailsDto purchaseOrderDetailsDto : purchaseOrderList) {
+                row = sheet.createRow(index);
+                row.createCell(0).setCellValue(purchaseOrderDetailsDto.getPurchaseOrderNumber());
+                row.createCell(1).setCellValue(purchaseOrderDetailsDto.getDefineDate());
+                row.createCell(2).setCellValue(purchaseOrderDetailsDto.getName());
+                row.createCell(3).setCellValue(purchaseOrderDetailsDto.getSupplierName());
+//                row.createCell(4).setCellValue(purchaseOrderDetailsDto.getOrderStatus());
+                if(purchaseOrderDetailsDto.getOrderStatus()==1){
+                    row.createCell(4).setCellValue("未确认");
+                }else if(purchaseOrderDetailsDto.getOrderStatus()==2){
+                    row.createCell(4).setCellValue("已确认");
+                }
+                row.createCell(5).setCellValue(purchaseOrderDetailsDto.getDeliveryDate());
+                //如果入库时间不为空
+                if(purchaseOrderDetailsDto.getStorageTime() != null) {
+                    row.createCell(6).setCellValue(purchaseOrderDetailsDto.getStorageTime());
+                }
+                if(purchaseOrderDetailsDto.getStorageState()==1){
+                    row.createCell(7).setCellValue("未入库");
+                }else if(purchaseOrderDetailsDto.getStorageState()==2){
+                    row.createCell(7).setCellValue("部分入库");
+                }else if(purchaseOrderDetailsDto.getStorageState()==3){
+                    row.createCell(7).setCellValue("已入库");
+                }
+                row.createCell(8).setCellValue(String.valueOf(purchaseOrderDetailsDto.getPurchaseAmount()));
+                row.createCell(9).setCellValue(String.valueOf(purchaseOrderDetailsDto.getDiscountAmount()));
+                row.createCell(10).setCellValue(String.valueOf(purchaseOrderDetailsDto.getActuallyPaidAmount()));
+                row.createCell(11).setCellValue(String.valueOf(purchaseOrderDetailsDto.getPendingAmount()));
+                //如果付款时间不为空
+                if(purchaseOrderDetailsDto.getPaymentDate() != null) {
+                    row.createCell(12).setCellValue(purchaseOrderDetailsDto.getPaymentDate());
+                }
+                if(purchaseOrderDetailsDto.getPaymentStatus()==1){
+                    row.createCell(13).setCellValue("未付款");
+                }else if(purchaseOrderDetailsDto.getPaymentStatus()==2){
+                    row.createCell(13).setCellValue("部分付款");
+                }else if(purchaseOrderDetailsDto.getPaymentStatus()==3){
+                    row.createCell(13).setCellValue("已付款");
+                }
+                row.createCell(14).setCellValue(purchaseOrderDetailsDto.getPurchaseType());
+                row.createCell(15).setCellValue(purchaseOrderDetailsDto.getComment());
+                index++;
+            }
+        } catch (Exception e) {
+            e.printStackTrace();
+        }
+        workbook.write(arrayInputStream);
+        byte[] bytes = arrayInputStream.toByteArray();
+        out.write(bytes);
+        out.close();
+    }
+
+    @ApiOperation(value = "导出采购订单信息", nickname = "/exportPurchaseOrderDetails", notes = "导出采购订单信息", tags = {"@张婷"})
+    @ApiImplicitParam(name = "purchaseOrderId", value = "采购订单id", required = true, dataType = "int", paramType = "query")
+    @RequestMapping(value = "/exportPurchaseOrderDetails",method = RequestMethod.GET)
+    @ResponseBody
+    @RequiresPermissions(value = {"exportPurchaseOrderDetails"})
+    public void exportPurchaseApplyList(HttpServletResponse response, @Validated int purchaseOrderId)
+            throws IOException {
+        PurchaseOrder purchaseOrder = purchaseOrderService.selectPurchaseOrderById(purchaseOrderId);
+        List<PurchaseOrderDetails> purchaseOrderDetailsList = purchaseOrder.getPurchaseOrderDetailsList();
+        String fileName = DateUtil.getStringTodayMillisecond()  + ".xls";//设置要导出的文件的名字
+        response.setContentType("application/application/vnd.ms-excel");
+        response.setHeader("Content-disposition",
+                "attachment;filename=" + URLEncoder.encode(DateUtil.getStringTodayMillisecond() + ".xls", "UTF-8"));
+        ServletOutputStream out = response.getOutputStream();
+        HSSFWorkbook workbook = new HSSFWorkbook();
+        HSSFSheet sheet = workbook.createSheet();
+        HSSFRow row = sheet.createRow(0);  //第一行
+        row.createCell(0).setCellValue("编号:");
+        row.createCell(1).setCellValue(purchaseOrder.getPurchaseOrderNumber());
+        row.createCell(9).setCellValue("销售订单:");
+        row.createCell(10).setCellValue(purchaseOrder.getSalesOrderNumber());
+        row = sheet.createRow(1);  //第二行
+        row.createCell(0).setCellValue("日期:");
+        row.createCell(1).setCellValue(purchaseOrder.getDefineDate());
+        row.createCell(9).setCellValue("交货日期:");
+        row.createCell(10).setCellValue(purchaseOrder.getDeliveryDate());
+        row = sheet.createRow(2);  //第三行
+        row.createCell(0).setCellValue("供应商:");
+        row.createCell(1).setCellValue(purchaseOrder.getSupplierName());
+        row.createCell(9).setCellValue("采购类型:");
+        row.createCell(10).setCellValue(purchaseOrder.getPurchaseType());
+
+        row = sheet.createRow(3);  //第四行
+        row.createCell(0).setCellValue("部品CD");
+        row.createCell(1).setCellValue("品名");
+        row.createCell(2).setCellValue("单位");
+        row.createCell(3).setCellValue("数量");
+        row.createCell(4).setCellValue("已入库数量");
+        row.createCell(5).setCellValue("单价");
+        row.createCell(6).setCellValue("不含税金额");
+        row.createCell(7).setCellValue("税率");
+        row.createCell(8).setCellValue("税额");
+        row.createCell(9).setCellValue("含税金额");
+        row.createCell(10).setCellValue("财务金额");
+        ByteArrayOutputStream arrayInputStream = new ByteArrayOutputStream();
+        int index = 4;
+        try {
+            for (PurchaseOrderDetails purchaseOrderDetails:purchaseOrderDetailsList){
+                row = sheet.createRow(index);
+                if(purchaseOrderDetails.getGoods() != null){
+                    row.createCell(0).setCellValue(purchaseOrderDetails.getGoods().getPartsCd());
+                    row.createCell(1).setCellValue(purchaseOrderDetails.getGoods().getGoodsName());
+                    row.createCell(2).setCellValue(purchaseOrderDetails.getGoods().getUnit());
+                }
+                row.createCell(3).setCellValue(String.valueOf(purchaseOrderDetails.getQuantity()));
+                row.createCell(4).setCellValue(String.valueOf(purchaseOrderDetails.getInQuantity()));
+                row.createCell(5).setCellValue(String.valueOf(purchaseOrderDetails.getPurchasePrice()));
+                row.createCell(6).setCellValue(String.valueOf(purchaseOrderDetails.getExcludingTaxAmount()));
+                row.createCell(7).setCellValue(String.valueOf(purchaseOrderDetails.getTaxRate()));
+                row.createCell(8).setCellValue(String.valueOf(purchaseOrderDetails.getTax()));
+                row.createCell(9).setCellValue(String.valueOf(purchaseOrderDetails.getTaxIncludedAmount()));
+                row.createCell(10).setCellValue(String.valueOf(purchaseOrderDetails.getFinanceMoney()));
+                index++;
+            }
+            row = sheet.createRow(index);
+            row.createCell(0).setCellValue("合计(小写)");
+            row.createCell(9).setCellValue(String.valueOf(purchaseOrder.getPurchaseAmount()));
+            row.createCell(10).setCellValue(String.valueOf(purchaseOrder.getFinanceMoneySum()));
+            row = sheet.createRow(index+1);
+            row.createCell(0).setCellValue(purchaseOrder.getCapital());
+            CellRangeAddress callRangeAddress1 = new CellRangeAddress(index+1,index+1,0,10);//起始行,结束行,起始列,结束列
+            /*row.createCell(0).setCellValue("合计(大写)");
+            row.createCell(1).setCellValue(purchaseOrder.getCapital());*/
+            row = sheet.createRow(index+2);
+            row.createCell(0).setCellValue(purchaseOrder.getComment());
+            CellRangeAddress callRangeAddress2 = new CellRangeAddress(index+2,index+2,0,10);//起始行,结束行,起始列,结束列
+            sheet.addMergedRegion(callRangeAddress1);
+            sheet.addMergedRegion(callRangeAddress2);
+        } catch (Exception e) {
+            e.printStackTrace();
+        }
+        workbook.write(arrayInputStream);
+        byte[] bytes = arrayInputStream.toByteArray();
+        out.write(bytes);
+        out.close();
+    }
+
+    @ApiOperation(value = "更新财务金额", nickname = "/updatePurchaseOrderFinance", notes = "更新采购订单财务金额", tags = {"@张婷"})
+    @ApiImplicitParam(name = "purchaseOrder", value = "采购订单实体类", dataType = "PurchaseOrder")
+    @RequestMapping(value = "/updatePurchaseOrderFinance", method = RequestMethod.POST)
+    @ResponseBody
+//    @RequiresPermissions(value = {"updatePurchaseOrderFinance"})
+    public LayuiCommonResponse updatePurchaseOrderFinance(@RequestBody PurchaseOrder purchaseOrder) {
+        LayuiCommonResponse response = new LayuiCommonResponse();
+        try {
+            purchaseOrderService.updatePurchaseOrderFinance(purchaseOrder);
+            response.setCode(ZtCode.SUCCESS_EDIT.getCode());
+            response.setMsg(ZtCode.SUCCESS_EDIT.getInfo());
+        } catch (Exception e) {
+            e.printStackTrace();
+            response.setCode(ZtCode.FAIL_EDIT.getCode());
+            response.setMsg(ZtCode.FAIL_EDIT.getInfo());
+        }
+        return response;
+    }
+
+
+    /*
+    1. 添加
+    {
+      "capital": "capital",
+      "comment": "comment",
+      "defineDate": "2018-08-01",
+      "deliveryDate": "2018-08-01",
+      "purchaseAmount": 300,
+      "financeMoneySum": 101.22,
+      "purchaseOrderDetailsList": [
+     {
+       "goodsId":1,
+       "quantity":111.22,
+       "purchasePrice": 200,
+       "excludingTaxAmount":100,
+       "taxRate":100,
+       "tax":100,
+       "taxIncludedAmount":100,
+       "financeMoney":100
+     },{
+       "goodsId":2,
+       "quantity":222.22,
+       "purchasePrice": 200,
+       "excludingTaxAmount":200,
+       "taxRate":200,
+       "tax":200,
+       "taxIncludedAmount":200,
+       "financeMoney":200
+     }
+    ],
+      "purchaseOrderId": 1,
+      "purchaseOrderNumber": "11122222",
+      "purchaseType": "资材",
+      "salesOrderId": 1,
+      "staffId": 1,
+      "supplierId": 1
+    }
+    2. 更新数据
+    {
+      "capital": "大写金额",
+      "comment": "备注",
+      "defineDate": "2018-08-08",
+      "deliveryDate": "2018-08-18",
+      "fileAttachment": "fileAttachment",
+      "purchaseAmount": 13213132,
+      "financeMoneySum": 101.22,
+      "purchaseOrderDetailsList": [
+     {
+            "goodsId": 2,
+            "quantity": 100,
+            "purchasePrice": 222,
+            "excludingTaxAmount": 111,
+            "taxRate": 132,
+            "tax": 123,
+            "taxIncludedAmount": 12323,
+            "financeMoney": 123
+     }
+    ],
+      "purchaseOrderId": 11,
+      "purchaseType": "资材tj",
+      "salesOrderId": 1,
+      "staffId": 1,
+      "supplierId": 2
+    }
+    3. 上传附件
+    {
+      "fileAttachment": "88741841",
+      "purchaseOrderId": 1
+    }
+    4. 更新财务金额
+     {
+          "financeMoneySum": 101.22,
+          "purchaseOrderId": 1,
+          "purchaseOrderDetailsList": [
+         {
+                "purchaseOrderDetailsId": 1,
+                "financeMoney": 123
+         },{
+                "purchaseOrderDetailsId": 2,
+                "financeMoney": 456
+         }
+        ]
+    }
+     */
+}

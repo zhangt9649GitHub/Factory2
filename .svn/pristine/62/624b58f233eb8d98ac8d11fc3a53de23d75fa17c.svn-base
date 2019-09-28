@@ -1,0 +1,122 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd" >
+<mapper namespace="com.mingyuansoftware.aifactory.mapper.PayrollDetailsMapper" >
+  <resultMap id="BaseResultMap" type="com.mingyuansoftware.aifactory.model.PayrollDetails" >
+    <id column="payroll_details_id" property="payrollDetailsId" jdbcType="INTEGER" />
+    <result column="name" property="name" jdbcType="VARCHAR" />
+    <result column="operation_permit_no" property="operationPermitNo" jdbcType="VARCHAR" />
+    <result column="attendance_days" property="attendanceDays" jdbcType="REAL" />
+    <result column="insurance_company" property="insuranceCompany" jdbcType="VARCHAR" />
+    <result column="management_fee" property="managementFee" jdbcType="DECIMAL" />
+    <result column="basic_timing" property="basicTiming" jdbcType="DECIMAL" />
+    <result column="basic_wage" property="basicWage" jdbcType="DECIMAL" />
+    <result column="subsidy" property="subsidy" jdbcType="DECIMAL" />
+    <result column="pieces" property="pieces" jdbcType="INTEGER" />
+    <result column="bonus" property="bonus" jdbcType="DECIMAL" />
+    <result column="evaluation" property="evaluation" jdbcType="VARCHAR" />
+    <result column="post_allowance" property="postAllowance" jdbcType="DECIMAL" />
+    <result column="subtotal_wage" property="subtotalWage" jdbcType="DECIMAL" />
+    <result column="food_deduction" property="foodDeduction" jdbcType="DECIMAL" />
+    <result column="tj_factory_deduction" property="tjFactoryDeduction" jdbcType="DECIMAL" />
+    <result column="provident_fund_deduction" property="providentFundDeduction" jdbcType="DECIMAL" />
+    <result column="insurance_deduction" property="insuranceDeduction" jdbcType="DECIMAL" />
+    <result column="subtotal_deduction" property="subtotalDeduction" jdbcType="DECIMAL" />
+    <result column="deserve" property="deserve" jdbcType="DECIMAL" />
+    <result column="heating_fee" property="heatingFee" jdbcType="DECIMAL" />
+    <result column="personal_income_tax" property="personalIncomeTax" jdbcType="DECIMAL" />
+    <result column="realize" property="realize" jdbcType="DECIMAL" />
+    <result column="comment" property="comment" jdbcType="VARCHAR" />
+    <result column="staff_id" property="staffId" jdbcType="INTEGER" />
+    <result column="payroll_id" property="payrollId" jdbcType="INTEGER" />
+    <result column="withholding_insurance" property="withholdingInsurance" jdbcType="DECIMAL" />
+    <result column="accumulation_fund" property="accumulationFund" jdbcType="DECIMAL" />
+    <result column="subsidies" property="subsidies" jdbcType="DECIMAL" />
+  </resultMap>
+  <delete id="deleteByPrimaryKey" parameterType="java.lang.Integer" >
+    delete from payroll_details
+    where payroll_details_id = #{payrollDetailsId,jdbcType=INTEGER}
+  </delete>
+  <insert id="insert" parameterType="com.mingyuansoftware.aifactory.model.PayrollDetails" >
+    <selectKey resultType="java.lang.Integer" keyProperty="payrollDetailsId" order="AFTER" >
+      SELECT LAST_INSERT_ID()
+    </selectKey>
+    insert into payroll_details (`name`, operation_permit_no, attendance_days, 
+      `insurance_company`, management_fee,basic_timing, basic_wage,
+      subsidy, pieces, bonus, 
+      evaluation, post_allowance, subtotal_wage, 
+      food_deduction, tj_factory_deduction, provident_fund_deduction, 
+      insurance_deduction, subtotal_deduction, 
+      deserve, heating_fee, personal_income_tax, 
+      realize, `comment`, staff_id, 
+      payroll_id,withholding_insurance,accumulation_fund,subsidies)
+    values (#{name,jdbcType=VARCHAR}, #{operationPermitNo,jdbcType=VARCHAR}, #{attendanceDays,jdbcType=REAL}, 
+      #{insuranceCompany,jdbcType=VARCHAR}, #{managementFee,jdbcType=DECIMAL},#{basicTiming,jdbcType=DECIMAL},#{basicWage,jdbcType=DECIMAL},
+      #{subsidy,jdbcType=DECIMAL}, #{pieces,jdbcType=INTEGER}, #{bonus,jdbcType=DECIMAL}, 
+      #{evaluation,jdbcType=VARCHAR}, #{postAllowance,jdbcType=DECIMAL}, #{subtotalWage,jdbcType=DECIMAL}, 
+      #{foodDeduction,jdbcType=DECIMAL}, #{tjFactoryDeduction,jdbcType=DECIMAL}, #{providentFundDeduction,jdbcType=DECIMAL}, 
+      #{insuranceDeduction,jdbcType=DECIMAL}, #{subtotalDeduction,jdbcType=DECIMAL}, 
+      #{deserve,jdbcType=DECIMAL}, #{heatingFee,jdbcType=DECIMAL}, #{personalIncomeTax,jdbcType=DECIMAL}, 
+      #{realize,jdbcType=DECIMAL}, #{comment,jdbcType=VARCHAR}, #{staffId,jdbcType=INTEGER}, 
+      #{payrollId,jdbcType=INTEGER},#{withholdingInsurance,jdbcType=DECIMAL},#{accumulationFund,jdbcType=DECIMAL},#{subsidies,jdbcType=DECIMAL})
+  </insert>
+  <update id="updateByPrimaryKey" parameterType="com.mingyuansoftware.aifactory.model.PayrollDetails" >
+    update payroll_details
+    set `name` = #{name,jdbcType=VARCHAR},
+      operation_permit_no = #{operationPermitNo,jdbcType=VARCHAR},
+      attendance_days = #{attendanceDays,jdbcType=REAL},
+      `insurance_company` = #{insuranceCompany,jdbcType=VARCHAR},
+      management_fee = #{managementFee,jdbcType=DECIMAL},
+      basic_timing = #{basicTiming,jdbcType=DECIMAL},
+      basic_wage = #{basicWage,jdbcType=DECIMAL},
+      subsidy = #{subsidy,jdbcType=DECIMAL},
+      pieces = #{pieces,jdbcType=INTEGER},
+      bonus = #{bonus,jdbcType=DECIMAL},
+      evaluation = #{evaluation,jdbcType=VARCHAR},
+      post_allowance = #{postAllowance,jdbcType=DECIMAL},
+      subtotal_wage = #{subtotalWage,jdbcType=DECIMAL},
+      food_deduction = #{foodDeduction,jdbcType=DECIMAL},
+      tj_factory_deduction = #{tjFactoryDeduction,jdbcType=DECIMAL},
+      provident_fund_deduction = #{providentFundDeduction,jdbcType=DECIMAL},
+      insurance_deduction = #{insuranceDeduction,jdbcType=DECIMAL},
+      subtotal_deduction = #{subtotalDeduction,jdbcType=DECIMAL},
+      deserve = #{deserve,jdbcType=DECIMAL},
+      heating_fee = #{heatingFee,jdbcType=DECIMAL},
+      personal_income_tax = #{personalIncomeTax,jdbcType=DECIMAL},
+      realize = #{realize,jdbcType=DECIMAL},
+      `comment` = #{comment,jdbcType=VARCHAR},
+      staff_id = #{staffId,jdbcType=INTEGER},
+      payroll_id = #{payrollId,jdbcType=INTEGER},
+      withholding_insurance = #{withholdingInsurance,jdbcType=DECIMAL},
+      accumulation_fund = #{accumulationFund,jdbcType=DECIMAL},
+      subsidies = #{subsidies,jdbcType=DECIMAL}
+    where payroll_details_id = #{payrollDetailsId,jdbcType=INTEGER}
+  </update>
+  <select id="selectByPrimaryKey" resultMap="BaseResultMap" parameterType="java.lang.Integer" >
+    select payroll_details_id, `name`, operation_permit_no, attendance_days, `insurance_company`,
+    management_fee,basic_timing, basic_wage, subsidy, pieces, bonus, evaluation, post_allowance, subtotal_wage,
+    food_deduction, tj_factory_deduction, provident_fund_deduction, insurance_deduction, 
+    subtotal_deduction, deserve, heating_fee, personal_income_tax, realize, `comment`, 
+    staff_id, payroll_id,withholding_insurance,accumulation_fund,subsidies
+    from payroll_details
+    where payroll_details_id = #{payrollDetailsId,jdbcType=INTEGER}
+  </select>
+  <select id="selectAll" resultMap="BaseResultMap" >
+    select payroll_details_id, `name`, operation_permit_no, attendance_days, `insurance_company`,
+    management_fee, basic_timing, basic_wage, subsidy, pieces, bonus, evaluation, post_allowance, subtotal_wage,
+    food_deduction, tj_factory_deduction, provident_fund_deduction, insurance_deduction, 
+    subtotal_deduction, deserve, heating_fee, personal_income_tax, realize, `comment`, 
+    staff_id, payroll_id,withholding_insurance,accumulation_fund,subsidies
+    from payroll_details
+  </select>
+
+  <select id="selectPayrollDetailsListById" resultMap="BaseResultMap" >
+    select payroll_details_id, `name`, operation_permit_no, attendance_days, `insurance_company`,
+    management_fee, basic_timing, basic_wage, subsidy, pieces, bonus, evaluation, post_allowance, subtotal_wage,
+    food_deduction, tj_factory_deduction, provident_fund_deduction, insurance_deduction,
+    subtotal_deduction, deserve, heating_fee, personal_income_tax, realize, `comment`,
+    staff_id, payroll_id,withholding_insurance,accumulation_fund,subsidies
+    from payroll_details
+    where payroll_id = #{payrollId}
+  </select>
+
+</mapper>

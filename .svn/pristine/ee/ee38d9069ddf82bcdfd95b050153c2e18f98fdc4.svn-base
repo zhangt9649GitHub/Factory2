@@ -1,0 +1,187 @@
+package com.mingyuansoftware.aifactory.model.dto;
+
+import io.swagger.annotations.ApiModel;
+import io.swagger.annotations.ApiModelProperty;
+
+import java.io.Serializable;
+import java.math.BigDecimal;
+
+@ApiModel(description = "郝腾")
+public class GoodsDto implements Serializable {
+
+    private static final long serialVersionUID = 1L;
+
+    @ApiModelProperty(value = "部品CD", example = "部品CD")
+    private String partsCd;
+
+    @ApiModelProperty(value = "品名", example = "品名")
+    private String goodsName;
+
+    @ApiModelProperty(value = "品种", example = "品种")
+    private String variety;
+
+    @ApiModelProperty(value = "单位", example = "单位")
+    private String unit;
+
+    @ApiModelProperty(value = "规格", example = "规格")
+    private String specification;
+
+    @ApiModelProperty(value = "重量", example = "1")
+    private Float weight;
+
+    @ApiModelProperty(value = "日元单价", example = "1")
+    private BigDecimal unitPrice;
+
+    @ApiModelProperty(value = "a单价（进货价）", example = "1")
+    private BigDecimal aPrice;
+
+    @ApiModelProperty(value = "b单价（加工价）", example = "1")
+    private BigDecimal bPrice;
+
+    @ApiModelProperty(value = "销售价格", example = "1")
+    private BigDecimal sellingPrice;
+
+    @ApiModelProperty(value = "批发价格", example = "1")
+    private BigDecimal wholesalePrices;
+
+    @ApiModelProperty(value = "最低库存", example = "1")
+    private BigDecimal minimumStock;
+
+    @ApiModelProperty(value = "日本侧库存", example = "1")
+    private BigDecimal japanStock;
+
+    @ApiModelProperty(value = "天津侧库存", example = "1")
+    private BigDecimal tjStock;
+
+    public String getPartsCd() {
+        return partsCd;
+    }
+
+    public void setPartsCd(String partsCd) {
+        this.partsCd = partsCd;
+    }
+
+    public String getGoodsName() {
+        return goodsName;
+    }
+
+    public void setGoodsName(String goodsName) {
+        this.goodsName = goodsName;
+    }
+
+    public String getVariety() {
+        return variety;
+    }
+
+    public void setVariety(String variety) {
+        this.variety = variety;
+    }
+
+    public String getUnit() {
+        return unit;
+    }
+
+    public void setUnit(String unit) {
+        this.unit = unit;
+    }
+
+    public String getSpecification() {
+        return specification;
+    }
+
+    public void setSpecification(String specification) {
+        this.specification = specification;
+    }
+
+    public Float getWeight() {
+        return weight;
+    }
+
+    public void setWeight(Float weight) {
+        this.weight = weight;
+    }
+
+    public BigDecimal getUnitPrice() {
+        return unitPrice;
+    }
+
+    public void setUnitPrice(BigDecimal unitPrice) {
+        this.unitPrice = unitPrice;
+    }
+
+    public BigDecimal getaPrice() {
+        return aPrice;
+    }
+
+    public void setaPrice(BigDecimal aPrice) {
+        this.aPrice = aPrice;
+    }
+
+    public BigDecimal getbPrice() {
+        return bPrice;
+    }
+
+    public void setbPrice(BigDecimal bPrice) {
+        this.bPrice = bPrice;
+    }
+
+    public BigDecimal getSellingPrice() {
+        return sellingPrice;
+    }
+
+    public void setSellingPrice(BigDecimal sellingPrice) {
+        this.sellingPrice = sellingPrice;
+    }
+
+    public BigDecimal getWholesalePrices() {
+        return wholesalePrices;
+    }
+
+    public void setWholesalePrices(BigDecimal wholesalePrices) {
+        this.wholesalePrices = wholesalePrices;
+    }
+
+    public BigDecimal getMinimumStock() {
+        return minimumStock;
+    }
+
+    public void setMinimumStock(BigDecimal minimumStock) {
+        this.minimumStock = minimumStock;
+    }
+
+    public BigDecimal getJapanStock() {
+        return japanStock;
+    }
+
+    public void setJapanStock(BigDecimal japanStock) {
+        this.japanStock = japanStock;
+    }
+
+    public BigDecimal getTjStock() {
+        return tjStock;
+    }
+
+    public void setTjStock(BigDecimal tjStock) {
+        this.tjStock = tjStock;
+    }
+
+    @Override
+    public String toString() {
+        return "GoodsDto{" +
+                "partsCd='" + partsCd + '\'' +
+                ", goodsName='" + goodsName + '\'' +
+                ", variety='" + variety + '\'' +
+                ", unit='" + unit + '\'' +
+                ", specification='" + specification + '\'' +
+                ", weight=" + weight +
+                ", unitPrice=" + unitPrice +
+                ", aPrice=" + aPrice +
+                ", bPrice=" + bPrice +
+                ", sellingPrice=" + sellingPrice +
+                ", wholesalePrices=" + wholesalePrices +
+                ", minimumStock=" + minimumStock +
+                ", japanStock=" + japanStock +
+                ", tjStock=" + tjStock +
+                '}';
+    }
+}

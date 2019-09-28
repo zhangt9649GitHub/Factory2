@@ -1,0 +1,4 @@
+.zq-search .item.chuangjianshijian{
+	flex: unset;
+	width: 554px;
+}

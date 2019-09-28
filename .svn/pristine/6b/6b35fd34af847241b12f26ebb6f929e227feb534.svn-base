@@ -1,0 +1,86 @@
+package com.mingyuansoftware.aifactory.model;
+
+import io.swagger.annotations.ApiModel;
+import io.swagger.annotations.ApiModelProperty;
+
+import java.io.Serializable;
+import java.math.BigDecimal;
+import java.util.ArrayList;
+import java.util.List;
+
+/**
+ * 成型品
+ */
+@ApiModel(description = "郝腾")
+public class MoldingProduction implements Serializable {
+
+    private static final long serialVersionUID = 1L;
+
+    @ApiModelProperty(value = "对应成型品", example = "品名")
+    private String goodsName;
+
+    @ApiModelProperty(value = "任务量", example = "1")
+    private BigDecimal taskAmount;
+
+    @ApiModelProperty(value = "成型周期", example = "cycle")
+    private BigDecimal cycle;
+
+    @ApiModelProperty(value = "累计完成量", example = "1")
+    private BigDecimal CumulativeCompletion;
+
+    @ApiModelProperty(value = "所需班次", example = "1")
+    private BigDecimal shift;
+
+
+    public String getGoodsName() {
+        return goodsName;
+    }
+
+    public void setGoodsName(String goodsName) {
+        this.goodsName = goodsName;
+    }
+
+    public BigDecimal getTaskAmount() {
+        return taskAmount;
+    }
+
+    public void setTaskAmount(BigDecimal taskAmount) {
+        this.taskAmount = taskAmount;
+    }
+
+
+    public BigDecimal getCycle() {
+        return cycle;
+    }
+
+    public void setCycle(BigDecimal cycle) {
+        this.cycle = cycle;
+    }
+
+    public BigDecimal getCumulativeCompletion() {
+        return CumulativeCompletion;
+    }
+
+    public void setCumulativeCompletion(BigDecimal cumulativeCompletion) {
+        CumulativeCompletion = cumulativeCompletion;
+    }
+
+    public BigDecimal getShift() {
+        return shift;
+    }
+
+    public void setShift(BigDecimal shift) {
+        this.shift = shift;
+    }
+
+    @Override
+    public String toString() {
+        return "MoldingProduction{" +
+                "goodsName='" + goodsName + '\'' +
+                ", taskAmount=" + taskAmount +
+                ", cycle=" + cycle +
+                ", CumulativeCompletion=" + CumulativeCompletion +
+                ", shift=" + shift +
+                '}';
+    }
+}

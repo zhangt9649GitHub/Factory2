@@ -1,0 +1,161 @@
+
+
+
+
+.zq-wrap{
+    min-height: 100%;
+    background-color: transparent;
+    position: relative;
+    padding: 20px;
+    padding-bottom: 50px;
+}
+.card-list{
+    height: 150px;
+    line-height: 30px;
+}
+.layui-card-body.card-list .item,
+.layui-card-body.card-list .item a{
+    color: rgba(255,255,255,0.9);
+}
+.layui-card-body.card-list .item:hover,
+.layui-card-body.card-list .item a:hover{
+    color: rgba(255,255,255,1);
+}
+.layui-card-body.card-list .layui-btn.white{
+    display: inline-block;
+    height: 38px;
+    line-height: 38px;
+    padding: 0 18px;
+    color: #fff;
+    white-space: nowrap;
+    text-align: center;
+    font-size: 14px;
+    border-radius: 4px;
+    cursor: pointer;
+    margin-right: 5px;
+    background-color: transparent;
+    border: 2px solid #fff;
+    font-weight: 700;
+}
+.layui-card-body.card-list .layui-btn.white .layui-icon {
+    margin-right: 3px;
+    font-size: 14px;
+    vertical-align: top;
+}
+.cord-badge{
+    position: absolute;
+    right: 15px;
+    top: 50%;
+    margin-top: -9px;
+}
+
+.bg-1 .layui-card-header{
+    background: #4584D1;
+    color: #fff;
+    border: 0;
+}
+.bg-1 .layui-card-body{
+    background: #4584D1;
+    color: #fff;
+
+}
+
+.bg-2 .layui-card-header{
+    background: #C9625F;
+    color: #fff;
+    border: 0;
+}
+.bg-2 .layui-card-body{
+    background: #C9625F;
+    color: #fff;
+}
+
+.bg-3 .layui-card-header{
+    background: #18a689 ;
+    color: #fff;
+    border: 0;
+}
+.bg-3 .layui-card-body{
+    background: #18a689 ;
+    color: #fff;
+}
+
+.bg-4 .layui-card-header{
+    background: #F2A057 ;
+    color: #fff;
+    border: 0;
+}
+.bg-4 .layui-card-body{
+    background: #F2A057 ;
+    color: #fff;
+}
+
+
+.layui-border-box{
+    box-sizing: unset;
+}
+
+.zq-wrap .layui-col-space15 .layui-card{
+    padding: 0px;
+}
+
+.zq-wrap .layui-col-space15 .layui-card-header{
+    padding: 0 15px;
+    /*color: #FFFF;*/
+    font-weight: 600;
+    font-family: "Karla", sans-serif;
+}
+.zq-wrap .layui-col-space15 .layui-card-body{
+    padding: 10px 15px;
+}
+
+.zq-wrap .layui-col-space15  .layui-table-body{
+    /*height: 234px !important;*/
+    /*overflow: hidden;*/
+}
+
+
+
+.echarts{
+    height: 300px;
+    width: 100%;
+}
+
+
+
+.table2 .wrap{
+    /*position: relative;*/
+    width: 100%;
+    box-sizing: border-box;
+    border-width: 1px;
+    border-style: solid;
+    border-color: #e6e6e6;
+    margin-top: -11px;
+    background-color: #f2f2f2;
+    overflow-x: hidden;
+}
+.table2 .wrap .list{
+    /*position: absolute;*/
+    display: flex;
+    text-align: center;
+}
+.table2 .wrap .list .item{
+    flex: 1;
+    border-width: 0 1px 0 0;
+    border-style: solid;
+    border-color: #e6e6e6;
+    padding: 5px 0;
+    box-sizing: border-box;
+}
+.table2 .wrap .list .item .cell{
+    padding: 0 15px;
+    height: 28px;
+    line-height: 28px;
+    box-sizing: border-box;
+}
+.table2 .wrap .list .item:nth-child(2),
+.table2 .wrap .list .item:nth-child(8),
+.table2 .wrap .list .item:last-child{
+    width: 151px;
+    flex: unset;
+}

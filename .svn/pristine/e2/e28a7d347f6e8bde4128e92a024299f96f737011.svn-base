@@ -1,0 +1,66 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd" >
+<mapper namespace="com.mingyuansoftware.aifactory.mapper.PurchaseReturnOrderDetailsMapper" >
+  <resultMap id="BaseResultMap" type="com.mingyuansoftware.aifactory.model.PurchaseReturnOrderDetails" >
+    <id column="prod_id" property="prodId" jdbcType="INTEGER" />
+    <result column="pro_id" property="proId" jdbcType="INTEGER" />
+    <result column="goods_id" property="goodsId" jdbcType="INTEGER" />
+    <result column="return_quantity" property="returnQuantity" jdbcType="DECIMAL" />
+    <result column="price" property="price" jdbcType="DECIMAL" />
+    <result column="money" property="money" jdbcType="DECIMAL" />
+    <result column="reason_return" property="reasonReturn" jdbcType="VARCHAR" />
+    <result column="leave_quantity" property="leaveQuantity" jdbcType="DECIMAL" />
+    <result column="no_leave_quantity" property="noLeaveQuantity" jdbcType="DECIMAL" />
+  </resultMap>
+  <delete id="deleteByPrimaryKey" parameterType="java.lang.Integer" >
+    delete from purchase_return_order_details
+    where prod_id = #{prodId,jdbcType=INTEGER}
+  </delete>
+  <insert id="insert" parameterType="com.mingyuansoftware.aifactory.model.PurchaseReturnOrderDetails" >
+    <selectKey resultType="java.lang.Integer" keyProperty="prodId" order="AFTER" >
+      SELECT LAST_INSERT_ID()
+    </selectKey>
+    insert into purchase_return_order_details (pro_id, goods_id, return_quantity,
+      price, money, reason_return, leave_quantity, no_leave_quantity
+      )
+    values (#{proId,jdbcType=INTEGER}, #{goodsId,jdbcType=INTEGER}, #{returnQuantity,jdbcType=DECIMAL},
+      #{price,jdbcType=DECIMAL}, #{money,jdbcType=DECIMAL}, #{reasonReturn,jdbcType=VARCHAR},
+      #{leaveQuantity,jdbcType=DECIMAL}, #{noLeaveQuantity,jdbcType=DECIMAL}
+      )
+  </insert>
+  <update id="updateByPrimaryKey" parameterType="com.mingyuansoftware.aifactory.model.PurchaseReturnOrderDetails" >
+    update purchase_return_order_details
+    set pro_id = #{proId,jdbcType=INTEGER},
+      goods_id = #{goodsId,jdbcType=INTEGER},
+      return_quantity = #{returnQuantity,jdbcType=DECIMAL},
+      price = #{price,jdbcType=DECIMAL},
+      money = #{money,jdbcType=DECIMAL},
+      reason_return = #{reasonReturn,jdbcType=VARCHAR},
+      leave_quantity = #{leaveQuantity,jdbcType=DECIMAL},
+      no_leave_quantity = #{noLeaveQuantity,jdbcType=DECIMAL}
+    where prod_id = #{prodId,jdbcType=INTEGER}
+  </update>
+  <select id="selectByPrimaryKey" resultMap="BaseResultMap" parameterType="java.lang.Integer" >
+    select prod_id, pro_id, goods_id, return_quantity, price, money, reason_return, leave_quantity, no_leave_quantity
+    from purchase_return_order_details
+    where prod_id = #{prodId,jdbcType=INTEGER}
+  </select>
+  <select id="selectAll" resultMap="BaseResultMap" >
+    select prod_id, pro_id, goods_id, return_quantity, price, money, reason_return, leave_quantity, no_leave_quantity
+    from purchase_return_order_details
+  </select>
+  <select id="selectPurchaseReturnOrderDetailsByProId" resultMap="BaseResultMap" parameterType="java.lang.Integer" >
+    select prod.prod_id, prod.pro_id, prod.goods_id, prod.return_quantity, prod.price, prod.money, prod.reason_return, prod.leave_quantity, prod.no_leave_quantity,
+    gd.parts_cd, gd.goods_name, gd.unit
+    from purchase_return_order_details as prod
+    left join goods as gd on (prod.goods_id = gd.goods_id)
+    where prod.pro_id = #{proId,jdbcType=INTEGER}
+  </select>
+  <update id="updateQuantity" >
+    update purchase_return_order_details
+    set
+      leave_quantity = #{returnQuantity,jdbcType=DECIMAL},
+      no_leave_quantity = 0
+    where prod_id = #{prodId,jdbcType=INTEGER}
+  </update>
+</mapper>

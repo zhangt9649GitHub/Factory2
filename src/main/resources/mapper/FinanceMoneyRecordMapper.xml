@@ -1,0 +1,53 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd" >
+<mapper namespace="com.mingyuansoftware.aifactory.mapper.FinanceMoneyRecordMapper" >
+  <resultMap id="BaseResultMap" type="com.mingyuansoftware.aifactory.model.FinanceMoneyRecord" >
+    <id column="fmid" property="fmid" jdbcType="INTEGER" />
+    <result column="fm_money" property="fmMoney" jdbcType="DECIMAL" />
+    <result column="fm_type" property="fmType" jdbcType="VARCHAR" />
+    <result column="fm_datetime" property="fmDatetime" jdbcType="TIMESTAMP" />
+    <result column="sid" property="sid" jdbcType="INTEGER" />
+    <result column="cid" property="cid" jdbcType="INTEGER" />
+    <result column="fm_serial_number" property="fmSerialNumber" jdbcType="VARCHAR" />
+    <result column="fm_jie_suan_type" property="fmJieSuanType" jdbcType="VARCHAR" />
+    <result column="fm_jiaoyi_duixiang" property="fmJiaoyiDuixiang" jdbcType="VARCHAR" />
+  </resultMap>
+  <delete id="deleteByPrimaryKey" parameterType="java.lang.Integer" >
+    delete from finance_money_record
+    where fmid = #{fmid,jdbcType=INTEGER}
+  </delete>
+  <insert id="insert" parameterType="com.mingyuansoftware.aifactory.model.FinanceMoneyRecord" >
+    <selectKey resultType="java.lang.Integer" keyProperty="fmid" order="AFTER" >
+      SELECT LAST_INSERT_ID()
+    </selectKey>
+    insert into finance_money_record (fm_money, fm_type, fm_datetime, 
+      sid, cid, fm_serial_number, 
+      fm_jie_suan_type, fm_jiaoyi_duixiang)
+    values (#{fmMoney,jdbcType=DECIMAL}, #{fmType,jdbcType=VARCHAR}, #{fmDatetime,jdbcType=TIMESTAMP}, 
+      #{sid,jdbcType=INTEGER}, #{cid,jdbcType=INTEGER}, #{fmSerialNumber,jdbcType=VARCHAR}, 
+      #{fmJieSuanType,jdbcType=VARCHAR}, #{fmJiaoyiDuixiang,jdbcType=VARCHAR})
+  </insert>
+  <update id="updateByPrimaryKey" parameterType="com.mingyuansoftware.aifactory.model.FinanceMoneyRecord" >
+    update finance_money_record
+    set fm_money = #{fmMoney,jdbcType=DECIMAL},
+      fm_type = #{fmType,jdbcType=VARCHAR},
+      fm_datetime = #{fmDatetime,jdbcType=TIMESTAMP},
+      sid = #{sid,jdbcType=INTEGER},
+      cid = #{cid,jdbcType=INTEGER},
+      fm_serial_number = #{fmSerialNumber,jdbcType=VARCHAR},
+      fm_jie_suan_type = #{fmJieSuanType,jdbcType=VARCHAR},
+      fm_jiaoyi_duixiang = #{fmJiaoyiDuixiang,jdbcType=VARCHAR}
+    where fmid = #{fmid,jdbcType=INTEGER}
+  </update>
+  <select id="selectByPrimaryKey" resultMap="BaseResultMap" parameterType="java.lang.Integer" >
+    select fmid, fm_money, fm_type, fm_datetime, sid, cid, fm_serial_number, fm_jie_suan_type, 
+    fm_jiaoyi_duixiang
+    from finance_money_record
+    where fmid = #{fmid,jdbcType=INTEGER}
+  </select>
+  <select id="selectAll" resultMap="BaseResultMap" >
+    select fmid, fm_money, fm_type, fm_datetime, sid, cid, fm_serial_number, fm_jie_suan_type, 
+    fm_jiaoyi_duixiang
+    from finance_money_record
+  </select>
+</mapper>

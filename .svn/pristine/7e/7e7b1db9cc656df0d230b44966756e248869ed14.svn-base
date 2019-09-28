@@ -1,0 +1,270 @@
+package com.mingyuansoftware.aifactory.model;
+
+import io.swagger.annotations.ApiModel;
+import io.swagger.annotations.ApiModelProperty;
+
+import java.io.Serializable;
+import java.math.BigDecimal;
+@ApiModel(description = "郝腾")
+public class KucunGoods   implements Serializable {
+
+    private static final long serialVersionUID = 1L;
+
+    @ApiModelProperty(value = "货物id", example = "1")
+    private Integer goodsId;
+
+    @ApiModelProperty(value = "货物编号 类别+部品cd", example = "goodsNumber")
+    private String goodsNumber;
+
+    @ApiModelProperty(value = "部品CD", example = "部品CD")
+    private String partsCd;
+
+    @ApiModelProperty(value = "品名", example = "品名")
+    private String goodsName;
+
+    @ApiModelProperty(value = "仓位名称", example = "仓位名称")
+    private String wpName;
+
+    @ApiModelProperty(value = "单位", example = "单位")
+    private String unit;
+
+    @ApiModelProperty(value = "规格", example = "规格")
+    private String specification;
+
+    @ApiModelProperty(value = "库存数", example = "1")
+    private BigDecimal skgCount;
+
+    @ApiModelProperty(value = "平均单价,存入流水表中的货物成本", example = "1")
+    private BigDecimal averagePrice;
+
+    @ApiModelProperty(value = "销售价格(单价)", example = "1")
+    private BigDecimal sellingPrice;
+
+    @ApiModelProperty(value = "箱数", example = "1")
+    private Integer boxesNumber;
+
+    @ApiModelProperty(value = "月贩卖量", example = "1")
+    private BigDecimal monthlySalesVolume;
+
+    @ApiModelProperty(value = "贩卖月数", example = "1")
+    private BigDecimal sellingMonths;
+
+    @ApiModelProperty(value = "净重", example = "1")
+    private BigDecimal netWeight;
+
+    @ApiModelProperty(value = "毛重", example = "1")
+    private BigDecimal grossWeight;
+
+    @ApiModelProperty(value = "体积", example = "1")
+    private BigDecimal volume;
+
+    @ApiModelProperty(value = "在库月数", example = "monthsInStock")
+    private String monthsInStock;
+
+    @ApiModelProperty(value = "阶梯价格", example = "ladderPrice")
+    private String ladderPrice;
+
+    @ApiModelProperty(value = "a单价（进货价）", example = "1")
+    private BigDecimal aPrice;
+
+    @ApiModelProperty(value = "采购起订量", example = "1")
+    private BigDecimal purchaseOrderQuantity;
+
+    @ApiModelProperty(value = "批次", example = "lotNumber")
+    private String lotNumber;
+
+    public String getWpName() {
+        return wpName;
+    }
+
+    public void setWpName(String wpName) {
+        this.wpName = wpName;
+    }
+
+    public Integer getGoodsId() {
+        return goodsId;
+    }
+
+    public void setGoodsId(Integer goodsId) {
+        this.goodsId = goodsId;
+    }
+
+    public String getPartsCd() {
+        return partsCd;
+    }
+
+    public void setPartsCd(String partsCd) {
+        this.partsCd = partsCd;
+    }
+
+    public String getGoodsName() {
+        return goodsName;
+    }
+
+    public void setGoodsName(String goodsName) {
+        this.goodsName = goodsName;
+    }
+
+    public String getUnit() {
+        return unit;
+    }
+
+    public void setUnit(String unit) {
+        this.unit = unit;
+    }
+
+    public String getSpecification() {
+        return specification;
+    }
+
+    public void setSpecification(String specification) {
+        this.specification = specification;
+    }
+
+    public BigDecimal getSkgCount() {
+        return skgCount;
+    }
+
+    public void setSkgCount(BigDecimal skgCount) {
+        this.skgCount = skgCount;
+    }
+
+    public BigDecimal getAveragePrice() {
+        return averagePrice;
+    }
+
+    public void setAveragePrice(BigDecimal averagePrice) {
+        this.averagePrice = averagePrice;
+    }
+
+    public BigDecimal getSellingPrice() {
+        return sellingPrice;
+    }
+
+    public void setSellingPrice(BigDecimal sellingPrice) {
+        this.sellingPrice = sellingPrice;
+    }
+
+    public Integer getBoxesNumber() {
+        return boxesNumber;
+    }
+
+    public void setBoxesNumber(Integer boxesNumber) {
+        this.boxesNumber = boxesNumber;
+    }
+
+    public BigDecimal getMonthlySalesVolume() {
+        return monthlySalesVolume;
+    }
+
+    public void setMonthlySalesVolume(BigDecimal monthlySalesVolume) {
+        this.monthlySalesVolume = monthlySalesVolume;
+    }
+
+    public BigDecimal getSellingMonths() {
+        return sellingMonths;
+    }
+
+    public void setSellingMonths(BigDecimal sellingMonths) {
+        this.sellingMonths = sellingMonths;
+    }
+
+    public BigDecimal getNetWeight() {
+        return netWeight;
+    }
+
+    public void setNetWeight(BigDecimal netWeight) {
+        this.netWeight = netWeight;
+    }
+
+    public BigDecimal getGrossWeight() {
+        return grossWeight;
+    }
+
+    public void setGrossWeight(BigDecimal grossWeight) {
+        this.grossWeight = grossWeight;
+    }
+
+    public BigDecimal getVolume() {
+        return volume;
+    }
+
+    public void setVolume(BigDecimal volume) {
+        this.volume = volume;
+    }
+
+    public String getMonthsInStock() {
+        return monthsInStock;
+    }
+
+    public void setMonthsInStock(String monthsInStock) {
+        this.monthsInStock = monthsInStock;
+    }
+
+    public String getLadderPrice() {
+        return ladderPrice;
+    }
+
+    public void setLadderPrice(String ladderPrice) {
+        this.ladderPrice = ladderPrice;
+    }
+
+    public BigDecimal getaPrice() {
+        return aPrice;
+    }
+
+    public void setaPrice(BigDecimal aPrice) {
+        this.aPrice = aPrice;
+    }
+
+    public BigDecimal getPurchaseOrderQuantity() {
+        return purchaseOrderQuantity;
+    }
+
+    public void setPurchaseOrderQuantity(BigDecimal purchaseOrderQuantity) {
+        this.purchaseOrderQuantity = purchaseOrderQuantity;
+    }
+
+    public String getGoodsNumber() {
+        return goodsNumber;
+    }
+
+    public void setGoodsNumber(String goodsNumber) {
+        this.goodsNumber = goodsNumber;
+    }
+
+    public String getLotNumber() {
+        return lotNumber;
+    }
+
+    public void setLotNumber(String lotNumber) {
+        this.lotNumber = lotNumber;
+    }
+
+    @Override
+    public String toString() {
+        return "KucunGoods{" +
+                "goodsId=" + goodsId +
+                ", goodsNumber='" + goodsNumber + '\'' +
+                ", partsCd='" + partsCd + '\'' +
+                ", goodsName='" + goodsName + '\'' +
+                ", wpName='" + wpName + '\'' +
+                ", unit='" + unit + '\'' +
+                ", specification='" + specification + '\'' +
+                ", skgCount=" + skgCount +
+                ", averagePrice=" + averagePrice +
+                ", sellingPrice=" + sellingPrice +
+                ", boxesNumber=" + boxesNumber +
+                ", monthlySalesVolume=" + monthlySalesVolume +
+                ", sellingMonths=" + sellingMonths +
+                ", netWeight=" + netWeight +
+                ", grossWeight=" + grossWeight +
+                ", volume=" + volume +
+                ", monthsInStock='" + monthsInStock + '\'' +
+                ", ladderPrice='" + ladderPrice + '\'' +
+                ", aPrice=" + aPrice +
+                ", purchaseOrderQuantity=" + purchaseOrderQuantity +
+                ", lotNumber='" + lotNumber + '\'' +
+                '}';
+    }
+}

@@ -1,0 +1,182 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd" >
+<mapper namespace="com.mingyuansoftware.aifactory.mapper.PurchaseOrderDetailsMapper" >
+  <resultMap id="BaseResultMap" type="com.mingyuansoftware.aifactory.model.PurchaseOrderDetails" >
+    <id column="purchase_order_details_id" property="purchaseOrderDetailsId" jdbcType="INTEGER" />
+    <result column="purchase_order_id" property="purchaseOrderId" jdbcType="INTEGER" />
+    <result column="goods_id" property="goodsId" jdbcType="INTEGER" />
+    <result column="quantity" property="quantity" jdbcType="DECIMAL" />
+    <result column="purchase_price" property="purchasePrice" jdbcType="DECIMAL" />
+    <result column="excluding_tax_amount" property="excludingTaxAmount" jdbcType="DECIMAL" />
+    <result column="tax_rate" property="taxRate" jdbcType="DECIMAL" />
+    <result column="tax" property="tax" jdbcType="DECIMAL" />
+    <result column="tax_included_amount" property="taxIncludedAmount" jdbcType="DECIMAL" />
+    <result column="finance_money" property="financeMoney" jdbcType="DECIMAL" />
+    <result column="finance_money_sum" property="financeMoneySum" jdbcType="DECIMAL" />
+    <result column="pod_storage_state" property="podStorageState" jdbcType="TINYINT" />
+    <result column="in_quantity" property="inQuantity" jdbcType="DECIMAL" />
+    <result column="not_in_quantity" property="notInQuantity" jdbcType="DECIMAL" />
+    <result column="purchase_return_amount" property="purchaseReturnAmount" jdbcType="DECIMAL" />
+    <association column="goods_id" property="goods"
+                 select="com.mingyuansoftware.aifactory.mapper.GoodsMapper.selectByPrimaryKey"></association>
+  </resultMap>
+  <delete id="deleteByPrimaryKey" parameterType="java.lang.Integer" >
+    delete from purchase_order_details
+    where purchase_order_details_id = #{purchaseOrderDetailsId,jdbcType=INTEGER}
+  </delete>
+  <insert id="insert" parameterType="com.mingyuansoftware.aifactory.model.PurchaseOrderDetails" >
+    <selectKey resultType="java.lang.Integer" keyProperty="purchaseOrderDetailsId" order="AFTER" >
+      SELECT LAST_INSERT_ID()
+    </selectKey>
+    insert into purchase_order_details (purchase_order_id, goods_id, quantity, purchase_price,
+      excluding_tax_amount, tax_rate, tax, tax_included_amount, finance_money, finance_money_sum,
+      pod_storage_state, in_quantity, not_in_quantity, purchase_return_amount)
+    values (#{purchaseOrderId,jdbcType=INTEGER}, #{goodsId,jdbcType=INTEGER}, #{quantity,jdbcType=DECIMAL},
+      #{purchasePrice,jdbcType=DECIMAL},#{excludingTaxAmount,jdbcType=DECIMAL}, #{taxRate,jdbcType=DECIMAL}, #{tax,jdbcType=DECIMAL},
+      #{taxIncludedAmount,jdbcType=DECIMAL}, #{financeMoney,jdbcType=DECIMAL}, #{financeMoneySum,jdbcType=DECIMAL},
+      #{podStorageState,jdbcType=TINYINT},#{inQuantity,jdbcType=TINYINT}, #{notInQuantity,jdbcType=TINYINT}, #{purchaseReturnAmount,jdbcType=DECIMAL})
+  </insert>
+  <update id="updateByPrimaryKey" parameterType="com.mingyuansoftware.aifactory.model.PurchaseOrderDetails" >
+    update purchase_order_details
+    set purchase_order_id = #{purchaseOrderId,jdbcType=INTEGER},
+      goods_id = #{goodsId,jdbcType=INTEGER},
+      quantity = #{quantity,jdbcType=DECIMAL},
+      purchase_price = #{purchasePrice,jdbcType=DECIMAL},
+      excluding_tax_amount = #{excludingTaxAmount,jdbcType=DECIMAL},
+      tax_rate = #{taxRate,jdbcType=DECIMAL},
+      tax = #{tax,jdbcType=DECIMAL},
+      tax_included_amount = #{taxIncludedAmount,jdbcType=DECIMAL},
+      finance_money = #{financeMoney,jdbcType=DECIMAL},
+      finance_money_sum = #{financeMoneySum,jdbcType=DECIMAL},
+      pod_storage_state = #{podStorageState,jdbcType=TINYINT},
+      in_quantity = #{inQuantity,jdbcType=DECIMAL},
+      not_in_quantity = #{notInQuantity,jdbcType=DECIMAL},
+      purchase_return_amount = #{purchaseReturnAmount,jdbcType=DECIMAL}
+    where purchase_order_details_id = #{purchaseOrderDetailsId,jdbcType=INTEGER}
+  </update>
+  <select id="selectByPrimaryKey" resultMap="BaseResultMap" parameterType="java.lang.Integer" >
+    select purchase_order_details_id, purchase_order_id, goods_id, quantity, purchase_price, excluding_tax_amount,
+    tax_rate, tax, tax_included_amount, finance_money, finance_money_sum, pod_storage_state, in_quantity, not_in_quantity, purchase_return_amount
+    from purchase_order_details
+    where purchase_order_details_id = #{purchaseOrderDetailsId,jdbcType=INTEGER}
+  </select>
+  <select id="selectAll" resultMap="BaseResultMap" >
+    select purchase_order_details_id, purchase_order_id, goods_id, quantity, purchase_price, excluding_tax_amount,
+    tax_rate, tax, tax_included_amount, finance_money, finance_money_sum, pod_storage_state, in_quantity, not_in_quantity, purchase_return_amount
+    from purchase_order_details
+  </select>
+  <select id="selectPurchaseOrderDetailsById" resultMap="BaseResultMap" parameterType="java.lang.Integer" >
+    select purchase_order_details_id, purchase_order_id, goods_id, quantity, purchase_price, excluding_tax_amount,
+    tax_rate, tax, tax_included_amount, finance_money, finance_money_sum, pod_storage_state, in_quantity, not_in_quantity, purchase_return_amount
+    from purchase_order_details
+    where purchase_order_id = #{purchaseOrderId,jdbcType=INTEGER}
+  </select>
+  <delete id="deletePurchaseOrderDetails" parameterType="java.lang.Integer">
+    delete from purchase_order_details
+    where purchase_order_id = #{purchaseOrderId,jdbcType=INTEGER}
+  </delete>
+  <select id="selectPurchaseOrderGoodsList" resultMap="BaseResultMap" parameterType="java.lang.Integer" >
+    select podl.purchase_order_details_id, podl.purchase_order_id, podl.goods_id,
+    gd.parts_cd, gd.goods_name, gd.unit, gd.a_price, podl.purchase_price,  IFNULL((podl.quantity-podl.purchase_return_amount),0) as quantity
+    from purchase_order_details as podl
+    left join goods as gd on (podl.goods_id = gd.goods_id)
+    where podl.purchase_order_id = #{purchaseOrderId,jdbcType=INTEGER}
+  </select>
+  <select id="selectSalesReturnGoodsCount" resultType="java.lang.Integer" parameterType="java.lang.Integer" >
+    select count(podl.goods_id)
+    from purchase_order_details as podl
+    left join goods as gd on (podl.goods_id = gd.goods_id)
+    where podl.purchase_order_id = #{purchaseOrderId,jdbcType=INTEGER}
+  </select>
+  <select id="selectPDaPurchaseOrderDetailsGoodsList" resultType="com.mingyuansoftware.aifactory.model.PurchaseOrderGoods" parameterType="java.lang.Integer">
+    select podl.purchase_order_details_id, podl.purchase_order_id, po.purchase_order_number, podl.goods_id, podl.not_in_quantity as quantity, podl.purchase_price,
+    gd.parts_cd,gd.goods_name,gd.specification,wp.wp_name
+    from purchase_order_details as podl
+    LEFT JOIN goods AS gd ON (podl.goods_id =gd.goods_id)
+    LEFT JOIN warehouse_position AS wp ON (gd.wp_id =wp.wp_id)
+    left join purchase_order as po on (podl.purchase_order_id = po.purchase_order_id)
+    WHERE podl.purchase_order_id = #{purchaseOrderId} and podl.pod_storage_state = 1
+  </select>
+  <select id="selectPdaPurchaseOrderDetailsGoodsListCount" resultType="java.lang.Integer" >
+    select count(podl.purchase_order_details_id)
+    from purchase_order_details as podl
+    LEFT JOIN goods AS gd ON (podl.goods_id =gd.goods_id)
+    LEFT JOIN warehouse_position AS wp ON (gd.wp_id =wp.wp_id)
+    WHERE podl.purchase_order_id = #{purchaseOrderId} and podl.pod_storage_state = 1
+  </select>
+  <select id="selectPurchaseStorageGoodsCount" resultType="com.mingyuansoftware.aifactory.model.PurchaseStorageGoods" >
+    select podl.purchase_order_details_id, podl.purchase_order_id, podl.goods_id, podl.quantity,
+    podl.pod_storage_state
+    from purchase_order_details as podl
+    where podl.purchase_order_id = #{purchaseOrderId} and podl.goods_id = #{goodsId}
+  </select>
+  <update id="updatePurchaseOrderDetailsStatus"  >
+    update purchase_order_details
+    set
+    pod_storage_state = #{state},
+    in_quantity = IFNULL((in_quantity+#{skgCount}),0),
+    not_in_quantity = IFNULL((quantity-in_quantity),0)
+    where purchase_order_details_id = #{purchaseOrderDetailsId,jdbcType=INTEGER}
+  </update>
+  <select id="selectPDaGoodsList" resultType="com.mingyuansoftware.aifactory.model.PurchaseOrderGoods" >
+    select podl.purchase_order_details_id, podl.purchase_order_id, po.purchase_order_number, podl.goods_id, podl.in_quantity as quantity, podl.purchase_price,
+    gd.parts_cd,gd.goods_name,gd.specification,wp.wp_name
+    from purchase_order_details as podl
+    LEFT JOIN goods AS gd ON (podl.goods_id =gd.goods_id)
+    LEFT JOIN warehouse_position AS wp ON (gd.wp_id =wp.wp_id)
+    left join purchase_order as po on (podl.purchase_order_id = po.purchase_order_id)
+    WHERE podl.purchase_order_id = #{purchaseOrderId} and podl.pod_storage_state = 2
+  </select>
+  <select id="selectReturnQuantity" resultType="com.mingyuansoftware.aifactory.model.PurchaseOrderDetails" >
+    select podl.purchase_order_details_id, podl.purchase_order_id, podl.goods_id, podl.quantity,
+    podl.purchase_price, podl.excluding_tax_amount, podl.tax_rate, podl.tax, podl.tax_included_amount,
+    podl.finance_money, podl.finance_money_sum, podl.pod_storage_state, podl.purchase_return_amount
+    from purchase_order_details as podl
+    where podl.purchase_order_id = #{purchaseOrderId,jdbcType=INTEGER} and podl.goods_id = #{goodsId,jdbcType=INTEGER}
+  </select>
+  <update id="updateReturnQuantity"  >
+    update purchase_order_details
+    set
+     purchase_return_amount  = IFNULL((purchase_return_amount+#{returnQuantity,jdbcType=DECIMAL}),0)
+    where purchase_order_id = #{purchaseOrderId,jdbcType=INTEGER} and goods_id = #{goodsId,jdbcType=INTEGER}
+  </update>
+  <select id="selectGoodsQuantityById" resultType="com.mingyuansoftware.aifactory.model.PurchaseOrderDetails" >
+    select  podl.purchase_order_details_id, podl.purchase_order_id, podl.goods_id,
+    IFNULL((podl.in_quantity + podl.not_in_quantity),0) as quantity,
+    podl.purchase_price, podl.excluding_tax_amount, podl.tax_rate, podl.tax,
+    podl.tax_included_amount, podl.finance_money, podl.finance_money_sum,
+    podl.pod_storage_state, podl.purchase_return_amount
+    from purchase_order_details as podl
+    left join purchase_order as po on (podl.purchase_order_id = po.purchase_order_id)
+    where podl.purchase_order_id = #{purchaseOrderId}  and podl.goods_id = #{goodsId}   and po.is_delete = 0
+  </select>
+  <select id="selectPoId" resultType="java.lang.Integer" >
+    select purchase_order_details_id
+    from purchase_order_details
+    where purchase_order_id = #{purchaseOrderId}  and goods_id = #{gid}
+  </select>
+  <update id="updatePurchaseOrderDetailsStatusById"  >
+    update purchase_order_details
+    set
+    pod_storage_state = #{state}
+    where purchase_order_details_id = #{purchaseOrderDetailsId,jdbcType=INTEGER}
+  </update>
+  <update id="updatePurchaseOrderFinance"  >
+    update purchase_order_details
+    set
+    finance_money = #{financeMoney,jdbcType=DECIMAL}
+    where purchase_order_details_id = #{purchaseOrderDetailsId,jdbcType=INTEGER}
+  </update>
+  <select id="selectPDaPurchaseOrderDetailsByProIdAndGoodsId" resultType="com.mingyuansoftware.aifactory.model.PurchaseOrderDetails" >
+    select purchase_order_details_id, purchase_order_id, goods_id, quantity, purchase_price, excluding_tax_amount,
+    tax_rate, tax, tax_included_amount, finance_money, finance_money_sum, pod_storage_state, in_quantity, not_in_quantity, purchase_return_amount
+    from purchase_order_details
+    where purchase_order_id = #{purchaseOrderId}  and goods_id = #{gid}
+  </select>
+  <update id="updateInQuantity"  >
+    update purchase_order_details
+    set
+    in_quantity = IFNULL((quantity-#{returnQuantity}),0)
+    where purchase_order_id = #{purchaseOrderId,jdbcType=INTEGER} and goods_id = #{goodsId,jdbcType=INTEGER}
+  </update>
+</mapper>

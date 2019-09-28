@@ -1,0 +1,269 @@
+<#include "../public_header.ftl">
+
+
+	<link rel="stylesheet" type="text/css" href="/static/css/notesManagement/index.css">
+	<script type="text/javascript" src="/static/js/notesManagement/index.js"></script>
+
+</head>
+<body>
+
+<div class="zq-wrap">
+
+	<div class="layui-row">
+		<div class="bg-1 layui-card">
+			<div class="layui-card-header layui-clear">
+				<h3 class="left">注文书管理 <span></span></h3>
+				<div class="zq-btn-list">
+					<#if updateNoteDocumentInfo??>
+					<button class="layui-btn blue zq-active" type="button" data-type="edit" data-href="/admin/notesManagement/edit">
+						<i class="layui-icon layui-icon-edit"></i>编辑
+					</button>
+					</#if>
+					<#if createPurchaseOrderNote??>
+					<button class="layui-btn blue zq-active" type="button" data-type="generatingOrders" data-href="/admin/notesManagement/generatingOrders">
+						生成采购订单
+					</button>
+					</#if>
+
+					<button class="layui-btn blue zq-active" type="button" data-type="reset">
+						<i class="layui-icon layui-icon-refresh"></i>清空查询项
+					</button>
+
+					<#if importNoteDocumentExcel??>
+						<button class="layui-btn blue" type="button" id="upload-file">
+							<i class="layui-icon layui-icon-upload-drag"></i>导入
+						</button>
+					</#if>
+					<#if exportNoteDocumentList??>
+						<button class="layui-btn blue zq-active" type="button" data-type="export">
+							<i class="layui-icon layui-icon-download-circle"></i>导出
+						</button>
+					</#if>
+				</div>
+
+			</div>
+			<div class="layui-card-body index-body">
+
+				<form class="layui-form zq-search-form">
+					<button type="reset" class="layui-btn layui-hide">重置</button>
+					<div class="zq-search-wrap">
+						<div class="zq-search zq-search-fixed">
+							<div class="item checkbox">
+
+							</div>
+							<div class="item" name="noteDcNumber">
+								<button type="button" lay-submit lay-filter="*"><i class="layui-icon layui-icon-search"></i></button>
+								<input type="text" name="noteDcNumber" placeholder="请输入" autocomplete="off" class="layui-input">
+							</div>
+							<div class="item ">
+								<button type="button" lay-submit lay-filter="*"><i class="layui-icon layui-icon-search"></i></button>
+								<input type="text" name="productionInstructionId" placeholder="请输入" autocomplete="off" class="layui-input">
+							</div>
+							<div class="item ">
+								<button type="button" lay-submit lay-filter="*"><i class="layui-icon layui-icon-search"></i></button>
+								<input type="text" name="partsCd" placeholder="请输入" autocomplete="off" class="layui-input">
+							</div>
+							<div class="item">
+								<button type="button" lay-submit lay-filter="*"><i class="layui-icon layui-icon-search"></i></button>
+								<input type="text" name="goodsName" placeholder="请输入" autocomplete="off" class="layui-input">
+							</div>
+							<div class="item">
+								<button type="button" lay-submit lay-filter="*"><i class="layui-icon layui-icon-search"></i></button>
+								<input type="text" name="supplierName" placeholder="请输入" autocomplete="off" class="layui-input" >
+							</div>
+
+						</div>
+						<div class="zq-search search">
+							<div class="item checkbox">
+
+							</div>
+							<div class="item " name="noteDcNumber">
+
+							</div>
+							<div class="item ">
+
+							</div>
+							<div class="item">
+
+							</div>
+							<div class="item">
+
+							</div>
+							<div class="item">
+
+							</div>
+							<div class="item">
+								<button type="button" lay-submit lay-filter="*"><i class="layui-icon layui-icon-search"></i></button>
+								<input type="text" name="count" placeholder="请输入" autocomplete="off" class="layui-input">
+							</div>
+							<div class="item">
+								<button type="button" lay-submit lay-filter="*"><i class="layui-icon layui-icon-search"></i></button>
+								<input type="text" name="unit" placeholder="请输入" autocomplete="off" class="layui-input">
+							</div>
+							<div class="item">
+								<button type="button" lay-submit lay-filter="*"><i class="layui-icon layui-icon-search"></i></button>
+								<input type="text" name="price" placeholder="请输入" autocomplete="off" class="layui-input">
+							</div>
+							<div class="item">
+								<button type="button" lay-submit lay-filter="*"><i class="layui-icon layui-icon-search"></i></button>
+								<input type="text" name="money" placeholder="请输入" autocomplete="off" class="layui-input" >
+							</div>
+
+							<div class="item">
+								<button type="button" lay-submit lay-filter="*"><i class="layui-icon layui-icon-search"></i></button>
+								<select name="ndStatus" lay-search>
+									<option value="">请选择</option>
+									<option value="1">无采购</option>
+									<option value="2">采购中</option>
+									<option value="3">退换货</option>
+									<option value="4">交货期</option>
+									<option value="5">订购/预警</option>
+									<option value="6">已完成</option>
+								</select>
+							</div>
+							<div class="item">
+								<button type="button" lay-submit lay-filter="*"><i class="layui-icon layui-icon-search"></i></button>
+								<input type="text" name="monthsInStock" placeholder="请输入" autocomplete="off" class="layui-input">
+							</div>
+							<div class="item" name="tjStock">
+								<button type="button" lay-submit lay-filter="*"><i class="layui-icon layui-icon-search"></i></button>
+								<input type="text" name="tjStock" placeholder="请输入" autocomplete="off" class="layui-input">
+							</div>
+
+							<div class="item">
+								<#--<button type="button" lay-submit lay-filter="*"><i class="layui-icon layui-icon-search"></i></button>-->
+								<#--<input type="text" name="faZhuZhong" placeholder="请输入" autocomplete="off" class="layui-input">-->
+							</div>
+							<div class="item">
+								<button type="button" lay-submit lay-filter="*"><i class="layui-icon layui-icon-search"></i></button>
+								<input type="text" name="faZhuCan" placeholder="请输入" autocomplete="off" class="layui-input">
+							</div>
+							<div class="item">
+								<button type="button" lay-submit lay-filter="*"><i class="layui-icon layui-icon-search"></i></button>
+								<input type="text" name="yinDangCan" placeholder="请输入" autocomplete="off" class="layui-input">
+							</div>
+							<div class="item" name="field16">
+								<button type="button" lay-submit lay-filter="*"><i class="layui-icon layui-icon-search"></i></button>
+								<input type="text" name="annotation" placeholder="请输入" autocomplete="off" class="layui-input">
+							</div>
+
+
+							<div class="item">
+								<button type="button" lay-submit lay-filter="*"><i class="layui-icon layui-icon-search"></i></button>
+								<input type="text" name="defineDate" placeholder="请输入" autocomplete="off" class="layui-input" id="laydate-1">
+							</div>
+							<div class="item">
+								<button type="button" lay-submit lay-filter="*"><i class="layui-icon layui-icon-search"></i></button>
+								<input type="text" name="purchasePrice" placeholder="请输入" autocomplete="off" class="layui-input">
+							</div>
+							<div class="item">
+								<button type="button" lay-submit lay-filter="*"><i class="layui-icon layui-icon-search"></i></button>
+								<input type="text" name="deliveryDate" placeholder="请输入" autocomplete="off" class="layui-input" id="laydate-2">
+							</div>
+
+							<div class="item ">
+								<button type="button" lay-submit lay-filter="*"><i class="layui-icon layui-icon-search"></i></button>
+								<select name="storageState" lay-search>
+									<option value="">请选择</option>
+									<option value="1">无采购</option>
+									<option value="2">采购中</option>
+									<option value="3">退换货</option>
+								</select>
+							</div>
+							<div class="item">
+								<button type="button" lay-submit lay-filter="*"><i class="layui-icon layui-icon-search"></i></button>
+								<input type="text" name="storageTime" placeholder="请输入" autocomplete="off" class="layui-input" id="laydate-2">
+							</div>
+							<div class="item">
+								<button type="button" lay-submit lay-filter="*"><i class="layui-icon layui-icon-search"></i></button>
+								<input type="text" name="purchaseOrderNumber" placeholder="请输入" autocomplete="off" class="layui-input">
+							</div>
+							<div class="item">
+								<button type="button" lay-submit lay-filter="*"><i class="layui-icon layui-icon-search"></i></button>
+								<input type="text" name="specification" placeholder="请输入" autocomplete="off" class="layui-input">
+							</div>
+							<div class="item">
+								<button type="button" lay-submit lay-filter="*"><i class="layui-icon layui-icon-search"></i></button>
+								 <select name="purchaseReturnSituation" lay-search>
+                                    <option value="">请选择</option>
+                                    <option value="1">无退货</option>
+                                    <option value="2">已退货</option>
+                                </select>
+                            </div>
+							<div class="item">
+								<button type="button" lay-submit lay-filter="*"><i class="layui-icon layui-icon-search"></i></button>
+								<input type="text" name="comment" placeholder="请输入" autocomplete="off" class="layui-input">
+							</div>
+
+						</div>
+
+					</div>
+
+				</form>
+				<div class="zq-layui-table index-table ">
+					<table id="idTest" lay-filter="demo" class="layui-table" lay-even lay-skin="nob"></table>
+				</div>
+			</div>
+		</div>
+	</div>
+
+</div>
+<!-- 编号 -->
+<script type="text/html" id="noteDcNumber">
+	<a href="###" class="zq-active zq-open" >{{d.noteDcNumber}}</a>
+</script>
+<!-- 编号 -->
+<!-- 状态 -->
+<script type="text/html" id="ndStatus">
+
+	{{# if(d.ndStatus == 1){ }}
+	<span class="layui-btn layui-btn-xs zq-bg-red">无采购</span>
+	{{# } }}
+	{{# if(d.ndStatus == 2){ }}
+	<span class="layui-btn layui-btn-xs zq-bg-orange">采购中</span>
+	{{# } }}
+	{{# if(d.ndStatus == 3){ }}
+	<span class="layui-btn layui-btn-xs zq-bg-yellow">退换货</span>
+	{{# } }}
+	{{# if(d.ndStatus == 4){ }}
+	<span class="layui-btn layui-btn-xs zq-bg-blue">交货期</span>
+	{{# } }}
+	{{# if(d.ndStatus == 5){ }}
+	<span class="layui-btn layui-btn-xs zq-bg-white">订购/预警</span>
+	{{# } }}
+	{{# if(d.ndStatus == 6){ }}
+	<span class="layui-btn layui-btn-xs zq-bg-gray">已完成</span>
+	{{# } }}
+</script>
+<!-- 状态 -->
+
+<!-- 已到情况 -->
+<script type="text/html" id="storageState">
+
+	{{# if(d.storageState == 1){ }}
+	<span class="layui-btn layui-btn-xs zq-bg-red">未入库</span>
+	{{# } }}
+	{{# if(d.storageState == 2){ }}
+	<span class="layui-btn layui-btn-xs zq-bg-orange">部分入库</span>
+	{{# } }}
+	{{# if(d.storageState == 3){ }}
+	<span class="layui-btn layui-btn-xs zq-bg-yellow">已入库</span>
+	{{# } }}
+
+</script>
+<!-- 已到情况 -->
+
+<!-- 已到情况 -->
+<script type="text/html" id="purchaseReturnSituation">
+
+    {{# if(d.purchaseReturnSituation == 1){ }}
+    <span class="layui-btn layui-btn-xs zq-bg-red">无退货</span>
+    {{# } }}
+    {{# if(d.purchaseReturnSituation == 2){ }}
+    <span class="layui-btn layui-btn-xs zq-bg-orange">已退货</span>
+    {{# } }}
+
+</script>
+<!-- 已到情况 -->
+</body>
+</html>

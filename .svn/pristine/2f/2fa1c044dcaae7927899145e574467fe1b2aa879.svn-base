@@ -1,0 +1,221 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd" >
+<mapper namespace="com.mingyuansoftware.aifactory.mapper.PurchaseReturnOrderMapper" >
+  <resultMap id="BaseResultMap" type="com.mingyuansoftware.aifactory.model.PurchaseReturnOrder" >
+    <id column="pro_id" property="proId" jdbcType="INTEGER" />
+    <result column="purchase_return_order_number" property="purchaseReturnOrderNumber" jdbcType="VARCHAR" />
+    <result column="purchase_order_id" property="purchaseOrderId" jdbcType="INTEGER" />
+    <result column="supplier_id" property="supplierId" jdbcType="INTEGER" />
+    <result column="define_date" property="defineDate" jdbcType="DATE" />
+    <result column="staff_id" property="staffId" jdbcType="INTEGER" />
+    <result column="storage_time" property="storageTime" jdbcType="TIMESTAMP" />
+    <result column="storage_state" property="storageState" jdbcType="TINYINT" />
+    <result column="purchase_return_amount" property="purchaseReturnAmount" jdbcType="DECIMAL" />
+    <result column="none_receive_amount" property="noneReceiveAmount" jdbcType="DECIMAL" />
+    <result column="receiving_amount" property="receivingAmount" jdbcType="DECIMAL" />
+    <result column="payment_date" property="paymentDate" jdbcType="TIMESTAMP" />
+    <result column="payment_status" property="paymentStatus" jdbcType="TINYINT" />
+    <result column="comment" property="comment" jdbcType="VARCHAR" />
+    <result column="create_time" property="createTime" jdbcType="TIMESTAMP" />
+    <result column="update_time" property="updateTime" jdbcType="TIMESTAMP" />
+    <result column="is_delete" property="isDelete" jdbcType="TINYINT" />
+  </resultMap>
+  <delete id="deleteByPrimaryKey" parameterType="java.lang.Integer" >
+    delete from purchase_return_order
+    where pro_id = #{proId,jdbcType=INTEGER}
+  </delete>
+  <insert id="insert" parameterType="com.mingyuansoftware.aifactory.model.PurchaseReturnOrder" >
+    <selectKey resultType="java.lang.Integer" keyProperty="proId" order="AFTER" >
+      SELECT LAST_INSERT_ID()
+    </selectKey>
+    insert into purchase_return_order (purchase_return_order_number, purchase_order_id,
+      supplier_id, define_date, staff_id,
+      storage_time, storage_state, purchase_return_amount,
+      none_receive_amount, receiving_amount,
+      payment_date, payment_status, `comment`,
+      create_time, update_time, is_delete
+      )
+    values (#{purchaseReturnOrderNumber,jdbcType=VARCHAR}, #{purchaseOrderId,jdbcType=INTEGER},
+      #{supplierId,jdbcType=INTEGER}, #{defineDate,jdbcType=DATE}, #{staffId,jdbcType=INTEGER},
+      #{storageTime,jdbcType=TIMESTAMP}, #{storageState,jdbcType=TINYINT}, #{purchaseReturnAmount,jdbcType=DECIMAL},
+      #{noneReceiveAmount,jdbcType=DECIMAL}, #{receivingAmount,jdbcType=DECIMAL},
+      #{paymentDate,jdbcType=TIMESTAMP}, #{paymentStatus,jdbcType=TINYINT}, #{comment,jdbcType=VARCHAR},
+      #{createTime,jdbcType=TIMESTAMP}, #{updateTime,jdbcType=TIMESTAMP}, #{isDelete,jdbcType=TINYINT}
+      )
+  </insert>
+  <update id="updateByPrimaryKey" parameterType="com.mingyuansoftware.aifactory.model.PurchaseReturnOrder" >
+    update purchase_return_order
+    set purchase_return_order_number = #{purchaseReturnOrderNumber,jdbcType=VARCHAR},
+      purchase_order_id = #{purchaseOrderId,jdbcType=INTEGER},
+      supplier_id = #{supplierId,jdbcType=INTEGER},
+      define_date = #{defineDate,jdbcType=DATE},
+      staff_id = #{staffId,jdbcType=INTEGER},
+      storage_time = #{storageTime,jdbcType=TIMESTAMP},
+      storage_state = #{storageState,jdbcType=TINYINT},
+      purchase_return_amount = #{purchaseReturnAmount,jdbcType=DECIMAL},
+      none_receive_amount = #{noneReceiveAmount,jdbcType=DECIMAL},
+      receiving_amount = #{receivingAmount,jdbcType=DECIMAL},
+      payment_date = #{paymentDate,jdbcType=TIMESTAMP},
+      payment_status = #{paymentStatus,jdbcType=TINYINT},
+      `comment` = #{comment,jdbcType=VARCHAR},
+      create_time = #{createTime,jdbcType=TIMESTAMP},
+      update_time = #{updateTime,jdbcType=TIMESTAMP},
+      is_delete = #{isDelete,jdbcType=TINYINT}
+    where pro_id = #{proId,jdbcType=INTEGER}
+  </update>
+  <select id="selectByPrimaryKey" resultType="com.mingyuansoftware.aifactory.model.PurchaseReturnOrder" parameterType="java.lang.Integer" >
+    select pro.pro_id, pro.purchase_return_order_number, pro.purchase_order_id, po.purchase_order_number, pro.supplier_id, su.supplier_name, pro.define_date,
+    pro.staff_id, pro.storage_time, pro.storage_state, pro.purchase_return_amount, pro.none_receive_amount,
+    pro.receiving_amount, pro.payment_date, pro.payment_status, pro.`comment`, pro.create_time, pro.update_time,
+    pro.is_delete
+    from purchase_return_order as pro
+    left join purchase_order as po on (pro.purchase_order_id = po.purchase_order_id)
+    left join supplier as su on (pro.supplier_id = su.supplier_id)
+    where pro.pro_id = #{proId,jdbcType=INTEGER}
+  </select>
+  <select id="selectAll" resultMap="BaseResultMap" >
+    select pro_id, purchase_return_order_number, purchase_order_id, supplier_id, define_date,
+    staff_id, storage_time, storage_state, purchase_return_amount, none_receive_amount,
+    receiving_amount, payment_date, payment_status, `comment`, create_time, update_time,
+    is_delete
+    from purchase_return_order
+  </select>
+  <select id="selectPurchaseReturnOrderList" resultType="com.mingyuansoftware.aifactory.model.dto.PurchaseReturnOrderDto" parameterType="com.mingyuansoftware.aifactory.model.dto.PurchaseReturnOrderDto" >
+    select pro.pro_id, pro.purchase_return_order_number, pro.define_date,
+    pro.staff_id,sf.`name`,
+    pro.purchase_order_id,po.purchase_order_number,
+    pro.supplier_id, su.supplier_name,
+    pro.storage_time, pro.storage_state, pro.purchase_return_amount, pro.none_receive_amount,
+    pro.receiving_amount, pro.payment_date, pro.payment_status, pro.`comment`, pro.create_time, pro.update_time,
+    pro.is_delete
+    from purchase_return_order as pro
+    left join staff as sf on (pro.staff_id = sf.staff_id)
+    left join purchase_order as po on (pro.purchase_order_id = po.purchase_order_id)
+	left join supplier as su on (pro.supplier_id = su.supplier_id)
+	<where>
+      <if test=" purchaseReturnOrderDto.purchaseReturnOrderNumber != null and purchaseReturnOrderDto.purchaseReturnOrderNumber != '' ">
+        and pro.purchase_return_order_number like "%"#{purchaseReturnOrderDto.purchaseReturnOrderNumber}"%"
+      </if>
+      <if test=" purchaseReturnOrderDto.defineDate != null and purchaseReturnOrderDto.defineDate != '' ">
+        and pro.define_date like "%"#{purchaseReturnOrderDto.defineDate}"%"
+      </if>
+      <if test=" purchaseReturnOrderDto.name != null and purchaseReturnOrderDto.name != '' ">
+        and sf.`name` like "%"#{purchaseReturnOrderDto.name}"%"
+      </if>
+      <if test=" purchaseReturnOrderDto.purchaseOrderNumber != null and purchaseReturnOrderDto.purchaseOrderNumber != '' ">
+        and po.purchase_order_number like "%"#{purchaseReturnOrderDto.purchaseOrderNumber}"%"
+      </if>
+      <if test=" purchaseReturnOrderDto.supplierName != null and purchaseReturnOrderDto.supplierName != '' ">
+        and su.supplier_name like "%"#{purchaseReturnOrderDto.supplierName}"%"
+      </if>
+      <if test=" purchaseReturnOrderDto.purchaseReturnAmount != null and purchaseReturnOrderDto.purchaseReturnAmount != '' or purchaseReturnOrderDto.purchaseReturnAmount == '0'.toString() ">
+        and pro.purchase_return_amount = #{purchaseReturnOrderDto.purchaseReturnAmount}
+      </if>
+      <if test=" purchaseReturnOrderDto.paymentStatus != null and purchaseReturnOrderDto.paymentStatus != '' ">
+        and pro.payment_status = #{purchaseReturnOrderDto.paymentStatus}
+      </if>
+      <if test=" purchaseReturnOrderDto.storageState != null and purchaseReturnOrderDto.storageState != '' ">
+        and pro.storage_state = #{purchaseReturnOrderDto.storageState}
+      </if>
+      <if test=" purchaseReturnOrderDto.comment != null and purchaseReturnOrderDto.comment != '' ">
+        and pro.`comment` like "%"#{purchaseReturnOrderDto.comment}"%"
+      </if>
+      and pro.is_delete = 0
+    </where>
+    order by pro.pro_id desc
+  </select>
+  <select id="selectPurchaseReturnOrderCount" resultType="java.lang.Integer" parameterType="com.mingyuansoftware.aifactory.model.dto.PurchaseReturnOrderDto" >
+    select count(pro.pro_id)
+    from purchase_return_order as pro
+    left join staff as sf on (pro.staff_id = sf.staff_id)
+    left join purchase_order as po on (pro.purchase_order_id = po.purchase_order_id)
+	left join supplier as su on (pro.supplier_id = su.supplier_id)
+    <where>
+      <if test=" purchaseReturnOrderDto.purchaseReturnOrderNumber != null and purchaseReturnOrderDto.purchaseReturnOrderNumber != '' ">
+        and pro.purchase_return_order_number like "%"#{purchaseReturnOrderDto.purchaseReturnOrderNumber}"%"
+      </if>
+      <if test=" purchaseReturnOrderDto.defineDate != null and purchaseReturnOrderDto.defineDate != '' ">
+        and pro.define_date like "%"#{purchaseReturnOrderDto.defineDate}"%"
+      </if>
+      <if test=" purchaseReturnOrderDto.name != null and purchaseReturnOrderDto.name != '' ">
+        and sf.`name` like "%"#{purchaseReturnOrderDto.name}"%"
+      </if>
+      <if test=" purchaseReturnOrderDto.purchaseOrderNumber != null and purchaseReturnOrderDto.purchaseOrderNumber != '' ">
+        and po.purchase_order_number like "%"#{purchaseReturnOrderDto.purchaseOrderNumber}"%"
+      </if>
+      <if test=" purchaseReturnOrderDto.supplierName != null and purchaseReturnOrderDto.supplierName != '' ">
+        and su.supplier_name like "%"#{purchaseReturnOrderDto.supplierName}"%"
+      </if>
+      <if test=" purchaseReturnOrderDto.purchaseReturnAmount != null and purchaseReturnOrderDto.purchaseReturnAmount != '' or purchaseReturnOrderDto.purchaseReturnAmount == '0'.toString() ">
+        and pro.purchase_return_amount = #{purchaseReturnOrderDto.purchaseReturnAmount}
+      </if>
+      <if test=" purchaseReturnOrderDto.paymentStatus != null and purchaseReturnOrderDto.paymentStatus != '' ">
+        and pro.payment_status = #{purchaseReturnOrderDto.paymentStatus}
+      </if>
+      <if test=" purchaseReturnOrderDto.storageState != null and purchaseReturnOrderDto.storageState != '' ">
+        and pro.storage_state = #{purchaseReturnOrderDto.storageState}
+      </if>
+      <if test=" purchaseReturnOrderDto.comment != null and purchaseReturnOrderDto.comment != '' ">
+        and pro.`comment` like "%"#{purchaseReturnOrderDto.comment}"%"
+      </if>
+      and pro.is_delete = 0
+    </where>
+    order by pro.pro_id desc
+  </select>
+  <select id="selectLastId" resultType="java.lang.Integer">
+    select @@identity
+  </select>
+  <update id="deletePROByProId" parameterType="java.lang.Integer">
+    update purchase_return_order
+    set
+      update_time = now(),
+      is_delete = 1
+    where pro_id = #{proId,jdbcType=INTEGER}
+  </update>
+  <select id="selectExportPurchaseReturnOrderList" resultType="com.mingyuansoftware.aifactory.model.dto.PurchaseReturnOrderDto" >
+    select pro.pro_id, pro.purchase_return_order_number, pro.define_date,
+    pro.staff_id,sf.`name`,
+    pro.purchase_order_id,po.purchase_order_number,
+    pro.supplier_id, su.supplier_name,
+    pro.storage_time, pro.storage_state, pro.purchase_return_amount, pro.none_receive_amount,
+    pro.receiving_amount, pro.payment_date, pro.payment_status, pro.`comment`, pro.create_time, pro.update_time,
+    pro.is_delete
+    from purchase_return_order as pro
+    left join staff as sf on (pro.staff_id = sf.staff_id)
+    left join purchase_order as po on (pro.purchase_order_id = po.purchase_order_id)
+    left join supplier as su on (pro.supplier_id = su.supplier_id)
+    where pro.is_delete = 0
+  </select>
+  <update id="updatePurchaseReturnOrderStorageState" >
+    update purchase_return_order
+    set
+      storage_state = 2,
+      storage_time = now()
+    where pro_id = #{purchaseReturnOrderId,jdbcType=INTEGER}
+  </update>
+  <select id="selectPurchaseReturnOrderListForReceipt" resultType="com.mingyuansoftware.aifactory.model.dto.PurchaseReturnOrderDto" >
+    select pro.pro_id, pro.purchase_return_order_number, pro.define_date,
+    pro.staff_id,sf.`name`,
+    pro.purchase_order_id,po.purchase_order_number,
+    pro.supplier_id, su.supplier_name, su.pending_amount,
+    pro.storage_time, pro.storage_state, pro.purchase_return_amount, pro.none_receive_amount,
+    pro.receiving_amount, pro.payment_date, pro.payment_status, pro.`comment`, pro.create_time, pro.update_time,
+    pro.is_delete
+    from purchase_return_order as pro
+    left join staff as sf on (pro.staff_id = sf.staff_id)
+    left join purchase_order as po on (pro.purchase_order_id = po.purchase_order_id)
+    left join supplier as su on (pro.supplier_id = su.supplier_id)
+    where pro.payment_status != 2 and pro.is_delete = 0
+    order by pro.pro_id desc
+  </select>
+  <update id="updateReceiptInfoById" >
+    update purchase_return_order
+    set
+      none_receive_amount = #{purchaseReturnOrder.noneReceiveAmount,jdbcType=DECIMAL},
+      receiving_amount = #{purchaseReturnOrder.receivingAmount,jdbcType=DECIMAL},
+      payment_date = now(),
+      payment_status = #{purchaseReturnOrder.paymentStatus,jdbcType=TINYINT},
+      update_time = now()
+    where pro_id = #{purchaseReturnOrder.proId,jdbcType=INTEGER}
+  </update>
+</mapper>

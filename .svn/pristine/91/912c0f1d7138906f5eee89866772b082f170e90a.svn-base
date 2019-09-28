@@ -1,0 +1,283 @@
+package com.mingyuansoftware.aifactory.service.impl;
+
+
+import com.mingyuansoftware.aifactory.mapper.*;
+import com.mingyuansoftware.aifactory.model.*;
+import com.mingyuansoftware.aifactory.model.dto.SalesDetailsDto;
+import com.mingyuansoftware.aifactory.model.dto.SalesOrderDetailsListDto;
+import com.mingyuansoftware.aifactory.service.SalesOrderDetailsService;
+import com.mingyuansoftware.aifactory.util.DateUtil;
+import com.mingyuansoftware.aifactory.util.RandomCodeUtil;
+import org.apache.shiro.SecurityUtils;
+import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.stereotype.Service;
+import org.springframework.transaction.annotation.Transactional;
+
+import java.math.BigDecimal;
+import java.util.ArrayList;
+import java.util.Date;
+import java.util.List;
+
+@Service
+public class SalesOrderDetailsServiceImpl implements SalesOrderDetailsService {
+
+    @Autowired
+    private SalesOrderDetailsMapper salesOrderDetailsMapper;
+    @Autowired
+    private SalesReturnMapper salesReturnMapper;
+    @Autowired
+    private SalesOrderMapper salesOrderMapper;
+    @Autowired
+    private ShipmentMapper shipmentMapper;
+    @Autowired
+    private ShipmentDetailsMapper shipmentDetailsMapper;
+
+    @Override
+    public List<SalesDetailsDto> selectSalesDetailsList(SalesDetailsDto salesDetailsDto, String startTime, String endTime) {
+        try{
+            return salesOrderDetailsMapper.selectSalesDetailsList(salesDetailsDto,startTime,endTime);
+        }catch (Exception e){
+            e.printStackTrace();
+        }
+        return null;
+    }
+
+    @Override
+    public int selectSalesDetailsCount(SalesDetailsDto salesDetailsDto, String startTime, String endTime) {
+        try{
+
+            return salesOrderDetailsMapper.selectSalesDetailsCount(salesDetailsDto,startTime,endTime);
+
+        }catch (Exception e){
+            e.printStackTrace();
+        }
+        return 0;
+    }
+
+    @Override
+    public List<SalesOrderDetails> selectSalesReturnGoodsList(int salesOrderId) {
+        try{
+            List<SalesOrderDetails>  salesOrderDetailsList = salesOrderDetailsMapper.selectSalesReturnGoodsList(salesOrderId);
+           return salesOrderDetailsList;
+        }catch (Exception e){
+            e.printStackTrace();
+        }
+        return null;
+    }
+
+    @Override
+    public int selectSalesReturnGoodsCount(int salesOrderId) {
+        try{
+            return salesOrderDetailsMapper.selectSalesReturnGoodsCount(salesOrderId);
+        }catch (Exception e){
+            e.printStackTrace();
+        }
+        return 0;
+    }
+
+    @Override
+    public List<SalesOrder> selectSalesOrderListByCustomerId(int customerId) {
+        try{
+            List<SalesOrder> salesOrderList = salesOrderMapper.selectByCustomerId(customerId);
+            List<SalesOrder> salesOrderList1 = new ArrayList<>();
+            for (SalesOrder salesOrder:salesOrderList
+                 ) {
+                boolean flag = true;
+                //获取所有销售退货单,状态为已创建
+                List<SalesReturn> salesReturnList = salesReturnMapper.selectSalesReturnListById(salesOrder.getSalesOrderId());
+                if(salesReturnList.isEmpty()){
+                    return salesOrderList;
+                }
+                for (SalesOrder salesOrder1:salesOrderList
+                     ) {
+                    int salesOrderId = salesOrder1.getSalesOrderId();
+                    for (SalesReturn salesReturn:salesReturnList
+                         ) {
+                       if(salesOrderId==salesReturn.getSalesOrderId()) {
+                           flag =false;
+                       }
+                    }
+                    if(flag){
+                        salesOrderList1.add(salesOrder1);
+                    }
+                }
+            }
+            return salesOrderList1;
+        }catch (Exception e){
+            e.printStackTrace();
+        }
+        return null;
+    }
+
+    @Override
+    public List<PDAOutboundGoods> selectPdaOutboundGoodsList(int salesOrderId) {
+        try{
+            return salesOrderDetailsMapper.selectPdaOutboundGoodsList(salesOrderId);
+        }catch (Exception e){
+            e.printStackTrace();
+        }
+        return null;
+    }
+
+    @Override
+    public SalesOrderDetails selectPdaOutboundGoodsCount(int goodsId, int salesOrderId) {
+        try{
+            return salesOrderDetailsMapper.selectPdaOutboundGoodsCount(goodsId,salesOrderId);
+        }catch (Exception e){
+            e.printStackTrace();
+        }
+        return null;
+    }
+
+    @Override
+    @Transactional(rollbackFor = Exception.class)
+    public void updateSaleOrderDetailsStatus(int salesOrderDetailsId) {
+        //修改销售订单此条货物为已配货
+        salesOrderDetailsMapper.updateSaleOrderDetailsStatus(salesOrderDetailsId);
+        SalesOrderDetails salesOrderDetails = salesOrderDetailsMapper.selectByPrimaryKey(salesOrderDetailsId);
+        List<SalesOrderDetails> salesOrderDetailsList = salesOrderDetailsMapper.selectSalesOrderDetailsListById(salesOrderDetails.getSalesOrderId());
+        boolean flag = true;
+        for (SalesOrderDetails salesOrderDetails1:salesOrderDetailsList
+        ) {
+            if(salesOrderDetails1.getStatus()==1){
+                flag = false;
+                break;
+            }
+        }
+        //领料单详情内所有货物全部完成已领料，则修改领料单状态为已领料
+        if(flag){
+            //已配货
+            int state = 2;
+            salesOrderMapper.updateSaleOrderState(salesOrderDetails.getSalesOrderId(),state);
+        }
+    }
+
+    @Override
+    public SalesOrderDetails selectByPrimaryKey(int salesOrderDetailsId) {
+        return salesOrderDetailsMapper.selectByPrimaryKey(salesOrderDetailsId);
+    }
+
+    @Override
+    @Transactional(rollbackFor = Exception.class)
+    public   List<ShipmentDetails>  updateSaleOrderDetailsQuantity(List<SalesOrderDetailsListDto> salesOrderDetailsListDtoList) {
+        //总箱数
+        int totalBoxesNumber = 0;
+        //
+        int salesOrderId = 0;
+        //总价
+        BigDecimal amount = new BigDecimal(0);
+        //总体积
+        BigDecimal totalVolume = new BigDecimal(0);
+        //总净重
+        BigDecimal totalNetWeight = new BigDecimal(0);
+        //总毛重
+        BigDecimal totalGrossWeight = new BigDecimal(0);
+        //总数量
+        BigDecimal totalAmount = new BigDecimal(0);
+        List<SalesOrderDetails> salesOrderDetailsList = new ArrayList<>();
+        for (SalesOrderDetailsListDto salesOrderDetailsListDto:salesOrderDetailsListDtoList
+             ) {
+            SalesOrderDetails salesOrderDetails = salesOrderDetailsMapper.selectByPrimaryKey(salesOrderDetailsListDto.getSalesOrderDetailsId());
+            if(salesOrderId ==0){
+                salesOrderId = salesOrderDetails.getSalesOrderId();
+            }
+            BigDecimal outQuantity  =salesOrderDetailsListDto.getOutQuantity().add(salesOrderDetails.getOutQuantity());
+            BigDecimal notOutQuantity = salesOrderDetails.getNotOutQuantity().subtract(outQuantity);
+            salesOrderDetails.setNotOutQuantity(notOutQuantity);
+            salesOrderDetails.setOutQuantity(outQuantity);
+            salesOrderDetails.setGoodsId(salesOrderDetails.getGoods().getGoodsId());
+            //未出货数量等于0
+            if(notOutQuantity.compareTo(BigDecimal.ZERO) ==0){
+                salesOrderDetails.setStatus((byte)3);
+            }
+            //未出货数量大于0并且出货数量大于0
+            if(notOutQuantity.compareTo(BigDecimal.ZERO) > 0 &&outQuantity.compareTo(BigDecimal.ZERO)>0){
+                salesOrderDetails.setStatus((byte)2);
+            }
+            salesOrderDetailsMapper.updateByPrimaryKey(salesOrderDetails);
+            //计算箱数 根据此次出货数量和货物的箱数计算
+            if(salesOrderDetails.getBoxesNumber()!=null){
+                int boxesNumber =salesOrderDetails.getGoods().getBoxesNumber();
+                if(boxesNumber>0){
+                    totalBoxesNumber = totalBoxesNumber + (Integer.parseInt(String.valueOf(salesOrderDetailsListDto.getOutQuantity().divide(new BigDecimal(boxesNumber),0,BigDecimal.ROUND_UP))));
+                }
+            }
+            //计算总价
+            amount = amount.add(salesOrderDetails.getUnitPrice().multiply(salesOrderDetailsListDto.getOutQuantity()));
+            //计算总体积
+            totalVolume = totalVolume.add(salesOrderDetails.getGoods().getVolume().multiply(salesOrderDetailsListDto.getOutQuantity()));
+            //总净重
+            totalNetWeight =totalNetWeight.add(salesOrderDetails.getGoods().getNetWeight().multiply(salesOrderDetailsListDto.getOutQuantity()));
+            //总毛重
+            totalGrossWeight = totalGrossWeight.add(salesOrderDetails.getGoods().getGrossWeight().multiply(salesOrderDetailsListDto.getOutQuantity()));
+            //总数量
+            totalAmount = totalAmount.add(salesOrderDetailsListDto.getOutQuantity());
+            salesOrderDetailsList.add(salesOrderDetails);
+        }
+      /*  if(salesOrderId>0){
+            boolean flag = true;
+            int state = 1;
+            List<SalesOrderDetails> salesOrderDetailsList1 = salesOrderDetailsMapper.selectSalesOrderDetailsListById(salesOrderId);
+            for (SalesOrderDetails salesOrderDetails:salesOrderDetailsList1
+            ) {
+               if(salesOrderDetails.getStatus()<3){
+                   flag = false;
+                   if(salesOrderDetails.getStatus()==2){
+                       state=2;
+                   }
+               }
+            }
+            if(flag){
+                state =3;
+                salesOrderMapper.updateSaleOrderState(salesOrderId,state);
+            }else{
+                if(state==2){
+                    salesOrderMapper.updateSaleOrderState(salesOrderId,state);
+                }
+            }
+        }*/
+        //创建出货单
+        Shipment shipment = new Shipment();
+        //发货单编号
+        String number ="22"+ RandomCodeUtil.getRandomCode();
+        shipment.setShipmentNumber(number);
+        shipment.setState((byte)1);
+        shipment.setCreateTime(new Date());
+        shipment.setTotalBoxesNumber(totalBoxesNumber);
+        shipment.setTotalAmount(totalAmount);
+        shipment.setTotalNetWeight(totalNetWeight);
+        shipment.setTotalGrossWeight(totalGrossWeight);
+        shipment.setTotalVolume(totalVolume);
+        shipment.setAmount(amount);
+        shipment.setSalesOrderId(salesOrderId);
+        shipment.setAddTime(DateUtil.getDate());
+        Staff staff =(Staff) SecurityUtils.getSubject().getSession().getAttribute("user");
+        int staffId = staff.getStaffId();
+        shipment.setStaffId(staffId);
+        shipmentMapper.insert(shipment);
+        for (SalesOrderDetails salesOrderDetails:salesOrderDetailsList
+             ) {
+           ShipmentDetails shipmentDetails = new ShipmentDetails();
+           shipmentDetails.setShipmentId(shipment.getShipmentId());
+           int boxesNumber =salesOrderDetails.getGoods().getBoxesNumber();
+           for (SalesOrderDetailsListDto salesOrderDetailsListDto:salesOrderDetailsListDtoList
+                 ) {
+                int salesOrderDetailsId = salesOrderDetails.getSalesOrderDetailsId();
+                if(salesOrderDetailsId == salesOrderDetailsListDto.getSalesOrderDetailsId()){
+                    if(boxesNumber>0) {
+                        shipmentDetails.setBoxesNumber(Integer.parseInt(String.valueOf(salesOrderDetailsListDto.getOutQuantity().divide(new BigDecimal(boxesNumber), 0, BigDecimal.ROUND_UP))));
+                    }
+                    shipmentDetails.setOutQuantity(salesOrderDetailsListDto.getOutQuantity());
+                    shipmentDetails.setContainerInfo(salesOrderDetailsListDto.getContainerInfo());
+                    break;
+                }
+            }
+            shipmentDetails.setGoodsId(salesOrderDetails.getGoods().getGoodsId());
+            shipmentDetails.setSalesOrderDetailsId(salesOrderDetails.getSalesOrderDetailsId());
+            shipmentDetails.setStatus((byte)1);
+            shipmentDetailsMapper.insert(shipmentDetails);
+        }
+        return  shipmentDetailsMapper.selectShipmentDetailsListById(shipment.getShipmentId());
+    }
+
+}

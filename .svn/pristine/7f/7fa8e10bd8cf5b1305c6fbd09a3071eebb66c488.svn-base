@@ -1,0 +1,500 @@
+package com.mingyuansoftware.aifactory.controller;
+
+import com.github.pagehelper.PageHelper;
+import com.mingyuansoftware.aifactory.enums.ZtCode;
+import com.mingyuansoftware.aifactory.model.NoteDocument;
+import com.mingyuansoftware.aifactory.model.PurchaseOrder;
+import com.mingyuansoftware.aifactory.model.dto.NoteDocumentDto;
+import com.mingyuansoftware.aifactory.pojo.LayuiCommonResponse;
+import com.mingyuansoftware.aifactory.service.NoteDocumentService;
+import com.mingyuansoftware.aifactory.service.PurchaseApplyService;
+import com.mingyuansoftware.aifactory.util.DateUtil;
+import com.mingyuansoftware.aifactory.util.DeleteFileUtil;
+import com.mingyuansoftware.aifactory.util.MyException;
+import io.swagger.annotations.*;
+import net.sf.json.JSONArray;
+import org.apache.poi.hssf.usermodel.HSSFRow;
+import org.apache.poi.hssf.usermodel.HSSFSheet;
+import org.apache.poi.hssf.usermodel.HSSFWorkbook;
+import org.apache.shiro.authz.annotation.RequiresPermissions;
+import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.validation.annotation.Validated;
+import org.springframework.web.bind.annotation.*;
+import org.springframework.web.multipart.MultipartFile;
+
+import javax.servlet.ServletOutputStream;
+import javax.servlet.http.HttpServletResponse;
+import java.io.ByteArrayOutputStream;
+import java.io.IOException;
+import java.math.BigDecimal;
+import java.net.URLEncoder;
+import java.util.ArrayList;
+import java.util.List;
+
+/**
+ * @author 张婷
+ * @date 2019/8/9 11:30
+ */
+
+@Api(value = "NoteDocument", description = "注文书API", tags = {"注文书-注文书列表"})
+@RestController
+@RequestMapping("/noteDocument")
+public class NoteDocumentController {
+
+    @Autowired
+    private NoteDocumentService noteDocumentService;
+    @Autowired
+    private PurchaseApplyService purchaseApplyService;
+
+    @ApiOperation(value = "注文书列表", nickname = "/selectNoteDocumentList", notes = "获取注文书列表", tags = {"@张婷"})
+    @ApiImplicitParams({
+            @ApiImplicitParam(name = "page", value = "第几页", paramType = "query", dataType = "int"),
+            @ApiImplicitParam(name = "limit", value = "每页容量", paramType = "query", dataType = "int"),
+            @ApiImplicitParam(name = "noteDocumentDto", value = "注文书列表实体类", paramType = "query", dataType = "NoteDocumentDto"),
+    })
+    @RequestMapping(value = "/getNoteDocumentList", method = RequestMethod.GET)
+    @ResponseBody
+    @RequiresPermissions(value = {"getNoteDocumentList"})
+    public LayuiCommonResponse getNoteDocumentList(@Validated @RequestParam(defaultValue = "1") int page,
+                                                   @Validated @RequestParam(defaultValue = "10") int limit,
+                                                   @Validated NoteDocumentDto noteDocumentDto) {
+        LayuiCommonResponse response = new LayuiCommonResponse();
+        try {
+            PageHelper.startPage(page, limit);
+            List<NoteDocumentDto> noteDocumentDtoList = noteDocumentService.selectNoteDocumentList(noteDocumentDto);
+            int count = noteDocumentService.selectCount(noteDocumentDto);
+            response.setCode(ZtCode.SUCCESS_GET.getCode());
+            response.setMsg(ZtCode.SUCCESS_GET.getInfo());
+            response.setCount(count);
+            response.setData(noteDocumentDtoList);
+        } catch (Exception e) {
+            e.printStackTrace();
+            response.setCode(ZtCode.FAIL_GET.getCode());
+            response.setMsg(ZtCode.FAIL_GET.getInfo());
+        }
+        return response;
+    }
+
+    //导入要保证供应商货物中有货物
+    @ApiOperation(value = "导入注文书", nickname = "/importNoteDocumentExcel", notes = "导入注文书(Excel表格)", tags = {"@张婷"})
+    @RequestMapping(value = "/importNoteDocumentExcel", method = RequestMethod.POST)
+    @ResponseBody
+    @RequiresPermissions(value = {"importNoteDocumentExcel"})
+    public LayuiCommonResponse importNoteDocumentExcel(@ApiParam(value = "MultipartFile", required = true) MultipartFile file) {
+        LayuiCommonResponse response = new LayuiCommonResponse();
+        try {
+            noteDocumentService.importNoteDocument(file);
+            //导入完成 1.合并同一货物数量和总价 2.修改发注残
+            noteDocumentService.updateNoteDocumentData();
+            response.setCode(ZtCode.SUCCESS_IMPORT.getCode());
+            response.setMsg(ZtCode.SUCCESS_IMPORT.getInfo());
+        } catch (Exception e) {
+            e.printStackTrace();
+            response.setCode(ZtCode.FAIL_IMPORT.getCode());
+//            response.setMsg(ZtCode.FAIL_IMPORT.getInfo());
+            response.setMsg(e.getMessage());
+        } finally {
+            //删除文件夹内的文件
+            String os = System.getProperty("os.name");
+            if (os.toLowerCase().startsWith("win")) {//如果是Windows系统
+                String unZipAddress = "D:/importCsv/";
+                DeleteFileUtil.delFolder(unZipAddress);
+            } else {  //linux 和mac
+                String unZipAddress = "/usr/local/csv/";
+                DeleteFileUtil.delFolder(unZipAddress);
+            }
+        }
+        return response;
+    }
+/*
+    @ApiOperation(value = "导入注文书", nickname = "/importNoteDocumentExcel", notes = "导入注文书(Excel表格)", tags = {"@张婷"})
+    @RequestMapping(value = "/importNoteDocumentExcel", method = RequestMethod.POST)
+    @ResponseBody
+    public LayuiCommonResponse importNoteDocumentExcel(@ApiParam(value = "MultipartFile", required = true) MultipartFile file) {
+        LayuiCommonResponse response = new LayuiCommonResponse();
+        try {
+            String fileName = file.getOriginalFilename();
+            List<NoteDocument> noteDocumentList = noteDocumentService.importNoteDocumentExcel(fileName,file);
+            response.setCode(ZtCode.SUCCESS_IMPORT.getCode());
+            response.setMsg(ZtCode.SUCCESS_IMPORT.getInfo());
+            response.setData(noteDocumentList);
+        } catch (MyException e) {
+            e.printStackTrace();
+            response.setCode(ZtCode.FAIL_IMPORT.getCode());
+            response.setMsg(e.getMessage());
+        } catch (Exception e) {
+            e.printStackTrace();
+            response.setCode(ZtCode.FAIL_IMPORT.getCode());
+            response.setMsg(ZtCode.FAIL_IMPORT.getInfo());
+        }
+        return response;
+    }
+*/
+
+    @ApiOperation(value = "查询注文书能否更新操作", nickname = "/selectUpdateNoteDocumentInfo", notes = "查询注文书能否更新操作(只有未生成采购订单的注文书才可以更新操作)注文书状态为1.无采购", tags = {"@张婷"})
+    @ApiImplicitParam(name = "ndid", value = "注文书Id", required = true, paramType = "query", dataType = "int")
+    @RequestMapping(value = "/selectUpdateNoteDocumentInfo", method = RequestMethod.POST)
+    @ResponseBody
+    public LayuiCommonResponse selectUpdateNoteDocumentInfo(int ndid) {
+        LayuiCommonResponse response = new LayuiCommonResponse();
+        try {
+            //查询注文书状态 1.无采购
+            int ndStatus = noteDocumentService.selectUpdateNoteDocumentInfo(ndid);
+            if (ndStatus != 1) {
+                response.setCode(ZtCode.UNABLE_EDITNB.getCode());
+                response.setMsg(ZtCode.UNABLE_EDITNB.getInfo());
+                return response;
+            }
+            //可以更新操作,返回注文书id查询出来的数据
+            NoteDocument noteDocument = noteDocumentService.selectNoteDocumentById(ndid);
+            response.setCode(ZtCode.CAN_EDITNB.getCode());
+            response.setMsg(ZtCode.CAN_EDITNB.getInfo());
+            response.setData(noteDocument);
+        } catch (Exception e) {
+            e.printStackTrace();
+            response.setCode(ZtCode.UNABLE_EDITNB.getCode());
+            response.setMsg(ZtCode.UNABLE_EDITNB.getInfo());
+        }
+        return response;
+    }
+
+    @ApiOperation(value = "更新注文书", nickname = "/updateNoteDocumentInfo", notes = "更新注文书", tags = {"@张婷"})
+    @ApiImplicitParam(name = "noteDocument", value = "注文书实体类", dataType = "NoteDocument")
+    @RequestMapping(value = "/updateNoteDocumentInfo", method = RequestMethod.POST)
+    @ResponseBody
+    @RequiresPermissions(value = {"updateNoteDocumentInfo"})
+    public LayuiCommonResponse updateNoteDocumentInfo(@RequestBody NoteDocument noteDocument) {
+        LayuiCommonResponse response = new LayuiCommonResponse();
+        try {
+            int updateNoteDocumentInfo = noteDocumentService.updateNoteDocumentInfo(noteDocument);
+            if (updateNoteDocumentInfo < 1) {
+                response.setCode(ZtCode.FAIL_EDIT.getCode());
+                response.setMsg(ZtCode.FAIL_EDIT.getInfo());
+                return response;
+            }
+            response.setCode(ZtCode.SUCCESS_EDIT.getCode());
+            response.setMsg(ZtCode.SUCCESS_EDIT.getInfo());
+        } catch (Exception e) {
+            e.printStackTrace();
+            response.setCode(ZtCode.FAIL_EDIT.getCode());
+            response.setMsg(ZtCode.FAIL_EDIT.getInfo());
+        }
+        return response;
+    }
+
+    @ApiOperation(value = "查询能否生成采购订单(注)", nickname = "/selectCreatePurchaseOrderNote", notes = "根据注文书id查询供应商", tags = {"@张婷"})
+    @ApiImplicitParam(name = "noteDocument", value = "注文书id[]", dataType = "NoteDocument")
+    @RequestMapping(value = "/selectCreatePurchaseOrderNote", method = RequestMethod.POST)
+    @ResponseBody
+    public LayuiCommonResponse selectCreatePurchaseOrderNote(@RequestBody List<NoteDocument> noteDocument) {
+        LayuiCommonResponse response = new LayuiCommonResponse();
+        try {
+            for (NoteDocument noteDocument1 : noteDocument) {
+                //查询注文书状态,如果不是1.无采购,采购订单已生成,请不要重复生成采购订单
+                int ndStatus = noteDocumentService.selectUpdateNoteDocumentInfo(noteDocument1.getNdid());
+                if (ndStatus != 1) {
+                    response.setCode(ZtCode.UNABLE_CREATEPO.getCode());
+                    response.setMsg(ZtCode.UNABLE_CREATEPO.getInfo());
+                    return response;
+                }
+            }
+            //查询判断是否是同一供应商
+            List<NoteDocument> noteDocument2 = noteDocumentService.selectCPONoteDocumentSupplier(noteDocument);
+            if (noteDocument2 == null) {
+                response.setCode(ZtCode.UNABLE_CREATEPO.getCode());
+                response.setMsg(ZtCode.UNABLE_CREATEPO.getInfo());
+                return response;
+            }
+            response.setCode(ZtCode.CAN_CREATEPO.getCode());
+            response.setMsg(ZtCode.CAN_CREATEPO.getInfo());
+            response.setData(noteDocument2);
+        } catch (Exception e) {
+            e.printStackTrace();
+            response.setCode(ZtCode.UNABLE_CREATEPO.getCode());
+            response.setMsg(ZtCode.UNABLE_CREATEPO.getInfo());
+        }
+        return response;
+    }
+    /*  [{"ndid": 1},{"ndid": 3}]    */
+
+    @ApiOperation(value = "查询注文书中的货物信息", nickname = "/selectGoodInfoByNote", notes = "根据注文书查询需要生成采购订单的货物信息", tags = {"@张婷"})
+    @ApiImplicitParam(name = "noteDocumentDtoList", value = "注文书id[]", dataType = "NoteDocumentDto")
+    @RequestMapping(value = "/selectGoodInfoByNote", method = RequestMethod.POST)
+    @ResponseBody
+    public LayuiCommonResponse getGoodInfoByNote(@RequestBody List<NoteDocumentDto> noteDocumentDtoList) {
+        LayuiCommonResponse response = new LayuiCommonResponse();
+        try {
+            List<NoteDocumentDto> noteDocumentDtoList1 = new ArrayList<>();
+                for (NoteDocumentDto noteDocumentDto : noteDocumentDtoList) {
+                    //根据注文书id查询货物信息
+                    NoteDocumentDto noteDocumentDto1 = noteDocumentService.selectGoodInfoByNote(noteDocumentDto.getNdid());
+                    noteDocumentDtoList1.add(noteDocumentDto1);
+                }
+            response.setCode(ZtCode.SUCCESS_GET.getCode());
+            response.setMsg(ZtCode.SUCCESS_GET.getInfo());
+            response.setData(noteDocumentDtoList1);
+        } catch (Exception e) {
+            e.printStackTrace();
+            response.setCode(ZtCode.FAIL_GET.getCode());
+            response.setMsg(ZtCode.FAIL_GET.getInfo());
+        }
+        return response;
+    }
+
+    /*  [{"ndid": 1},{"ndid": 3}]    */
+
+    @ApiOperation(value = "生成采购订单(注)", nickname = "/createPurchaseOrderNote", notes = "由注文书生成采购订单", tags = {"@张婷"})
+    @ApiImplicitParam(name = "purchaseOrder", value = "采购订单实体类", required = true, dataType = "PurchaseOrder")
+    @RequestMapping(value = "/createPurchaseOrderNote", method = RequestMethod.POST)
+    @ResponseBody
+    @RequiresPermissions(value = {"createPurchaseOrderNote"})
+    public LayuiCommonResponse createPurchaseOrderNote(@RequestBody PurchaseOrder purchaseOrder) {
+        LayuiCommonResponse response = new LayuiCommonResponse();
+        try {
+            int insertPurchaseOrder = purchaseApplyService.createPurchaseOrder(purchaseOrder);
+            if (insertPurchaseOrder < 1) {
+                response.setCode(ZtCode.FAIL_CREATEPO.getCode());
+                response.setMsg(ZtCode.FAIL_CREATEPO.getInfo());
+                return response;
+            }
+            response.setCode(ZtCode.SUCCESS_CREATEPO.getCode());
+            response.setMsg(ZtCode.SUCCESS_CREATEPO.getInfo());
+        } catch (Exception e) {
+            e.printStackTrace();
+            response.setCode(ZtCode.FAIL_CREATEPO.getCode());
+            response.setMsg(ZtCode.FAIL_CREATEPO.getInfo());
+        }
+        return response;
+    }
+
+    @ApiOperation(value = "导出注文书列表", nickname = "/exportNoteDocumentList", notes = "导出注文书列表", tags = {"@张婷"})
+    @ApiImplicitParams({
+            @ApiImplicitParam(name = "noteDcNumber", value = "注文书编号", paramType = "query", dataType = "String"),
+            @ApiImplicitParam(name = "productionInstructionId", value = "生产指示书Id(回次)", paramType = "query", dataType = "int"),
+            @ApiImplicitParam(name = "partsCd", value = "部品CD", paramType = "query", dataType = "String"),
+            @ApiImplicitParam(name = "goodsName", value = "品名EL", paramType = "query", dataType = "String"),
+            @ApiImplicitParam(name = "supplierName", value = "供应商名称", paramType = "query", dataType = "String"),
+
+            @ApiImplicitParam(name = "count", value = "采购数量", paramType = "query", dataType = "BigDecimal"),
+            @ApiImplicitParam(name = "unit", value = "单位", paramType = "query", dataType = "String"),
+            @ApiImplicitParam(name = "price", value = "预计单价", paramType = "query", dataType = "BigDecimal"),
+            @ApiImplicitParam(name = "money", value = "合计金额", paramType = "query", dataType = "BigDecimal"),
+            @ApiImplicitParam(name = "ndStatus", value = "注文书状态", paramType = "query", dataType = "Byte"),
+            @ApiImplicitParam(name = "monthsInStock", value = "在库月数", paramType = "query", dataType = "String"),
+
+            @ApiImplicitParam(name = "tjStock", value = "天津侧库存", paramType = "query", dataType = "BigDecimal"),
+            /*@ApiImplicitParam(name = "xxx", value = "发注中", paramType = "query", dataType = "String"),
+            @ApiImplicitParam(name = "xxx", value = "发注残", paramType = "query", dataType = "String"),
+            @ApiImplicitParam(name = "xxx", value = "引当残", paramType = "query", dataType = "String"),
+            @ApiImplicitParam(name = "xxx", value = "注文不足或多余在库", paramType = "query", dataType = "String"),*/
+            @ApiImplicitParam(name = "defineDate", value = "采购日期", paramType = "query", dataType = "String"),
+
+            @ApiImplicitParam(name = "purchasePrice", value = "实际单价", paramType = "query", dataType = "BigDecimal"),
+            @ApiImplicitParam(name = "deliveryDate", value = "交货日期", paramType = "query", dataType = "String"),
+            @ApiImplicitParam(name = "storageState", value = "已到情况", paramType = "query", dataType = "Byte"),
+            @ApiImplicitParam(name = "storageTime", value = "到货日期", paramType = "query", dataType = "String"),
+            @ApiImplicitParam(name = "purchaseOrderNumber", value = "采购订单编号", paramType = "query", dataType = "String"),
+            @ApiImplicitParam(name = "specification", value = "规格数据", paramType = "query", dataType = "String"),
+
+            @ApiImplicitParam(name = "purchaseReturnSituation", value = "退换货情况", paramType = "query", dataType = "Byte"),
+            @ApiImplicitParam(name = "comment", value = "备注", paramType = "query", dataType = "String")
+    })
+    @RequestMapping(value = "/exportNoteDocumentList", method = RequestMethod.GET)
+    @ResponseBody
+    @RequiresPermissions(value = {"exportNoteDocumentList"})
+    public void exportNoteDocumentList(HttpServletResponse response, @Validated String noteDcNumber, @Validated Integer productionInstructionId,
+                                       @Validated String partsCd, @Validated String goodsName, @Validated String supplierName,
+
+                                       @Validated BigDecimal count, @Validated String unit, @Validated BigDecimal price,
+                                       @Validated BigDecimal money, @Validated Byte ndStatus, @Validated String monthsInStock,
+
+                                       @Validated BigDecimal tjStock, @Validated String defineDate,
+
+                                       @Validated BigDecimal purchasePrice, @Validated String deliveryDate, @Validated Byte storageState,
+                                       @Validated String storageTime, @Validated String purchaseOrderNumber, @Validated String specification,
+
+                                       @Validated Byte purchaseReturnSituation, @Validated String comment)
+            throws IOException {
+        NoteDocumentDto noteDocumentDto = new NoteDocumentDto();
+        noteDocumentDto.setNoteDcNumber(noteDcNumber);
+        noteDocumentDto.setProductionInstructionId(productionInstructionId);
+        noteDocumentDto.setPartsCd(partsCd);
+        noteDocumentDto.setGoodsName(goodsName);
+        noteDocumentDto.setSupplierName(supplierName);
+        noteDocumentDto.setCount(count);
+        noteDocumentDto.setUnit(unit);
+        noteDocumentDto.setPrice(price);
+        noteDocumentDto.setMoney(money);
+        noteDocumentDto.setNdStatus(ndStatus);
+        noteDocumentDto.setMonthsInStock(monthsInStock);
+        noteDocumentDto.setTjStock(tjStock);
+        noteDocumentDto.setDefineDate(defineDate);
+        noteDocumentDto.setPurchasePrice(purchasePrice);
+        noteDocumentDto.setDeliveryDate(deliveryDate);
+        noteDocumentDto.setStorageState(storageState);
+        noteDocumentDto.setStorageTime(storageTime);
+        noteDocumentDto.setPurchaseOrderNumber(purchaseOrderNumber);
+        noteDocumentDto.setSpecification(specification);
+        noteDocumentDto.setPurchaseReturnSituation(purchaseReturnSituation);
+        noteDocumentDto.setComment(comment);
+        List<NoteDocumentDto> noteDocumentDtoList = noteDocumentService.selectNoteDocumentList(noteDocumentDto);
+        String fileName = DateUtil.getStringTodayMillisecond() + ".xls";//设置要导出的文件的名字
+        response.setContentType("application/application/vnd.ms-excel");
+        response.setHeader("Content-disposition",
+                "attachment;filename=" + URLEncoder.encode(DateUtil.getStringTodayMillisecond() + ".xls", "UTF-8"));
+        ServletOutputStream out = response.getOutputStream();
+        HSSFWorkbook workbook = new HSSFWorkbook();
+        HSSFSheet sheet = workbook.createSheet();
+        HSSFRow row = sheet.createRow(0);
+        row.createCell(0).setCellValue("注文书号");
+        row.createCell(1).setCellValue("回次");
+        row.createCell(2).setCellValue("部品CD");
+        row.createCell(3).setCellValue("品名");
+        row.createCell(4).setCellValue("供应商名称");
+
+        row.createCell(5).setCellValue("采购数量");
+        row.createCell(6).setCellValue("单位");
+        row.createCell(7).setCellValue("预计单价");
+        row.createCell(8).setCellValue("合计金额");
+        row.createCell(9).setCellValue("注文书状态");
+        row.createCell(10).setCellValue("在库月数");
+
+        row.createCell(11).setCellValue("天津侧库存");
+        row.createCell(12).setCellValue("发注中");
+        row.createCell(13).setCellValue("发注残");
+        row.createCell(14).setCellValue("引当残");
+        row.createCell(15).setCellValue("注文不足或多余在库");
+        row.createCell(16).setCellValue("采购日期");
+
+        row.createCell(17).setCellValue("实际单价");
+        row.createCell(18).setCellValue("交货日期");
+        row.createCell(19).setCellValue("已到情况");
+        row.createCell(20).setCellValue("到货日期");
+        row.createCell(21).setCellValue("采购订单编号");
+        row.createCell(22).setCellValue("规格数据");
+
+        row.createCell(23).setCellValue("退换货情况");
+        row.createCell(24).setCellValue("备注");
+        ByteArrayOutputStream arrayInputStream = new ByteArrayOutputStream();
+        int index = 1;
+        try {
+            for (NoteDocumentDto noteDocumentDto1 : noteDocumentDtoList) {
+                row = sheet.createRow(index);
+                row.createCell(0).setCellValue(noteDocumentDto1.getNoteDcNumber());
+                row.createCell(1).setCellValue(noteDocumentDto1.getProductionInstructionId());
+                row.createCell(2).setCellValue(noteDocumentDto1.getPartsCd());
+                row.createCell(3).setCellValue(noteDocumentDto1.getGoodsName());
+                row.createCell(4).setCellValue(noteDocumentDto1.getSupplierName());
+                row.createCell(5).setCellValue(String.valueOf(noteDocumentDto1.getCount()));
+                row.createCell(6).setCellValue(noteDocumentDto1.getUnit());
+                row.createCell(7).setCellValue(String.valueOf(noteDocumentDto1.getPrice()));
+                row.createCell(8).setCellValue(String.valueOf(noteDocumentDto1.getMoney()));
+                //注文书状态 1.无采购 2.采购中 3.退换货 4.交货期 5.订购/预警 6.已完成
+                if (noteDocumentDto1.getNdStatus() == 1) {
+                    row.createCell(9).setCellValue("无采购");
+                } else if (noteDocumentDto1.getNdStatus() == 2) {
+                    row.createCell(9).setCellValue("采购中");
+                } else if (noteDocumentDto1.getNdStatus() == 3) {
+                    row.createCell(9).setCellValue("退换货");
+                } else if (noteDocumentDto1.getNdStatus() == 4) {
+                    row.createCell(9).setCellValue("交货期");
+                } else if (noteDocumentDto1.getNdStatus() == 5) {
+                    row.createCell(9).setCellValue("订购/预警");
+                } else if (noteDocumentDto1.getNdStatus() == 6) {
+                    row.createCell(9).setCellValue("已完成");
+                }
+
+                if (noteDocumentDto1.getNdStatus() != 1) {
+                    row.createCell(10).setCellValue(noteDocumentDto1.getMonthsInStock());
+                    if (noteDocumentDto1.getTjStock() == null) {
+                        row.createCell(11).setCellValue(0);
+                    } else {
+                        row.createCell(11).setCellValue(String.valueOf(noteDocumentDto1.getTjStock()));
+                    }
+//                row.createCell(12).setCellValue(noteDocumentDto1.getNoteDcNumber());
+//                row.createCell(13).setCellValue(noteDocumentDto1.getNoteDcNumber());
+//                row.createCell(14).setCellValue(noteDocumentDto1.getNoteDcNumber());
+//                row.createCell(15).setCellValue(noteDocumentDto1.getNoteDcNumber());
+                    row.createCell(16).setCellValue(noteDocumentDto1.getDefineDate());
+                    row.createCell(17).setCellValue(String.valueOf(noteDocumentDto1.getPurchasePrice()));
+                    row.createCell(18).setCellValue(noteDocumentDto1.getDeliveryDate());
+                    //已到情况(入库状态 1.未入库 2.部分入库 3.已入库)
+                    if (noteDocumentDto1.getStorageState() == 1) {
+                        row.createCell(19).setCellValue("未入库");
+                    } else if (noteDocumentDto1.getStorageState() == 2) {
+                        row.createCell(19).setCellValue("部分入库");
+                    } else if (noteDocumentDto1.getStorageState() == 3) {
+                        row.createCell(19).setCellValue("已入库");
+                    }
+                    row.createCell(20).setCellValue(noteDocumentDto1.getStorageTime());
+                    row.createCell(21).setCellValue(noteDocumentDto1.getPurchaseOrderNumber());
+                    row.createCell(22).setCellValue(noteDocumentDto1.getSpecification());
+                    //退货情况 1.无退货 2.已退货
+                    if (noteDocumentDto1.getPurchaseReturnSituation() == 1) {
+                        row.createCell(23).setCellValue("无退货");
+                    } else if (noteDocumentDto1.getPurchaseReturnSituation() == 2) {
+                        row.createCell(23).setCellValue("已退货");
+                    }
+                    row.createCell(24).setCellValue(noteDocumentDto1.getComment());
+                }
+                index++;
+            }
+        } catch (Exception e) {
+            e.printStackTrace();
+        }
+        workbook.write(arrayInputStream);
+        byte[] bytes = arrayInputStream.toByteArray();
+        out.write(bytes);
+        out.close();
+    }
+
+}
+    /*
+        1.新增
+        {
+          "goodsId": 12891,
+          "count": 6000,
+          "price": 0.095,
+          "money": "570",
+          "noteDcNumber": 546423455441,
+          "productionInstructionId": 140,
+          "supplierId": 8
+        }
+        2.更新
+        {
+          "count": 1302,
+          "goodsId": 18786,
+          "money": 100.01,
+          "ndid": 4,
+          "price": 0.188
+        }
+        3.生成采购订单
+        {
+          "capital": "capital",
+          "comment": "comment",
+          "defineDate": "2018-02-02",
+          "deliveryDate": "2018-04-04",
+          "orderStatus": 1,
+          "paymentStatus": 1,
+          "purchaseAmount": 1000,
+          "purchaseOrderDetailsList": [
+          {
+            "purchasePrice":0.1,
+            "goodsId":12891,
+            "quantity":6000,
+            "taxIncludedAmount":0,
+            "ndid":4
+          }, {
+            "purchasePrice":0.01,
+            "goodsId":12891,
+            "quantity":50005,
+            "taxIncludedAmount":0,
+            "ndid":5
+          }
+        ],
+          "purchaseOrderNumber": "111111111002",
+          "purchaseType": "天津",
+          "staffId": 6,
+          "supplierId":8
+        }
+    */

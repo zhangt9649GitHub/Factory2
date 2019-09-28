@@ -1,0 +1,180 @@
+package com.mingyuansoftware.aifactory.model;
+
+import io.swagger.annotations.ApiModel;
+import io.swagger.annotations.ApiModelProperty;
+
+import java.io.Serializable;
+import java.math.BigDecimal;
+
+@ApiModel(description = "张婷")
+public class NoteDocument implements Serializable {
+
+    @ApiModelProperty(value = "注文书Id", example = "1")
+    private Integer ndid;
+
+    @ApiModelProperty(value = "货物Id", example = "1")
+    private Integer goodsId;
+
+    @ApiModelProperty(value = "数量", example = "0.00")
+    private BigDecimal count;
+
+    @ApiModelProperty(value = "单价", example = "0.00")
+    private BigDecimal price;
+
+    @ApiModelProperty(value = "合计金额", example = "0.00")
+    private BigDecimal money;
+
+    @ApiModelProperty(value = "注文书编号", example = "1")
+    private String noteDcNumber;
+
+    @ApiModelProperty(value = "生产指示书Id", example = "1")
+    private Integer productionInstructionId;
+
+    @ApiModelProperty(value = "供应商id", example = "1")
+    private Integer supplierId;
+
+    @ApiModelProperty(value = "注文书状态 1.无采购 2.采购中 3.退换货 4.交货期 5.订购/预警 6.已完成", example = "1")
+    private Byte ndStatus;
+
+    @ApiModelProperty(value = "采购订单id", example = "1")
+    private Integer purchaseOrderId;
+
+    @ApiModelProperty(value = "发注残", example = "0.00")
+    private BigDecimal faZhuCan;
+
+    @ApiModelProperty(value = "引当残", example = "0.00")
+    private BigDecimal yinDangCan;
+
+    @ApiModelProperty(value = "注文不足或多余在库", example = "注文不足或多余在库 正数:多余在库 ; 负数:注文不足；")
+    private BigDecimal annotation;
+
+    private static final long serialVersionUID = 1L;
+
+    public Integer getNdid() {
+        return ndid;
+    }
+
+    public void setNdid(Integer ndid) {
+        this.ndid = ndid;
+    }
+
+    public Integer getGoodsId() {
+        return goodsId;
+    }
+
+    public void setGoodsId(Integer goodsId) {
+        this.goodsId = goodsId;
+    }
+
+    public BigDecimal getCount() {
+        return count;
+    }
+
+    public void setCount(BigDecimal count) {
+        this.count = count;
+    }
+
+    public BigDecimal getPrice() {
+        return price;
+    }
+
+    public void setPrice(BigDecimal price) {
+        this.price = price;
+    }
+
+    public BigDecimal getMoney() {
+        return money;
+    }
+
+    public void setMoney(BigDecimal money) {
+        this.money = money;
+    }
+
+    public String getNoteDcNumber() {
+        return noteDcNumber;
+    }
+
+    public void setNoteDcNumber(String noteDcNumber) {
+        this.noteDcNumber = noteDcNumber == null ? null : noteDcNumber.trim();
+    }
+
+    public Integer getProductionInstructionId() {
+        return productionInstructionId;
+    }
+
+    public void setProductionInstructionId(Integer productionInstructionId) {
+        this.productionInstructionId = productionInstructionId;
+    }
+
+    public Integer getSupplierId() {
+        return supplierId;
+    }
+
+    public void setSupplierId(Integer supplierId) {
+        this.supplierId = supplierId;
+    }
+
+    public Byte getNdStatus() {
+        return ndStatus;
+    }
+
+    public void setNdStatus(Byte ndStatus) {
+        this.ndStatus = ndStatus;
+    }
+
+    public Integer getPurchaseOrderId() {
+        return purchaseOrderId;
+    }
+
+    public void setPurchaseOrderId(Integer purchaseOrderId) {
+        this.purchaseOrderId = purchaseOrderId;
+    }
+
+    public BigDecimal getFaZhuCan() {
+        return faZhuCan;
+    }
+
+    public void setFaZhuCan(BigDecimal faZhuCan) {
+        this.faZhuCan = faZhuCan;
+    }
+
+    public BigDecimal getYinDangCan() {
+        return yinDangCan;
+    }
+
+    public void setYinDangCan(BigDecimal yinDangCan) {
+        this.yinDangCan = yinDangCan;
+    }
+
+    public BigDecimal getAnnotation() {
+        return annotation;
+    }
+
+    public void setAnnotation(BigDecimal annotation) {
+        this.annotation = annotation;
+    }
+
+    @Override
+    public String toString() {
+        StringBuilder sb = new StringBuilder();
+        sb.append(getClass().getSimpleName());
+        sb.append(" [");
+        sb.append("Hash = ").append(hashCode());
+        sb.append(", ndid=").append(ndid);
+        sb.append(", goodsId=").append(goodsId);
+        sb.append(", count=").append(count);
+        sb.append(", price=").append(price);
+        sb.append(", money=").append(money);
+        sb.append(", noteDcNumber=").append(noteDcNumber);
+        sb.append(", productionInstructionId=").append(productionInstructionId);
+        sb.append(", supplierId=").append(supplierId);
+        sb.append(", ndStatus=").append(ndStatus);
+        sb.append(", purchaseOrderId=").append(purchaseOrderId);
+        sb.append(", serialVersionUID=").append(serialVersionUID);
+        sb.append(", faZhuCan=").append(faZhuCan);
+        sb.append(", yinDangCan=").append(yinDangCan);
+        sb.append(", annotation=").append(annotation);
+        sb.append("]");
+        return sb.toString();
+    }
+}

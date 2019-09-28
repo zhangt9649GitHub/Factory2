@@ -1,0 +1,100 @@
+package com.mingyuansoftware.aifactory.service;
+
+import com.mingyuansoftware.aifactory.model.PurchaseOrder;
+import com.mingyuansoftware.aifactory.model.PurchaseOrderDetails;
+import com.mingyuansoftware.aifactory.model.PurchaseReturnOrder;
+import com.mingyuansoftware.aifactory.model.dto.PurchaseReturnOrderDto;
+import org.springframework.stereotype.Service;
+
+import java.util.List;
+
+@Service
+public interface PurchaseReturnOrderService {
+    /**
+     * 获取采购退货单列表
+     * @param purchaseReturnOrderDto
+     * @return
+     */
+    List<PurchaseReturnOrderDto> selectPurchaseReturnOrderList(PurchaseReturnOrderDto purchaseReturnOrderDto);
+
+    /**
+     * 获取采购退货单列表总条数
+     * @param purchaseReturnOrderDto
+     * @return
+     */
+    int selectPurchaseReturnOrderCount(PurchaseReturnOrderDto purchaseReturnOrderDto);
+
+    /**
+     * 根据供应商id查询采购订单信息
+     * @param supplierId
+     * @return
+     */
+    List<PurchaseOrder> selectPurchaseOrderBySupplierId(Integer supplierId);
+
+    /**
+     * 根据供应商id查询采购订单信息总条数
+     * @param supplierId
+     * @return
+     */
+    int selectPurchaseOrderCount(Integer supplierId);
+
+    /**
+     * 获取原采购订单货物列表信息
+     * @param purchaseOrderId
+     * @return
+     */
+    List<PurchaseOrderDetails> selectPurchaseOrderGoodsList(int purchaseOrderId,String partsCd,String goodsName);
+
+    /**
+     * 获取原采购订单货物列表信息总条数
+     * @param purchaseOrderId
+     * @return
+     */
+    int selectSalesReturnGoodsCount(int purchaseOrderId,String partsCd,String goodsName);
+
+    /**
+     * 新增采购退换货单
+     * @param purchaseReturnOrder
+     * @return
+     */
+    int insertPurchaseReturnOrder(PurchaseReturnOrder purchaseReturnOrder);
+
+    /**
+     * 逻辑删除采购退货单
+     * @param proId
+     * @return
+     */
+    int deletePurchaseReturnOrder(int proId);
+
+    /**
+     * 通过采购退换货单id获取采购退换货单详情
+     * @param proId
+     * @return
+     */
+    PurchaseReturnOrder selectPurchaseReturnOrderByProId(int proId);
+
+    /**
+     * 更新采购退换货单
+     * @param purchaseReturnOrder
+     * @return
+     */
+    int updatePurchaseReturnOrderInfo(PurchaseReturnOrder purchaseReturnOrder);
+
+    /**
+     * 获取导出的采购退换货单列表
+     * @return
+     */
+    List<PurchaseReturnOrderDto> selectExportPurchaseReturnOrderList();
+
+    /**
+     * 更新采购退货单状态为已出库
+     * @param purchaseReturnOrderId
+     */
+    int updatePurchaseReturnOrderStorageState(int purchaseReturnOrderId);
+
+    /**
+     * 货物采购退换货单列表(收款使用)
+     * @return
+     */
+    List<PurchaseReturnOrderDto> selectPurchaseReturnOrderListForReceipt();
+}

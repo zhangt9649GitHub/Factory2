@@ -1,0 +1,195 @@
+package com.mingyuansoftware.aifactory.model;
+
+import io.swagger.annotations.ApiModel;
+import io.swagger.annotations.ApiModelProperty;
+
+import java.io.Serializable;
+import java.util.Date;
+import java.util.List;
+
+@ApiModel(description = "郝腾")
+public class ProductionOrder implements Serializable {
+
+    @ApiModelProperty(value = "排产单id", example = "1")
+    private Integer productionOrderId;
+
+    @ApiModelProperty(value = "排产单编号", example = "productionOrderNumber")
+    private String productionOrderNumber;
+
+    @ApiModelProperty(value = "员工id", example = "1")
+    private Integer staffId;
+
+    @ApiModelProperty(value = "是否自动生成领料单", example = "1")
+    private Byte isCreatePicking;
+
+    @ApiModelProperty(value = "状态  1.已创建  2.部分完成 3.已完成", example = "1")
+    private Byte state;
+
+    @ApiModelProperty(value = "创建时间", example = "createTime")
+    private Date createTime;
+
+    @ApiModelProperty(value = "修改时间", example = "updateTime")
+    private Date updateTime;
+
+    @ApiModelProperty(value = "备注", example = "comment")
+    private String comment;
+
+    @ApiModelProperty(value = "是否删除 1.是 0.否", example = "1")
+    private Byte isDelete;
+
+    @ApiModelProperty(value = "表单时间", example = "addTime")
+    private String addTime;
+
+    @ApiModelProperty(value = "员工姓名", example = "name")
+    private String name;
+
+    @ApiModelProperty(value = "排产单详情集合", example = "productionOrderDetailsList")
+    private List<ProductionOrderDetails> productionOrderDetailsList;
+
+    @ApiModelProperty(value = "员工", example = "staff")
+    private Staff staff;
+
+    private static final long serialVersionUID = 1L;
+
+
+    public Integer getProductionOrderId() {
+        return productionOrderId;
+    }
+
+
+    public void setProductionOrderId(Integer productionOrderId) {
+        this.productionOrderId = productionOrderId;
+    }
+
+
+    public String getProductionOrderNumber() {
+        return productionOrderNumber;
+    }
+
+
+    public void setProductionOrderNumber(String productionOrderNumber) {
+        this.productionOrderNumber = productionOrderNumber == null ? null : productionOrderNumber.trim();
+    }
+
+
+    public Integer getStaffId() {
+        return staffId;
+    }
+
+
+    public void setStaffId(Integer staffId) {
+        this.staffId = staffId;
+    }
+
+
+    public Byte getIsCreatePicking() {
+        return isCreatePicking;
+    }
+
+
+    public void setIsCreatePicking(Byte isCreatePicking) {
+        this.isCreatePicking = isCreatePicking;
+    }
+
+
+    public Byte getState() {
+        return state;
+    }
+
+
+    public void setState(Byte state) {
+        this.state = state;
+    }
+
+
+    public Date getCreateTime() {
+        return createTime;
+    }
+
+
+    public void setCreateTime(Date createTime) {
+        this.createTime = createTime;
+    }
+
+
+    public Date getUpdateTime() {
+        return updateTime;
+    }
+
+
+    public void setUpdateTime(Date updateTime) {
+        this.updateTime = updateTime;
+    }
+
+
+    public String getComment() {
+        return comment;
+    }
+
+
+    public void setComment(String comment) {
+        this.comment = comment == null ? null : comment.trim();
+    }
+
+
+    public Byte getIsDelete() {
+        return isDelete;
+    }
+
+
+    public void setIsDelete(Byte isDelete) {
+        this.isDelete = isDelete;
+    }
+
+    public String getAddTime() {
+        return addTime;
+    }
+
+    public void setAddTime(String addTime) {
+        this.addTime = addTime;
+    }
+
+    public String getName() {
+        return name;
+    }
+
+    public void setName(String name) {
+        this.name = name;
+    }
+
+    public List<ProductionOrderDetails> getProductionOrderDetailsList() {
+        return productionOrderDetailsList;
+    }
+
+    public void setProductionOrderDetailsList(List<ProductionOrderDetails> productionOrderDetailsList) {
+        this.productionOrderDetailsList = productionOrderDetailsList;
+    }
+
+    public Staff getStaff() {
+        return staff;
+    }
+
+    public void setStaff(Staff staff) {
+        this.staff = staff;
+    }
+
+    @Override
+    public String toString() {
+        StringBuilder sb = new StringBuilder();
+        sb.append(getClass().getSimpleName());
+        sb.append(" [");
+        sb.append("Hash = ").append(hashCode());
+        sb.append(", productionOrderId=").append(productionOrderId);
+        sb.append(", productionOrderNumber=").append(productionOrderNumber);
+        sb.append(", staffId=").append(staffId);
+        sb.append(", isCreatePicking=").append(isCreatePicking);
+        sb.append(", state=").append(state);
+        sb.append(", createTime=").append(createTime);
+        sb.append(", updateTime=").append(updateTime);
+        sb.append(", comment=").append(comment);
+        sb.append(", isDelete=").append(isDelete);
+        sb.append(", serialVersionUID=").append(serialVersionUID);
+        sb.append("]");
+        return sb.toString();
+    }
+}

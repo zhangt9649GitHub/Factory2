@@ -1,0 +1,4 @@
+.zq-search .item.ruzhiriqi{
+	width: 334px;
+	flex: unset;
+}

@@ -1,0 +1,32 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd" >
+<mapper namespace="com.mingyuansoftware.aifactory.mapper.StaffUserLoginMapper" >
+
+<select id="select" parameterType="com.mingyuansoftware.aifactory.model.dto.StaffUserLoginDto" resultType="com.mingyuansoftware.aifactory.model.dto.StaffUserLoginDto">
+
+  select admin_name as adminName ,password as password
+  from staff
+  where admin_name = #{StaffUserLoginDto.adminName,jdbcType=VARCHAR}
+  and password = #{StaffUserLoginDto.password,jdbcType=VARCHAR}
+
+</select>
+  <update id="updateUserLogin" parameterType="com.mingyuansoftware.aifactory.model.Staff">
+
+    update staff
+    set login_time =#{userLogin.loginTime,jdbcType=TIMESTAMP},
+        login_ip=#{userLogin.loginIp,jdbcType=VARCHAR}
+    where
+    staff_id = #{userLogin.staffId}
+  </update>
+
+  <select id="selectByName" parameterType="string" resultType="com.mingyuansoftware.aifactory.model.Staff">
+
+    select staff_id, job_number, `name`, gender, sf.uf_id, card_number, phone, address,password,
+    entry_time, `state`, is_turn_positive, positive_time, department, `role`, post, `comment`, group_id,
+    is_delete,uf.uf_save_path
+    from staff as sf
+    left join upload_files as uf ON (sf.uf_id =uf.uf_id)
+  where job_number = #{jobNumber,jdbcType=VARCHAR}
+
+  </select>
+</mapper>

@@ -1,0 +1,97 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd" >
+<mapper namespace="com.mingyuansoftware.aifactory.mapper.ShipmentDetailsMapper" >
+  <resultMap id="BaseResultMap" type="com.mingyuansoftware.aifactory.model.ShipmentDetails" >
+    <id column="shipment_details_id" property="shipmentDetailsId" jdbcType="INTEGER" />
+    <result column="shipment_id" property="shipmentId" jdbcType="INTEGER" />
+    <result column="goods_id" property="goodsId" jdbcType="INTEGER" />
+    <result column="boxes_number" property="boxesNumber" jdbcType="INTEGER" />
+    <result column="out_quantity" property="outQuantity" jdbcType="DECIMAL" />
+    <result column="status" property="status" jdbcType="TINYINT" />
+    <result column="container_info" property="containerInfo" jdbcType="VARCHAR" />
+    <result column="comment" property="comment" jdbcType="VARCHAR" />
+    <result column="sales_order_details_id" property="salesOrderDetailsId" jdbcType="INTEGER" />
+    <result column="lot_number" property="lotNumber" jdbcType="VARCHAR" />
+    <result column="return_number" property="returnNumber" jdbcType="VARCHAR" />
+    <association column="goods_id" property="goods"
+                 select="com.mingyuansoftware.aifactory.mapper.GoodsMapper.selectByPrimaryKey"></association>
+  </resultMap>
+  <delete id="deleteByPrimaryKey" parameterType="java.lang.Integer" >
+    delete from shipment_details
+    where shipment_details_id = #{shipmentDetailsId,jdbcType=INTEGER}
+  </delete>
+  <insert id="insert" parameterType="com.mingyuansoftware.aifactory.model.ShipmentDetails" >
+    <selectKey resultType="java.lang.Integer" keyProperty="shipmentDetailsId" order="AFTER" >
+      SELECT LAST_INSERT_ID()
+    </selectKey>
+    insert into shipment_details (shipment_id, goods_id, boxes_number, 
+      out_quantity, `status`, container_info, 
+      `comment`, sales_order_details_id)
+    values (#{shipmentId,jdbcType=INTEGER}, #{goodsId,jdbcType=INTEGER}, #{boxesNumber,jdbcType=INTEGER}, 
+      #{outQuantity,jdbcType=DECIMAL}, #{status,jdbcType=TINYINT}, #{containerInfo,jdbcType=VARCHAR}, 
+      #{comment,jdbcType=VARCHAR}, #{salesOrderDetailsId,jdbcType=INTEGER})
+  </insert>
+  <update id="updateByPrimaryKey" parameterType="com.mingyuansoftware.aifactory.model.ShipmentDetails" >
+    update shipment_details
+    set shipment_id = #{shipmentId,jdbcType=INTEGER},
+      goods_id = #{goodsId,jdbcType=INTEGER},
+      boxes_number = #{boxesNumber,jdbcType=INTEGER},
+      out_quantity = #{outQuantity,jdbcType=DECIMAL},
+      `status` = #{status,jdbcType=TINYINT},
+      container_info = #{containerInfo,jdbcType=VARCHAR},
+      `comment` = #{comment,jdbcType=VARCHAR},
+      sales_order_details_id = #{salesOrderDetailsId,jdbcType=INTEGER}
+    where shipment_details_id = #{shipmentDetailsId,jdbcType=INTEGER}
+  </update>
+  <select id="selectByPrimaryKey" resultMap="BaseResultMap" parameterType="java.lang.Integer" >
+    select shipment_details_id, shipment_id, goods_id, boxes_number, out_quantity, `status`, 
+    container_info, `comment`, sales_order_details_id
+    from shipment_details
+    where shipment_details_id = #{shipmentDetailsId,jdbcType=INTEGER}
+  </select>
+  <select id="selectAll" resultMap="BaseResultMap" >
+    select shipment_details_id, shipment_id, goods_id, boxes_number, out_quantity, `status`, 
+    container_info, `comment`, sales_order_details_id
+    from shipment_details
+  </select>
+
+  <select id="selectPdaOutboundGoodsList" resultType="com.mingyuansoftware.aifactory.model.PDAOutboundGoods" >
+    select sd.shipment_details_id, sd.shipment_id, sd.goods_id, sd.boxes_number, sd.out_quantity, sd.`status`,
+    sd.container_info, sd.`comment`, sd.sales_order_details_id,gd.parts_cd,gd.goods_name,gd.specification,gd.wp_id,wp.wp_name
+    from shipment_details as sd
+    left join goods AS gd ON (sd.goods_id = gd.goods_id)
+    LEFT JOIN warehouse_position as wp ON (gd.wp_id = wp.wp_id)
+    WHERE sd.shipment_id = #{shipmentId}
+  </select>
+
+  <select id="selectPdaOutboundGoodsCount" resultMap="BaseResultMap" >
+    select shipment_details_id, shipment_id, goods_id, boxes_number, out_quantity, `status`,
+    container_info, `comment`, sales_order_details_id
+    from shipment_details
+    where goods_id = #{goodsId} and shipment_id = #{shipmentId} GROUP BY goods_id
+  </select>
+
+  <update id="updateShipmentStatus">
+    update shipment_details
+    set
+      `status` = 2
+    where shipment_details_id = #{shipmentDetailsId,jdbcType=INTEGER}
+  </update>
+
+  <select id="selectShipmentDetailsListById" resultMap="BaseResultMap" >
+    select sd.shipment_details_id, sd.shipment_id, sd.goods_id, sd.boxes_number, sd.out_quantity, sd.`status`,
+    sd.container_info, sd.`comment`, sd.sales_order_details_id,sod.lot_number,sod.return_number
+    from shipment_details as sd
+    LEFT JOIN sales_order_details as sod ON (sd.sales_order_details_id= sod.sales_order_details_id)
+    where shipment_id = #{shipmentId}
+  </select>
+
+  <select id="selectShipmentDetailsListByIdAndGoodsId" resultMap="BaseResultMap" >
+    select shipment_details_id, shipment_id, goods_id, boxes_number, out_quantity, `status`,
+    container_info, `comment`, sales_order_details_id
+    from shipment_details
+    where goods_id = #{goodsId} and shipment_id = #{shipmentId}
+  </select>
+
+
+</mapper>

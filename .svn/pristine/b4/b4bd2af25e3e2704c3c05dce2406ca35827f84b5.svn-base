@@ -1,0 +1,290 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd" >
+<mapper namespace="com.mingyuansoftware.aifactory.mapper.NoteDocumentMapper" >
+  <resultMap id="BaseResultMap" type="com.mingyuansoftware.aifactory.model.NoteDocument" >
+    <id column="ndid" property="ndid" jdbcType="INTEGER" />
+    <result column="goods_id" property="goodsId" jdbcType="INTEGER" />
+    <result column="count" property="count" jdbcType="DECIMAL" />
+    <result column="price" property="price" jdbcType="DECIMAL" />
+    <result column="money" property="money" jdbcType="DECIMAL" />
+    <result column="note_dc_number" property="noteDcNumber" jdbcType="VARCHAR" />
+    <result column="production_instruction_id" property="productionInstructionId" jdbcType="INTEGER" />
+    <result column="supplier_id" property="supplierId" jdbcType="INTEGER" />
+    <result column="nd_status" property="ndStatus" jdbcType="TINYINT" />
+    <result column="purchase_order_id" property="purchaseOrderId" jdbcType="INTEGER" />
+    <result column="fa_zhu_can" property="faZhuCan" jdbcType="DECIMAL" />
+    <result column="yin_dang_can" property="yinDangCan" jdbcType="DECIMAL" />
+  </resultMap>
+  <delete id="deleteByPrimaryKey" parameterType="java.lang.Integer" >
+    delete from note_document
+    where ndid = #{ndid,jdbcType=INTEGER}
+  </delete>
+  <insert id="insert" parameterType="com.mingyuansoftware.aifactory.model.NoteDocument" >
+    <selectKey resultType="java.lang.Integer" keyProperty="ndid" order="AFTER" >
+      SELECT LAST_INSERT_ID()
+    </selectKey>
+    insert into note_document (goods_id, `count`, price, 
+      money, note_dc_number, production_instruction_id, 
+      supplier_id, nd_status, purchase_order_id, fa_zhu_can, yin_dang_can
+      )
+    values (#{goodsId,jdbcType=INTEGER}, #{count,jdbcType=DECIMAL}, #{price,jdbcType=DECIMAL}, 
+      #{money,jdbcType=DECIMAL}, #{noteDcNumber,jdbcType=VARCHAR}, #{productionInstructionId,jdbcType=INTEGER}, 
+      #{supplierId,jdbcType=INTEGER}, #{ndStatus,jdbcType=TINYINT}, #{purchaseOrderId,jdbcType=INTEGER},
+      #{faZhuCan,jdbcType=DECIMAL}, #{yinDangCan,jdbcType=DECIMAL}
+      )
+  </insert>
+  <update id="updateByPrimaryKey" parameterType="com.mingyuansoftware.aifactory.model.NoteDocument" >
+    update note_document
+    set goods_id = #{goodsId,jdbcType=INTEGER},
+      `count` = #{count,jdbcType=DECIMAL},
+      price = #{price,jdbcType=DECIMAL},
+      money = #{money,jdbcType=DECIMAL},
+      note_dc_number = #{noteDcNumber,jdbcType=VARCHAR},
+      production_instruction_id = #{productionInstructionId,jdbcType=INTEGER},
+      supplier_id = #{supplierId,jdbcType=INTEGER},
+      nd_status = #{ndStatus,jdbcType=TINYINT},
+      purchase_order_id = #{purchaseOrderId,jdbcType=INTEGER},
+      fa_zhu_can = #{faZhuCan,jdbcType=DECIMAL},
+      yin_dang_can = #{yinDangCan,jdbcType=DECIMAL}
+    where ndid = #{ndid,jdbcType=INTEGER}
+  </update>
+  <select id="selectByPrimaryKey" resultMap="BaseResultMap" parameterType="java.lang.Integer" >
+    select ndid, goods_id, `count`, price, money, note_dc_number, production_instruction_id, 
+    supplier_id, nd_status, purchase_order_id, fa_zhu_can, yin_dang_can
+    from note_document
+    where ndid = #{ndid,jdbcType=INTEGER}
+  </select>
+  <select id="selectAll" resultMap="BaseResultMap" >
+    select ndid, goods_id, `count`, price, money, note_dc_number, production_instruction_id, 
+    supplier_id, nd_status, purchase_order_id, fa_zhu_can, yin_dang_can
+    from note_document
+  </select>
+  <select id="selectNoteDocumentList" resultType="com.mingyuansoftware.aifactory.model.dto.NoteDocumentDto" parameterType="com.mingyuansoftware.aifactory.model.dto.NoteDocumentDto" >
+      select nd.ndid, nd.note_dc_number, nd.production_instruction_id,
+      nd.goods_id, gd.parts_cd, gd.goods_name, gd.unit, gd.specification,
+      gd.months_in_stock, gd.tj_stock,
+      nd.count, nd.price, nd.money, nd.fa_zhu_can, nd.yin_dang_can,
+      nd.supplier_id, su.supplier_name, nd.nd_status,
+      nd.purchase_order_id, po.purchase_order_number,
+      po.define_date, po.delivery_date, po.storage_state, po.storage_time,
+      podl.purchase_price, podl.purchase_order_details_id, IFNULL(podl.not_in_quantity,0) as fa_zhu_zhong,
+      prod.purchase_return_order_number, po.`comment`, po.purchase_return_situation
+      from note_document as nd
+      left join purchase_order as po on (nd.purchase_order_id = po.purchase_order_id)
+      left join purchase_order_details as podl on (nd.purchase_order_id = podl.purchase_order_id and nd.goods_id = podl.goods_id)
+      left join goods as gd on (nd.goods_id = gd.goods_id)
+      left join supplier as su on (nd.supplier_id = su.supplier_id)
+      left join purchase_return_order as prod on (nd.purchase_order_id = prod.purchase_order_id)
+    <where>
+      <if test=" noteDocumentDto.noteDcNumber != null and noteDocumentDto.noteDcNumber != '' ">
+        and nd.note_dc_number like "%"#{noteDocumentDto.noteDcNumber}"%"
+      </if>
+      <if test=" noteDocumentDto.productionInstructionId != null and noteDocumentDto.productionInstructionId != '' ">
+        and nd.production_instruction_id = #{noteDocumentDto.productionInstructionId}
+      </if>
+      <if test=" noteDocumentDto.partsCd != null and noteDocumentDto.partsCd != '' ">
+        and gd.parts_cd like "%"#{noteDocumentDto.partsCd}"%"
+      </if>
+      <if test=" noteDocumentDto.goodsName != null and noteDocumentDto.goodsName != '' ">
+        and gd.goods_name like "%"#{noteDocumentDto.goodsName}"%"
+      </if>
+      <if test=" noteDocumentDto.unit != null and noteDocumentDto.unit != '' ">
+        and gd.unit like "%"#{noteDocumentDto.unit}"%"
+      </if>
+      <if test=" noteDocumentDto.specification != null and noteDocumentDto.specification != '' ">
+        and gd.specification like "%"#{noteDocumentDto.specification}"%"
+      </if>
+      <if test=" noteDocumentDto.supplierName != null and noteDocumentDto.supplierName != '' ">
+        and su.supplier_name like "%"#{noteDocumentDto.supplierName}"%"
+      </if>
+      <if test="noteDocumentDto.count != null and noteDocumentDto.count  != ''or noteDocumentDto.count == '0'.toString()">
+        and nd.`count` = #{noteDocumentDto.count}
+      </if>
+      <if test="noteDocumentDto.price != null and noteDocumentDto.price  != ''or noteDocumentDto.price == '0'.toString()">
+        and nd.price = #{noteDocumentDto.price}
+      </if>
+      <if test="noteDocumentDto.money != null and noteDocumentDto.money  != ''or noteDocumentDto.money == '0'.toString()">
+        and nd.money = #{noteDocumentDto.money}
+      </if>
+      <if test=" noteDocumentDto.ndStatus != null and noteDocumentDto.ndStatus != '' ">
+        and nd.nd_status = #{noteDocumentDto.ndStatus}
+      </if>
+      <if test=" noteDocumentDto.monthsInStock != null and noteDocumentDto.monthsInStock != '' ">
+        and gd.months_in_stock like "%"#{noteDocumentDto.monthsInStock}"%"
+      </if>
+      <if test=" noteDocumentDto.tjStock != null and noteDocumentDto.tjStock != '' ">
+        and gd.tj_stock = #{noteDocumentDto.tjStock}
+      </if>
+      <if test=" noteDocumentDto.defineDate != null and noteDocumentDto.defineDate != '' ">
+        and po.define_date like "%"#{noteDocumentDto.defineDate}"%"
+      </if>
+      <if test="noteDocumentDto.purchasePrice != null and noteDocumentDto.purchasePrice  != ''or noteDocumentDto.purchasePrice == '0'.toString()">
+        and podl.purchase_price = #{noteDocumentDto.purchasePrice}
+      </if>
+      <if test=" noteDocumentDto.deliveryDate != null and noteDocumentDto.deliveryDate != '' ">
+        and po.delivery_date like "%"#{noteDocumentDto.deliveryDate}"%"
+      </if>
+      <if test=" noteDocumentDto.storageTime != null and noteDocumentDto.storageTime != '' ">
+        and po.storage_time like "%"#{noteDocumentDto.storageTime}"%"
+      </if>
+      <if test=" noteDocumentDto.storageState != null and noteDocumentDto.storageState != '' ">
+        and po.storage_state = #{noteDocumentDto.storageState}
+      </if>
+      <if test=" noteDocumentDto.purchaseOrderNumber != null and noteDocumentDto.purchaseOrderNumber != '' ">
+        and po.purchase_order_number like "%"#{noteDocumentDto.purchaseOrderNumber}"%"
+      </if>
+      <if test=" noteDocumentDto.purchaseReturnSituation != null and noteDocumentDto.purchaseReturnSituation != '' ">
+        and po.purchase_return_situation = #{noteDocumentDto.purchaseReturnSituation}
+      </if>
+      <if test=" noteDocumentDto.comment != null and noteDocumentDto.comment != '' ">
+        and po.comment like "%"#{noteDocumentDto.comment}"%"
+      </if>
+    </where>
+    order by nd.ndid asc
+  </select>
+  <select id="selectCount" resultType="java.lang.Integer" >
+    select count(nd.ndid)
+    from note_document as nd
+    left join purchase_order as po on (nd.purchase_order_id = po.purchase_order_id)
+    left join purchase_order_details as podl on (nd.purchase_order_id = podl.purchase_order_id and nd.goods_id = podl.goods_id)
+    left join goods as gd on (nd.goods_id = gd.goods_id)
+    left join supplier as su on (nd.supplier_id = su.supplier_id)
+    left join purchase_return_order as prod on (nd.purchase_order_id = prod.purchase_order_id)
+    <where>
+      <if test=" noteDocumentDto.noteDcNumber != null and noteDocumentDto.noteDcNumber != '' ">
+        and nd.note_dc_number like "%"#{noteDocumentDto.noteDcNumber}"%"
+      </if>
+      <if test=" noteDocumentDto.productionInstructionId != null and noteDocumentDto.productionInstructionId != '' ">
+        and nd.production_instruction_id = #{noteDocumentDto.productionInstructionId}
+      </if>
+      <if test=" noteDocumentDto.partsCd != null and noteDocumentDto.partsCd != '' ">
+        and gd.parts_cd like "%"#{noteDocumentDto.partsCd}"%"
+      </if>
+      <if test=" noteDocumentDto.goodsName != null and noteDocumentDto.goodsName != '' ">
+        and gd.goods_name like "%"#{noteDocumentDto.goodsName}"%"
+      </if>
+      <if test=" noteDocumentDto.unit != null and noteDocumentDto.unit != '' ">
+        and gd.unit like "%"#{noteDocumentDto.unit}"%"
+      </if>
+      <if test=" noteDocumentDto.specification != null and noteDocumentDto.specification != '' ">
+        and gd.specification like "%"#{noteDocumentDto.specification}"%"
+      </if>
+      <if test=" noteDocumentDto.supplierName != null and noteDocumentDto.supplierName != '' ">
+        and su.supplier_name like "%"#{noteDocumentDto.supplierName}"%"
+      </if>
+      <if test="noteDocumentDto.count != null and noteDocumentDto.count  != ''or noteDocumentDto.count == '0'.toString()">
+        and nd.`count` = #{noteDocumentDto.count}
+      </if>
+      <if test="noteDocumentDto.price != null and noteDocumentDto.price  != ''or noteDocumentDto.price == '0'.toString()">
+        and nd.price = #{noteDocumentDto.price}
+      </if>
+      <if test="noteDocumentDto.money != null and noteDocumentDto.money  != ''or noteDocumentDto.money == '0'.toString()">
+        and nd.money = #{noteDocumentDto.money}
+      </if>
+      <if test=" noteDocumentDto.ndStatus != null and noteDocumentDto.ndStatus != '' ">
+        and nd.nd_status = #{noteDocumentDto.ndStatus}
+      </if>
+      <if test=" noteDocumentDto.monthsInStock != null and noteDocumentDto.monthsInStock != '' ">
+        and gd.months_in_stock like "%"#{noteDocumentDto.monthsInStock}"%"
+      </if>
+      <if test=" noteDocumentDto.tjStock != null and noteDocumentDto.tjStock != '' ">
+        and gd.tj_stock = #{noteDocumentDto.tjStock}
+      </if>
+      <if test=" noteDocumentDto.defineDate != null and noteDocumentDto.defineDate != '' ">
+        and po.define_date like "%"#{noteDocumentDto.defineDate}"%"
+      </if>
+      <if test="noteDocumentDto.purchasePrice != null and noteDocumentDto.purchasePrice  != ''or noteDocumentDto.purchasePrice == '0'.toString()">
+        and podl.purchase_price = #{noteDocumentDto.purchasePrice}
+      </if>
+      <if test=" noteDocumentDto.deliveryDate != null and noteDocumentDto.deliveryDate != '' ">
+        and po.delivery_date like "%"#{noteDocumentDto.deliveryDate}"%"
+      </if>
+      <if test=" noteDocumentDto.storageTime != null and noteDocumentDto.storageTime != '' ">
+        and po.storage_time like "%"#{noteDocumentDto.storageTime}"%"
+      </if>
+      <if test=" noteDocumentDto.storageState != null and noteDocumentDto.storageState != '' ">
+        and po.storage_state = #{noteDocumentDto.storageState}
+      </if>
+      <if test=" noteDocumentDto.purchaseOrderNumber != null and noteDocumentDto.purchaseOrderNumber != '' ">
+        and po.purchase_order_number like "%"#{noteDocumentDto.purchaseOrderNumber}"%"
+      </if>
+      <if test=" noteDocumentDto.purchaseReturnSituation != null and noteDocumentDto.purchaseReturnSituation != '' ">
+        and po.purchase_return_situation = #{noteDocumentDto.purchaseReturnSituation}
+      </if>
+      <if test=" noteDocumentDto.comment != null and noteDocumentDto.comment != '' ">
+        and po.comment like "%"#{noteDocumentDto.comment}"%"
+      </if>
+    </where>
+    order by nd.ndid asc
+  </select>
+  <select id="selectUpdateNoteDocumentInfo" resultType="java.lang.Integer" >
+    select nd_status
+    from note_document
+    where ndid = #{ndid}
+  </select>
+  <update id="updateNdStatusById" >
+    update note_document
+    set
+      nd_status = #{state},
+      purchase_order_id = #{purchaseOrderId,jdbcType=INTEGER},
+      fa_zhu_can = null
+    where ndid = #{ndid,jdbcType=INTEGER}
+  </update>
+  <update id="updateNdStatusByPurchaseOrderId" >
+    update note_document
+    set
+      nd_status = #{state}
+    where purchase_order_id = #{purchaseOrderId,jdbcType=INTEGER}
+  </update>
+  <select id="selectByPurhcaseOrderId" resultMap="BaseResultMap" >
+    select ndid, goods_id, `count`, price, money, note_dc_number, production_instruction_id,
+    supplier_id, nd_status, purchase_order_id, fa_zhu_can, yin_dang_can
+    from note_document
+    where purchase_order_id = #{purchaseOrderId}
+  </select>
+  <select id="selectNoteDocumentByGoodsId" resultMap="BaseResultMap" >
+    select ndid, goods_id, `count`, price, money, note_dc_number, production_instruction_id,
+    supplier_id, nd_status, purchase_order_id, fa_zhu_can, yin_dang_can
+    from note_document
+    where goods_id = #{goodsId} and price = #{price} and money = #{total}
+  </select>
+  <select id="selectGoodInfoByNote" resultType="com.mingyuansoftware.aifactory.model.dto.NoteDocumentDto" >
+    select nd.ndid, nd.goods_id,
+    gd.goods_name, gd.unit, gd.parts_cd,
+    nd.`count`, nd.price, nd.money, nd.note_dc_number, nd.production_instruction_id,
+    nd.supplier_id, su.supplier_name, nd.nd_status, nd.purchase_order_id, nd.fa_zhu_can, nd.yin_dang_can
+    from note_document as nd
+    left join goods as gd on (nd.goods_id = gd.goods_id)
+    left join supplier as su on (nd.supplier_id = su.supplier_id)
+    where nd.ndid =#{ndid}
+  </select>
+  <select id="selectAllCountByGoodsId" resultMap="BaseResultMap">
+    select SUM(count) as count
+    from note_document
+    where goods_id = #{goodsId,jdbcType=INTEGER} and nd_status = #{state}
+  </select>
+  <update id="updateCountByGoodsId" >
+    update note_document
+    set
+      fa_zhu_can = #{count,jdbcType=DECIMAL}
+    where goods_id = #{goodsId,jdbcType=INTEGER} and nd_status = #{state}
+  </update>
+  <select id="selectNoteDocumentInfo" resultMap="BaseResultMap">
+    select ndid, goods_id, SUM(count) as count, price, SUM(money) as money, note_dc_number, production_instruction_id, supplier_id,
+		nd_status,purchase_order_id,fa_zhu_can, yin_dang_can
+    from note_document
+    where goods_id = #{goodsId,jdbcType=INTEGER} and nd_status = #{ndStatus}
+  </select>
+  <select id="selectNoteDocumentId" resultType="java.lang.Integer">
+    select ndid, goods_id, count, price, money, note_dc_number, production_instruction_id, supplier_id,
+		nd_status,purchase_order_id,fa_zhu_can, yin_dang_can
+    from note_document
+    where goods_id = #{goodsId,jdbcType=INTEGER} and nd_status = #{ndStatus}
+  </select>
+  <update id="updateYDCByNdId" >
+    update note_document
+    set
+      yin_dang_can = #{yinDangCan,jdbcType=DECIMAL}
+    where ndid = #{ndid,jdbcType=INTEGER} and goods_id = #{goodsId}
+  </update>
+</mapper>

@@ -1,0 +1,277 @@
+package com.mingyuansoftware.aifactory.controller;
+
+import com.github.pagehelper.PageHelper;
+import com.mingyuansoftware.aifactory.config.LogConfig;
+import com.mingyuansoftware.aifactory.constants.Constants;
+import com.mingyuansoftware.aifactory.enums.HtCode;
+import com.mingyuansoftware.aifactory.model.*;
+import com.mingyuansoftware.aifactory.model.dto.RefundPickingDto;
+import com.mingyuansoftware.aifactory.pojo.LayuiCommonResponse;
+import com.mingyuansoftware.aifactory.service.LogService;
+import com.mingyuansoftware.aifactory.service.RefundPickingService;
+import com.mingyuansoftware.aifactory.service.StockKucunGoodsService;
+import com.mingyuansoftware.aifactory.util.BaseToString;
+import io.swagger.annotations.Api;
+import io.swagger.annotations.ApiImplicitParam;
+import io.swagger.annotations.ApiImplicitParams;
+import io.swagger.annotations.ApiOperation;
+import org.apache.shiro.SecurityUtils;
+import org.apache.shiro.authz.annotation.RequiresPermissions;
+import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.validation.annotation.Validated;
+import org.springframework.web.bind.annotation.*;
+
+import java.math.BigDecimal;
+import java.util.HashMap;
+import java.util.List;
+import java.util.Map;
+
+@Api(value = "RefundPicking", description = "退料单API", tags = {"退料单"})
+@RestController
+@RequestMapping("/refundPicking")
+public class RefundPickingController {
+
+
+    @Autowired
+    private RefundPickingService refundPickingService;
+    @Autowired
+    private StockKucunGoodsService stockKucunGoodsService;
+    @Autowired
+    private LogService logService;
+
+    @ApiOperation(value = "获取退料单列表", notes = "获取退料单列表", tags = {"@郝腾"})
+    @ApiImplicitParams({
+            @ApiImplicitParam(name = "page", value = "第几页", paramType = "query", dataType = "int"),
+            @ApiImplicitParam(name = "limit", value = "每页容量", paramType = "query", dataType = "int"),
+            @ApiImplicitParam(name = "refundPickingDto", value = "退料单参数实体类", paramType = "query", dataType = "RefundPickingDto")
+    })
+    @RequestMapping(value = "/getRefundPickingList", method = RequestMethod.GET)
+    @ResponseBody
+    @RequiresPermissions(value = {"getRefundPickingList"})
+    public LayuiCommonResponse getRefundPickingList(@Validated @RequestParam(defaultValue = "1") int page,
+                                              @Validated @RequestParam(defaultValue = "10") int limit,
+                                              @Validated RefundPickingDto refundPickingDto) {
+        LayuiCommonResponse response = new LayuiCommonResponse();
+        try {
+            PageHelper.startPage(page, limit);
+            List<RefundPicking> refundPickingList =refundPickingService.selectRefundPickingList(refundPickingDto);
+            int count = refundPickingService.selectCount(refundPickingDto);
+            response.setMsg(HtCode.SUCCESS_GET.getInfo());
+            response.setCode(HtCode.SUCCESS_GET.getCode());
+            response.setCount(count);
+            response.setData(refundPickingList);
+        } catch (Exception e) {
+            e.printStackTrace();
+            response.setCode(HtCode.FAIL_GET.getCode());
+            response.setMsg(HtCode.FAIL_GET.getInfo());
+        }
+        return response;
+    }
+
+
+    @ApiOperation(value = "新增退料单", notes = "新增退料单", tags = {"@郝腾"})
+    @ApiImplicitParam(name = "refundPicking", value = "退料单实体类,其中type为必传字段", required = true, dataType = "RefundPicking")
+    @RequestMapping(value = "/insertPicking", method = RequestMethod.POST)
+    @ResponseBody
+    @RequiresPermissions(value = {"insertPicking"})
+    public LayuiCommonResponse insertRefundPicking(@RequestBody RefundPicking refundPicking) {
+        LayuiCommonResponse response = new LayuiCommonResponse();
+        try {
+            refundPickingService.insertRefundPicking(refundPicking);
+            if(LogConfig.STATE){
+                String text = BaseToString.BaseEntityToString(refundPicking);
+                Staff staff =(Staff) SecurityUtils.getSubject().getSession().getAttribute("user");
+                int staffId = staff.getStaffId();
+                logService.saveLog(staffId,1,text);
+            }
+            response.setCode(HtCode.SUCCESS_ADD.getCode());
+            response.setMsg(HtCode.SUCCESS_ADD.getInfo());
+        } catch (Exception e) {
+            e.printStackTrace();
+            response.setCode(HtCode.FAIL_ADD.getCode());
+            response.setMsg(HtCode.FAIL_ADD.getInfo());
+            return response;
+        }
+        return response;
+    }
+
+    @ApiOperation(value = "删除退料单", notes = "删除退料单", tags = {"@郝腾"})
+    @ApiImplicitParam(name = "refundPickingId", value = "退料单id", required = true, dataType = "int", paramType = "query")
+    @RequestMapping(value = "/deleteRefundPickingById", method = RequestMethod.POST)
+    @ResponseBody
+    @RequiresPermissions(value = {"deleteRefundPickingById"})
+    public LayuiCommonResponse deleteRefundPickingById(int refundPickingId) {
+        LayuiCommonResponse response = new LayuiCommonResponse();
+        try {
+            RefundPicking refundPicking = refundPickingService.selectRefundPickingById(refundPickingId);
+            if(refundPicking.getState()==2){
+                response.setCode(HtCode.FAIL_DELETE_STATE_ING.getCode());
+                response.setMsg(HtCode.FAIL_DELETE_STATE_ING.getInfo());
+                return response;
+            }
+            List<RefundPickingDetails> refundPickingDetailsList =refundPicking.getRefundPickingDetailsList();
+            for (RefundPickingDetails refundPickingDetails:refundPickingDetailsList
+                 ) {
+                if(refundPickingDetails.getStatus()==2){
+                    response.setCode(HtCode.FAIL_DELETE_STATE_ANG_ING.getCode());
+                    response.setMsg(HtCode.FAIL_DELETE_STATE_ANG_ING.getInfo());
+                    return response;
+                }
+            }
+            if(refundPicking.getState()==3){
+                response.setCode(HtCode.FAIL_DELETE_STATE_DO.getCode());
+                response.setMsg(HtCode.FAIL_DELETE_STATE_DO.getInfo());
+                return response;
+            }
+            if(refundPicking.getState()==1) {
+                refundPickingService.deleteRefundPickingById(refundPickingId);
+                if (LogConfig.STATE) {
+                    String[] str = new String[]{refundPickingId + ""};
+                    Map<String, String[]> a_mMap = new HashMap<>();
+                    a_mMap.put("refundPickingId", str);
+                    String text = BaseToString.MapToString(a_mMap);
+                    Staff staff =(Staff) SecurityUtils.getSubject().getSession().getAttribute("user");
+                    int staffId = staff.getStaffId();
+                    logService.saveLog(staffId, 3, text);
+                }
+            }
+            response.setCode(HtCode.SUCCESS_DELETE.getCode());
+            response.setMsg(HtCode.SUCCESS_DELETE.getInfo());
+        } catch (Exception e) {
+            e.printStackTrace();
+            response.setCode(HtCode.FAIL_DELETE.getCode());
+            response.setMsg(HtCode.FAIL_DELETE.getInfo());
+            return response;
+        }
+        return response;
+    }
+
+    @ApiOperation(value = "查看退料单", notes = "查看退料单", tags = {"@郝腾"})
+    @ApiImplicitParam(name = "refundPickingId", value = "退料单id", required = true, dataType = "int", paramType = "query")
+    @RequestMapping(value = "/getRefundPickingById", method = RequestMethod.POST)
+    @ResponseBody
+    public LayuiCommonResponse getRefundPickingById(int refundPickingId) {
+        LayuiCommonResponse response = new LayuiCommonResponse();
+        try {
+            RefundPicking refundPicking = refundPickingService.selectRefundPickingById(refundPickingId);
+            List<RefundPickingDetails> refundPickingDetailsList =refundPicking.getRefundPickingDetailsList();
+            for (RefundPickingDetails refundPickingDetails:refundPickingDetailsList
+            ) {
+                KucunGoods kucunGoods= stockKucunGoodsService.getStockKucunGoodsCountByGoodsIdAndWarehouseId(refundPicking.getOutWarehouse().getWarehouseId(),refundPickingDetails.getGoods().getGoodsId());
+                if(kucunGoods!=null&&kucunGoods.getSkgCount()!=null){
+                    refundPickingDetails.setSkgCount(kucunGoods.getSkgCount());
+                }else{
+                    refundPickingDetails.setSkgCount(new BigDecimal(0));
+                }
+            }
+            response.setMsg(HtCode.SUCCESS_GET.getInfo());
+            response.setCode(HtCode.SUCCESS_GET.getCode());
+            response.setData(refundPicking);
+        } catch (Exception e) {
+            e.printStackTrace();
+            response.setCode(HtCode.FAIL_GET.getCode());
+            response.setMsg(HtCode.FAIL_GET.getInfo());
+        }
+        return response;
+    }
+
+    @ApiOperation(value = "更新退料单", notes = "更新退料单", tags = {"@郝腾"})
+    @ApiImplicitParam(name = "refundPicking", value = "退料单及详情", dataType = "RefundPicking")
+    @RequestMapping(value = "/updateRefundPickingInfo", method = RequestMethod.POST)
+    @ResponseBody
+    @RequiresPermissions(value = {"updateRefundPickingInfo"})
+    public LayuiCommonResponse updateRefundPickingInfo(@RequestBody RefundPicking refundPicking) {
+        LayuiCommonResponse response = new LayuiCommonResponse();
+        try {
+            RefundPicking refundPicking1  = refundPickingService.selectRefundPickingById(refundPicking.getRefundPickingId());
+            if(refundPicking1.getState()==2){
+                response.setCode(HtCode.FAIL_DELETE_STATE_ING.getCode());
+                response.setMsg(HtCode.FAIL_DELETE_STATE_ING.getInfo());
+                return response;
+            }
+            List<RefundPickingDetails> refundPickingDetailsList =refundPicking1.getRefundPickingDetailsList();
+            for (RefundPickingDetails refundPickingDetails:refundPickingDetailsList
+            ) {
+                if(refundPickingDetails.getStatus()==2){
+                    response.setCode(HtCode.FAIL_UPDATE_STATE_ANG_ING.getCode());
+                    response.setMsg(HtCode.FAIL_UPDATE_STATE_ANG_ING.getInfo());
+                    return response;
+                }
+            }
+            if(refundPicking1.getState()==3){
+                response.setCode(HtCode.FAIL_DELETE_STATE_DO.getCode());
+                response.setMsg(HtCode.FAIL_DELETE_STATE_DO.getInfo());
+                return response;
+            }
+            if(refundPicking1.getState()==1) {
+                refundPickingService.updateRefundPickingInfo(refundPicking);
+                if (LogConfig.STATE) {
+                    String text = BaseToString.BaseEntityToString(refundPicking);
+                    Staff staff =(Staff) SecurityUtils.getSubject().getSession().getAttribute("user");
+                    int staffId = staff.getStaffId();
+                    logService.saveLog(staffId, 2, text);
+                }
+                response.setCode(HtCode.SUCCESS_UPDATE.getCode());
+                response.setMsg(HtCode.SUCCESS_UPDATE.getInfo());
+            }
+        } catch (Exception e) {
+            e.printStackTrace();
+            response.setCode(HtCode.FAIL_UPDATE.getCode());
+            response.setMsg(HtCode.FAIL_UPDATE.getInfo());
+            return response;
+        }
+        return response;
+    }
+
+
+    @ApiOperation(value = "更新退料单状态为已完成", notes = "更新退料单状态为已完成", tags = {"@郝腾"})
+    @ApiImplicitParam(name = "refundPickingId", value = "退料单id", required = true, dataType = "int", paramType = "query")
+    @RequestMapping(value = "/updateRefundPickingState", method = RequestMethod.POST)
+    @ResponseBody
+    @RequiresPermissions(value = {"updateRefundPickingState"})
+    public LayuiCommonResponse updateRefundPickingState(int refundPickingId) {
+        LayuiCommonResponse response = new LayuiCommonResponse();
+        try {
+            RefundPicking refundPicking = refundPickingService.selectRefundPickingById(refundPickingId);
+            if(refundPicking.getState()==1){
+                response.setCode(HtCode.FAIL_UPDATE_COMPLETE.getCode());
+                response.setMsg(HtCode.FAIL_UPDATE_COMPLETE.getInfo());
+                return response;
+            }
+            if(refundPicking.getState()==2) {
+                refundPickingService.updateRefundPickingState(refundPickingId);
+                List<RefundPickingDetails> refundPickingDetailsList =refundPicking.getRefundPickingDetailsList();
+                if(!(refundPickingDetailsList.isEmpty())){
+                    for (RefundPickingDetails refundPickingDetails:refundPickingDetailsList
+                    ) {
+                        Map<String,Object> parameters = new HashMap<>();
+                        parameters.put("skgCount",refundPickingDetails.getQuantity().multiply(new BigDecimal(-1)));
+                        parameters.put("warehouseId",refundPicking.getOutWarehouse().getWarehouseId());
+                        parameters.put("skgType", Constants.MAP_KUCUN.get(Constants.KUCUN_REFUND_PICKING_OUTBOUND));
+                        parameters.put("gid",refundPickingDetails.getGoods().getGoodsId());
+                        parameters.put("skgDanJia",refundPickingDetails.getGoods().getAveragePrice());
+                        parameters.put("skgSerialNumber",refundPicking.getRefundPickingNumber());
+                        parameters.put("skgWanglaiDanwei","");
+                        parameters.put("changeType","2");
+                        stockKucunGoodsService.insertStockKucunGoods(parameters);
+                        parameters.put("skgCount",refundPickingDetails.getQuantity());
+                        parameters.put("warehouseId",refundPicking.getIntoWarehouse().getWarehouseId());
+                        parameters.put("skgType",Constants.MAP_KUCUN.get(Constants.KUCUN_REFUND_PICKING_STORAGE));
+                        stockKucunGoodsService.insertStockKucunGoods(parameters);
+                    }
+                }
+
+
+            }
+            response.setCode(HtCode.SUCCESS_UPDATE.getCode());
+            response.setMsg(HtCode.SUCCESS_UPDATE.getInfo());
+        } catch (Exception e) {
+            e.printStackTrace();
+            response.setCode(HtCode.FAIL_UPDATE.getCode());
+            response.setMsg(HtCode.FAIL_UPDATE.getInfo());
+            return response;
+        }
+        return response;
+    }
+
+}

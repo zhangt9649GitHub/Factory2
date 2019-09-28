@@ -1,0 +1,12 @@
+.zq-wrap .layui-table-header .layui-table{
+     background-color: #f2f2f2;
+ }
+
+.zq-wrap .layui-table-fixed .layui-table-header .layui-table thead tr:first-child{
+    height: 67px;
+}
+
+.layui-table-body.layui-table-main td:last-child,
+.layui-table-header td:last-child{
+    border-right: 0;
+}

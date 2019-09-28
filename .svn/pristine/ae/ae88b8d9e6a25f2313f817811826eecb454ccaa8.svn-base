@@ -1,0 +1,94 @@
+// 生产计划分析
+$(document).ready(function() {
+	layui.use(['form', 'table', 'layer','laydate','laytpl'], function() {
+
+		var layer = layui.layer,
+			form = layui.form,
+			table = layui.table,
+			laydate = layui.laydate,
+            laytpl = layui.laytpl,
+			row;
+        var recordLimit = 10,    // 当前页的数据数量
+            recordPage = 1;     // 当前页码
+
+		laydate.render({
+			elem: '#riqi'
+		});
+
+
+		// 获取列表信息
+		axios.get(`/productionPlanningAnalysis/getProductionPlanningAnalysisList?limit=${recordLimit}&page=${recordPage}`)
+			.then(function(response){
+				console.log(response);
+
+				if(response.data.code == 0){
+                    var getTpl = document.getElementById('demo').innerHTML
+                        ,view = document.getElementById('view');
+                    laytpl(getTpl).render(response.data.data, function(html){
+                        view.innerHTML = html;
+                    });
+				}
+
+			});
+
+
+		// 触发事件
+		var active = {
+			add: function(that, href) {
+				if (href) {
+					location.href = href;
+				} else {
+					layer.msg('页面开发中')
+				}
+			},
+			edit: function(that, href) {
+				if (row) {
+					if (href) {
+						location.href = href;
+					} else {
+						layer.msg('页面开发中')
+					}
+				} else {
+					layer.msg('请选择订单')
+				}
+			},
+			delete: function() {
+				if (row) {
+					layer.confirm('您确定删除此订单吗?', {
+						icon: 3,
+						title: '提示'
+					}, function(index) {
+						layer.close(index);
+						layer.msg('删除成功', {
+							icon: 1
+						});
+					});
+
+				} else {
+					layer.msg('请选择订单')
+				}
+			},
+			open: function(that, href) {
+				if (row) {
+					if (href) {
+						location.href = href;
+					} else {
+						layer.msg('页面开发中')
+					}
+				} else {
+					layer.msg('请选择订单')
+				}
+			}
+		}
+		// 点击调用
+		$('body').on('click', '.zq-active', function() {
+			var othis = $(this),
+				type = othis.data('type'),
+				href = othis.data('href');
+			active[type] ? active[type].call(this, othis, href) : '';
+		});
+
+
+	})
+
+})

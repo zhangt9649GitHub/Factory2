@@ -1,0 +1,18 @@
+
+.zq-wrap{
+    text-align: center;
+    margin-top: 30px;
+
+}
+.layui-icon.layui-icon-face-surprised{
+    font-size: 200px;
+    color: #009688;
+}
+.text{
+    font-size: 30px;
+    color: #009688;
+    padding: 20px;
+    border-top: 3px solid #009688;
+    display: inline-block;
+    margin: 20px 0;
+}

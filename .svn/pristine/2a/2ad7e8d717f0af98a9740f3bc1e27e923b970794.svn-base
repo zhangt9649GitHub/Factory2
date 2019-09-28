@@ -1,0 +1,87 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd" >
+<mapper namespace="com.mingyuansoftware.aifactory.mapper.PurchaseApplyDetailsMapper" >
+  <resultMap id="BaseResultMap" type="com.mingyuansoftware.aifactory.model.PurchaseApplyDetails" >
+    <id column="purchase_apply_details_id" property="purchaseApplyDetailsId" jdbcType="INTEGER" />
+    <result column="purchase_apply_id" property="purchaseApplyId" jdbcType="INTEGER" />
+    <result column="goods_id" property="goodsId" jdbcType="INTEGER" />
+    <result column="quantity" property="quantity" jdbcType="DECIMAL" />
+    <result column="purchase_cycle" property="purchaseCycle" jdbcType="VARCHAR" />
+    <result column="purpose" property="purpose" jdbcType="VARCHAR" />
+    <result column="stair_price" property="stairPrice" jdbcType="VARCHAR" />
+    <result column="handle_status" property="handleStatus" jdbcType="TINYINT" />
+    <result column="handle_idea" property="handleIdea" jdbcType="VARCHAR" />
+    <result column="is_delete" property="isDelete" jdbcType="TINYINT" />
+    <association column="goods_id" property="goods"
+                 select="com.mingyuansoftware.aifactory.mapper.GoodsMapper.selectByPrimaryKey"></association>
+  </resultMap>
+  <delete id="deleteByPrimaryKey" parameterType="java.lang.Integer" >
+    delete from purchase_apply_details
+    where purchase_apply_details_id = #{purchaseApplyDetailsId,jdbcType=INTEGER}
+  </delete>
+  <insert id="insert" parameterType="com.mingyuansoftware.aifactory.model.PurchaseApplyDetails" >
+    <selectKey resultType="java.lang.Integer" keyProperty="purchaseApplyDetailsId" order="AFTER" >
+      SELECT LAST_INSERT_ID()
+    </selectKey>
+    insert into purchase_apply_details (purchase_apply_id, goods_id, quantity, 
+      purchase_cycle, purpose, stair_price, handle_status, handle_idea, is_delete
+      )
+    values (#{purchaseApplyId,jdbcType=INTEGER}, #{goodsId,jdbcType=INTEGER}, #{quantity,jdbcType=DECIMAL}, 
+      #{purchaseCycle,jdbcType=VARCHAR}, #{purpose,jdbcType=VARCHAR}, #{stairPrice,jdbcType=VARCHAR},
+      #{handleStatus,jdbcType=TINYINT}, #{handleIdea,jdbcType=VARCHAR}, #{isDelete,jdbcType=TINYINT}
+    )
+  </insert>
+  <update id="updateByPrimaryKey" parameterType="com.mingyuansoftware.aifactory.model.PurchaseApplyDetails" >
+    update purchase_apply_details
+    set purchase_apply_id = #{purchaseApplyId,jdbcType=INTEGER},
+      goods_id = #{goodsId,jdbcType=INTEGER},
+      quantity = #{quantity,jdbcType=DECIMAL},
+      purchase_cycle = #{purchaseCycle,jdbcType=VARCHAR},
+      purpose = #{purpose,jdbcType=VARCHAR},
+      stair_price = #{stairPrice,jdbcType=VARCHAR},
+      handle_status = #{handleStatus,jdbcType=TINYINT},
+      handle_idea = #{handleIdea,jdbcType=VARCHAR},
+      is_delete = #{isDelete,jdbcType=TINYINT}
+    where purchase_apply_details_id = #{purchaseApplyDetailsId,jdbcType=INTEGER}
+  </update>
+  <select id="selectByPrimaryKey" resultMap="BaseResultMap" parameterType="java.lang.Integer" >
+    select purchase_apply_details_id, purchase_apply_id, goods_id, quantity, purchase_cycle, 
+    purpose, stair_price, handle_status, handle_idea, is_delete
+    from purchase_apply_details
+    where purchase_apply_details_id = #{purchaseApplyDetailsId,jdbcType=INTEGER}
+  </select>
+  <select id="selectAll" resultMap="BaseResultMap" >
+    select purchase_apply_details_id, purchase_apply_id, goods_id, quantity, purchase_cycle, 
+    purpose, stair_price, handle_status, handle_idea, is_delete
+    from purchase_apply_details
+  </select>
+  <delete id="deletePurchaseApplyDetails" parameterType="java.lang.Integer" >
+    delete from purchase_apply_details
+    where purchase_apply_details_id = #{purchaseApplyDetailsId}
+  </delete>
+  <select id="selectPurchaseApplyDetailsByPaId" resultType="com.mingyuansoftware.aifactory.model.PurchaseApplyDetails" parameterType="java.lang.Integer">
+    select purchase_apply_details_id, purchase_apply_id, goods_id, quantity, purchase_cycle,
+    purpose, stair_price, handle_status, handle_idea, is_delete
+    from purchase_apply_details
+    where purchase_apply_id = #{purchaseApplyId,jdbcType=INTEGER}
+  </select>
+  <select id="selectSupplierIdById" parameterType="java.lang.Integer" resultType="java.lang.Integer" >
+    select gd.supplier_id
+    from purchase_apply_details as padl
+    left join goods as gd on (padl.goods_id = gd.goods_id)
+    where padl.purchase_apply_details_id = #{purchaseApplyDetailsId}
+  </select>
+  <update id="updateHandleStatusById" parameterType="java.lang.Integer">
+    update purchase_apply_details
+    set
+      handle_status = 2,
+      handle_idea = "已生成"
+    where purchase_apply_details_id = #{purchaseApplyDetailsId,jdbcType=INTEGER}
+  </update>
+  <update id="updatePurchaseApplyDetailsById" parameterType="java.lang.Integer">
+      update purchase_apply_details as padl
+      set
+      padl.is_delete = 1
+      where padl.purchase_apply_details_id = #{purchaseApplyDetailsId}
+  </update>
+</mapper>

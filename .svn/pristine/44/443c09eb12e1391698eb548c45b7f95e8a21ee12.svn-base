@@ -1,0 +1,222 @@
+package com.mingyuansoftware.aifactory.controller;
+
+
+import com.mingyuansoftware.aifactory.enums.HtCode;
+import com.mingyuansoftware.aifactory.model.*;
+import com.mingyuansoftware.aifactory.pojo.CommonResponse;
+import com.mingyuansoftware.aifactory.service.*;
+import com.mingyuansoftware.aifactory.util.Base64;
+import io.swagger.annotations.Api;
+import io.swagger.annotations.ApiImplicitParam;
+import io.swagger.annotations.ApiOperation;
+import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.validation.annotation.Validated;
+import org.springframework.web.bind.annotation.*;
+import org.springframework.web.multipart.MultipartFile;
+
+import java.io.File;
+import java.util.List;
+
+@Api(value = "PDAGeneral", description = "PDA公用接口API", tags = {"PDA公用接口"})
+@RestController
+@RequestMapping("/PdaGeneral")
+public class PDAGeneralController {
+
+    @Autowired
+    private GoodsService goodsService;
+    @Autowired
+    private PickingService pickingService;
+    @Autowired
+    private ProductionOrderService productionOrderService;
+    @Autowired
+    private PurchaseOrderService purchaseOrderService;
+    @Autowired
+    private RefundPickingService refundPickingService;
+    @Autowired
+    private SalesOrderService salesOrderService;
+    @Autowired
+    private InventoryCheckService inventoryCheckService;
+    @Autowired
+    private StaffService staffService;
+    @Autowired
+    private WarehouseService warehouseService;
+    @Autowired
+    private UploadFilesService uploadFilesService;
+    @Autowired
+    private WarehousePositionService warehousePositionService;
+    @Autowired
+    private ShipmentService shipmentService;
+
+    @ApiOperation(value = "扫描货物编号获取货物信息", notes = "扫描货物编号获取货物信息", tags = {"@郝腾"})
+    @ApiImplicitParam(name = "goodsNumber", value = "货物编号",  required = true,paramType = "query", dataType = "String")
+    @RequestMapping(value = "/getGoodsInfoByGoodsNumber", method = RequestMethod.POST)
+    @ResponseBody
+    public CommonResponse getGoodsInfoByGoodsNumber(@Validated String goodsNumber) {
+        CommonResponse response = new CommonResponse();
+        try {
+            Goods goods  =goodsService.selectGoodsInfoByGoodsNumber(goodsNumber);
+            if(goods==null){
+                response.setCode(HtCode.FAIL_NULL_GOODS.getCode());
+                response.setMessage(HtCode.FAIL_NULL_GOODS.getInfo());
+                return response;
+            }
+            response.setMessage(HtCode.SUCCESS_GET.getInfo());
+            response.setCode(HtCode.SUCCESS_GET.getCode());
+            response.setData(goods);
+        } catch (Exception e) {
+            e.printStackTrace();
+            response.setCode(HtCode.FAIL_GET.getCode());
+            response.setMessage(HtCode.FAIL_GET.getInfo());
+        }
+        return response;
+    }
+
+    @ApiOperation(value = "获取首页待处理数量", notes = "获取首页待处理数量", tags = {"@郝腾"})
+    @RequestMapping(value = "/getCountList", method = RequestMethod.POST)
+    @ResponseBody
+    public CommonResponse getCountList() {
+        CommonResponse response = new CommonResponse();
+        try {
+            PDAHomePageCount pdaHomePageCount = new PDAHomePageCount();
+            int pickingCount = pickingService.selectPdaPickingListCount();
+            int productionEntryCount =productionOrderService.selectPdaProductionEntryListTaskCount();
+            int purchaseOrderCount = purchaseOrderService.selectPDaPurchaseOrderListCount();
+            int refundPickingCount = refundPickingService.selectPdaRefundPickingCount();
+            int outboundOrderCount = shipmentService.selectPdaOutboundGoodsTaskListCount();
+            int inventoryCheckCount = inventoryCheckService.selectPDaInventoryCheckTaskListCount();
+            pdaHomePageCount.setPickingCount(pickingCount);
+            pdaHomePageCount.setProductionEntryCount(productionEntryCount);
+            pdaHomePageCount.setPurchaseOrderCount(purchaseOrderCount);
+            pdaHomePageCount.setRefundPickingCount(refundPickingCount);
+            pdaHomePageCount.setOutboundOrderCount(outboundOrderCount);
+            pdaHomePageCount.setInventoryCheckCount(inventoryCheckCount);
+            response.setMessage(HtCode.SUCCESS_GET.getInfo());
+            response.setCode(HtCode.SUCCESS_GET.getCode());
+            response.setData(pdaHomePageCount);
+        } catch (Exception e) {
+            e.printStackTrace();
+            response.setCode(HtCode.FAIL_GET.getCode());
+            response.setMessage(HtCode.FAIL_GET.getInfo());
+        }
+        return response;
+    }
+
+    @ApiOperation(value = "根据员工编号获取员工id", notes = "根据员工编号获取员工id", tags = {"@郝腾"})
+    @ApiImplicitParam(name = "jobNumber", value = "工号",  required = true,paramType = "query", dataType = "String")
+    @RequestMapping(value = "/getStaffIdByNumber", method = RequestMethod.POST)
+    @ResponseBody
+    public CommonResponse getStaffIdByNumber(String jobNumber) {
+        CommonResponse response = new CommonResponse();
+        try {
+            Staff staff = staffService.selectStaffIdByNumber(jobNumber);
+            if(staff==null){
+                response.setCode(HtCode.FAIL_FIND_NULL_JOBNUMBER.getCode());
+                response.setMessage(HtCode.FAIL_FIND_NULL_JOBNUMBER.getInfo());
+                return response;
+            }
+            response.setMessage(HtCode.SUCCESS_GET.getInfo());
+            response.setCode(HtCode.SUCCESS_GET.getCode());
+            response.setData(staff);
+        } catch (Exception e) {
+            e.printStackTrace();
+            response.setCode(HtCode.FAIL_GET.getCode());
+            response.setMessage(HtCode.FAIL_GET.getInfo());
+        }
+        return response;
+    }
+
+    @ApiOperation(value = "获取使用中的仓库列表", notes = "获取使用中的仓库列表", tags = {"@郝腾"})
+    @RequestMapping(value = "/getWarehouseList", method = RequestMethod.GET)
+    @ResponseBody
+    public CommonResponse getWarehouseList() {
+        CommonResponse response = new CommonResponse();
+        try {
+            List<Warehouse> warehouseList = warehouseService.selectWarehouseNameList();
+            response.setMessage(HtCode.SUCCESS_GET.getInfo());
+            response.setCode(HtCode.SUCCESS_GET.getCode());
+            response.setData(warehouseList);
+        } catch (Exception e) {
+            e.printStackTrace();
+            response.setCode(HtCode.FAIL_GET.getCode());
+            response.setMessage(HtCode.FAIL_GET.getInfo());
+        }
+       return response;
+    }
+
+
+
+    @ApiOperation(value = "保存图片",notes = "保存图片",tags={"@郝腾"})
+    @RequestMapping(value = "/importGoodsFile",method = RequestMethod.POST,produces="application/json;charset=UTF-8")
+    @ResponseBody
+    public CommonResponse importGoodsFile(@RequestParam(value = "file", required = false) MultipartFile file){
+
+       CommonResponse response = new CommonResponse();
+        UploadFiles uploadFiles = new UploadFiles();
+        try {
+            String fileName = file.getOriginalFilename();
+            String folderName = Base64.getRandomFileName();
+            String os = System.getProperty("os.name");
+            String ufSavePath = "";
+            if (os.toLowerCase().startsWith("win")) {  //如果是Windows系统
+                File dest = new File("D:/importFile/" + folderName + fileName);
+                if (!dest.getParentFile().exists()) { //判断文件父目录是否存在
+                    dest.getParentFile().mkdir();
+                }
+                try {
+                    file.transferTo(dest); //保存文件
+                    ufSavePath ="/importFile/" + folderName + fileName;
+
+                } catch (Exception e) {
+                    // TODO Auto-generated catch block
+                    e.printStackTrace();
+                }
+            } else {  //linux 和mac
+                File dest = new File("/usr/local/images/" + folderName + fileName);
+                if (!dest.getParentFile().exists()) { //判断文件父目录是否存在
+                    dest.getParentFile().mkdir();
+                }
+                try {
+                    file.transferTo(dest); //保存文件
+                    ufSavePath ="/images/" + folderName + fileName;
+
+                } catch (Exception e) {
+                    // TODO Auto-generated catch block
+                    e.printStackTrace();
+                }
+            }
+            uploadFiles.setUfSavePath(ufSavePath);
+            Integer ufId = uploadFilesService.insert(uploadFiles);
+            uploadFiles.setUfId(ufId);
+        } catch (Exception e) {
+            e.printStackTrace();
+            response.setCode(HtCode.FAIL_UPLOAD.getCode());
+            response.setMessage(HtCode.FAIL_UPLOAD.getInfo());
+            return response;
+        }
+
+        response.setCode(HtCode.SUCCESS_UPLOAD.getCode());
+        response.setMessage(HtCode.SUCCESS_UPLOAD.getInfo());
+        response.setData(uploadFiles);
+
+        return response;
+    }
+
+    @ApiOperation(value = "获取使用中的仓位列表", notes = "获取使用中的仓位列表", tags = {"@郝腾"})
+    @ApiImplicitParam(name = "wpName", value = "仓位名称", paramType = "query", dataType = "String")
+    @RequestMapping(value = "/getWpList", method = RequestMethod.POST)
+    @ResponseBody
+    public CommonResponse getWpList(String wpName) {
+        CommonResponse response = new CommonResponse();
+        try {
+            List<WarehousePosition> warehousePositionList = warehousePositionService.selectWpList(wpName);
+            response.setMessage(HtCode.SUCCESS_GET.getInfo());
+            response.setCode(HtCode.SUCCESS_GET.getCode());
+            response.setData(warehousePositionList);
+        } catch (Exception e) {
+            e.printStackTrace();
+            response.setCode(HtCode.FAIL_GET.getCode());
+            response.setMessage(HtCode.FAIL_GET.getInfo());
+        }
+        return response;
+    }
+}

@@ -1,0 +1,118 @@
+package com.mingyuansoftware.aifactory.mapper;
+
+import com.mingyuansoftware.aifactory.model.ProductionEntryGoods;
+import com.mingyuansoftware.aifactory.model.ProductionOrderDetails;
+import com.mingyuansoftware.aifactory.model.ProductionPlanningAnalysis;
+import com.mingyuansoftware.aifactory.model.dto.PDAProductionEntryDto;
+import com.mingyuansoftware.aifactory.model.dto.ProductionOrderDetailsDto;
+import org.apache.ibatis.annotations.Mapper;
+import org.apache.ibatis.annotations.Param;
+import org.springframework.stereotype.Repository;
+
+import java.math.BigDecimal;
+import java.util.List;
+@Repository
+@Mapper
+public interface ProductionOrderDetailsMapper {
+
+
+    int deleteByPrimaryKey(Integer productionOrderDetailsId);
+
+
+    int insert(ProductionOrderDetails record);
+
+
+    ProductionOrderDetails selectByPrimaryKey(Integer productionOrderDetailsId);
+
+
+    List<ProductionOrderDetails> selectAll();
+
+
+    int updateByPrimaryKey(ProductionOrderDetails record);
+
+    /**
+     * 根据排产单id查询排产单货物详情
+     * @param productionOrderId
+     * @return
+     */
+    List<ProductionOrderDetails>  selectProductionOrderDetailsById(@Param("productionOrderId") int productionOrderId);
+
+    /**
+     * 获取排产单明细列表
+     * @param productionOrderDetailsDto
+     * @return
+     */
+    List<ProductionOrderDetailsDto> selectProductionOrderDetailsList(@Param("productionOrderDetailsDto") ProductionOrderDetailsDto productionOrderDetailsDto);
+
+    /**
+     * 获取排产单明细列表总条目
+     * @param productionOrderDetailsDto
+     * @return
+     */
+    int selectCountProductionOrderDetails(@Param("productionOrderDetailsDto") ProductionOrderDetailsDto productionOrderDetailsDto);
+
+    /**
+     * 更新排产单详情为已读
+     * @param productionOrderDetailsId
+     */
+    void updateProductionOrderDetailsIsRead(@Param("productionOrderDetailsId") int productionOrderDetailsId);
+
+    /**
+     * 获取未完成的排产单的详情集合
+     * @return
+     */
+    List<ProductionOrderDetails> selectPdaProductionEntryList();
+
+    /**
+     * 获取未完成的排产单的详情集合总条数
+     * @return
+     */
+    int selectPdaProductionEntryListCount();
+
+
+    /**
+     * 获取排产单详情中货物列表
+     * @param productionOrderId
+     * @return
+     */
+    List<ProductionEntryGoods> selectPdaProductionEntryGoodsList(@Param("productionOrderId") int productionOrderId);
+
+    /**
+     * 获取排产单详情中货物列表总条数
+     * @param productionOrderId
+     * @return
+     */
+    int selectPdaProductionEntryGoodsListCount(@Param("productionOrderId") int productionOrderId);
+
+    /**
+     * 根据货物id与排产单id获取生产入库的货物数量
+     * @param goodsId
+     * @param productionOrderId
+     * @return
+     */
+    PDAProductionEntryDto selectProductionOrderGoodsCount(@Param("goodsId") int goodsId,@Param("productionOrderId") int productionOrderId);
+
+    /**
+     * 根据排产单id和货物id查询排产单详情
+     * @param productionOrderId
+     * @param goodsId
+     * @return
+     */
+    List<ProductionOrderDetails> selectProductionOrderDetailsByIdAndGoodsId(@Param("productionOrderId") int productionOrderId,@Param("goodsId") int goodsId);
+
+    /**
+     * 编辑排产单详情的状态和已入库数量
+     * @param productionOrderDetailsId
+     * @param inventoryQuantity
+     * @param status
+     */
+    void updateProductionOrderDetailsStatus(@Param("productionOrderDetailsId") int productionOrderDetailsId,@Param("inventoryQuantity") BigDecimal inventoryQuantity,@Param("status") int status);
+
+    /**
+     * 获取所有已经建立排产单未生产完成的货物列表
+     * @param productionPlanningAnalysis
+     * @return
+     */
+    List<ProductionPlanningAnalysis> selectProductionPlanningAnalysisList(@Param("productionPlanningAnalysis") ProductionPlanningAnalysis productionPlanningAnalysis);
+
+}

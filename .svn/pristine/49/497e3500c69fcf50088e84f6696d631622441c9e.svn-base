@@ -1,0 +1,148 @@
+package com.mingyuansoftware.aifactory.service.impl;
+
+import com.mingyuansoftware.aifactory.mapper.PickingDetailsMapper;
+import com.mingyuansoftware.aifactory.mapper.PickingMapper;
+import com.mingyuansoftware.aifactory.model.Picking;
+import com.mingyuansoftware.aifactory.model.PickingDetails;
+import com.mingyuansoftware.aifactory.model.dto.PickingDto;
+import com.mingyuansoftware.aifactory.model.dto.StaffUserLoginDto;
+import com.mingyuansoftware.aifactory.service.PickingService;
+import org.apache.shiro.SecurityUtils;
+import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.stereotype.Service;
+import org.springframework.transaction.annotation.Propagation;
+import org.springframework.transaction.annotation.Transactional;
+
+
+import java.util.Date;
+import java.util.List;
+
+@Service
+public class PickingServiceImpl implements PickingService {
+
+    @Autowired
+    private PickingMapper pickingMapper;
+    @Autowired
+    private PickingDetailsMapper pickingDetailsMapper;
+
+    @Override
+    public List<Picking> selectPickingList(PickingDto pickingDto) {
+        try{
+            return pickingMapper.selectPickingList(pickingDto);
+        }catch (Exception e){
+            e.printStackTrace();
+        }
+        return null;
+    }
+
+    @Override
+    public int selectCount(PickingDto pickingDto) {
+        try{
+            return pickingMapper.selectCount(pickingDto);
+        }catch (Exception e){
+            e.printStackTrace();
+        }
+        return 0;
+    }
+
+    @Override
+    @Transactional(propagation = Propagation.REQUIRED, rollbackFor = Exception.class)
+    public void insertPicking(Picking picking) {
+        picking.setCreateTime(new Date());
+        picking.setState((byte)1);
+        picking.setIsDelete((byte)0);
+       /* Staff staff =(Staff) SecurityUtils.getSubject().getSession().getAttribute("user");
+          int staffId = staff.getStaffId();
+        picking.setStaffId(staffId);*/
+        pickingMapper.insert(picking);
+        //Integer pickingId =pickingMapper.selectLastId();
+        List<PickingDetails> pickingDetailsList = picking.getPickingDetailsList();
+        for (PickingDetails pickingDetails:pickingDetailsList
+             ) {
+            pickingDetails.setPickingId(picking.getPickingId());
+            pickingDetailsMapper.insert(pickingDetails);
+        }
+
+    }
+
+    @Override
+    public Picking selectPickingById(int pickingId) {
+        try{
+            Picking picking = pickingMapper.selectByPrimaryKey(pickingId);
+            List<PickingDetails> pickingDetailsList = pickingDetailsMapper.selectPickingDetailById(pickingId);
+            if(!(pickingDetailsList.isEmpty())){
+                for (PickingDetails pickingDetails:pickingDetailsList
+                     ) {
+                    if(pickingDetails.getStatus()==2){
+                        pickingDetails.setGetQuantity(pickingDetails.getQuantity());
+                    }
+                }
+                picking.setPickingDetailsList(pickingDetailsList);
+            }
+            return picking;
+        }catch (Exception e){
+            e.printStackTrace();
+        }
+        return null;
+    }
+
+    @Override
+    @Transactional(rollbackFor = Exception.class)
+    public void deletePickingById(int picking) {
+        pickingMapper.updatePickingById(picking);
+    }
+
+    @Override
+    @Transactional(rollbackFor = Exception.class)
+    public void updatePickingInfo(Picking picking) {
+        Picking picking1 = pickingMapper.selectByPrimaryKey(picking.getPickingId());
+        picking.setIsDelete(picking1.getIsDelete());
+        picking.setState(picking1.getState());
+        picking.setCreateTime(picking1.getCreateTime());
+        picking.setPickingNumber(picking1.getPickingNumber());
+       /*  Staff staff =(Staff) SecurityUtils.getSubject().getSession().getAttribute("user");
+          int staffId = staff.getStaffId();
+        picking.setStaffId(staffId);*/
+        picking.setUpdateTime(new Date());
+        if(picking1.getPsId()!=null){
+            picking.setPsId(picking1.getPsId());
+        }
+        picking.setIsDelete(picking1.getIsDelete());
+        pickingMapper.updateByPrimaryKey(picking);
+        pickingDetailsMapper.deleteByPickingId(picking.getPickingId());
+        List<PickingDetails> pickingDetailsList = picking.getPickingDetailsList();
+        for (PickingDetails pickingDetails:pickingDetailsList
+        ) {
+            pickingDetails.setPickingId(picking.getPickingId());
+            pickingDetailsMapper.insert(pickingDetails);
+        }
+    }
+
+    @Override
+    public List<Picking> selectPdaPickingList() {
+        try {
+            return pickingMapper.selectPdaPickingList();
+        }catch (Exception e){
+            e.printStackTrace();
+        }
+        return null;
+    }
+
+    @Override
+    public int selectPdaPickingListCount() {
+        try {
+          return pickingMapper.selectPdaPickingListCount();
+        }catch (Exception e){
+            e.printStackTrace();
+        }
+        return 0;
+    }
+
+    @Override
+    @Transactional(rollbackFor = Exception.class)
+    public void updatePickingState(int pickingId) {
+        //状态为已完成
+        int state = 3;
+        pickingMapper.updatePickingStateById(pickingId,state);
+    }
+}

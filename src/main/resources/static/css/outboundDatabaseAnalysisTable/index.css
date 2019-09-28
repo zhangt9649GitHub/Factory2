@@ -1,0 +1,49 @@
+.zq-wrap .layui-table-view{
+    border-right: 1px solid #59788a;
+    border-bottom: 1px solid #59788a;
+    border-bottom: 0;
+}
+
+.zq-wrap .layui-table{
+    width: 100% !important;
+}
+.zq-wrap .layui-table-header .layui-table tr th:last-child{
+    border-right: 0;
+}
+
+.layui-table-view .layui-table-body.layui-table-main tr td:last-child{
+    border-right: 0;
+}
+
+.layui-table-header table{
+    background-color: #F2F2F2;
+}
+
+.layui-table-total tr td:last-child{
+    border-right: 0;
+}
+
+
+
+
+.item{
+    display: flex;
+    align-items: center;
+}
+.item-label{
+    margin-right: 10px;
+}
+.item-input{
+    flex: 1;
+    max-width: 200px;
+}
+.item-input input{
+
+    border: 0;
+    border-bottom: 1px solid black;
+}
+.item-input input:focus{
+    border-bottom: 1px solid #57b1f7 !important;
+}
+
+

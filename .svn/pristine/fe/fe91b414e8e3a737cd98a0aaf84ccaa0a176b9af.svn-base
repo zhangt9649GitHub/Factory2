@@ -1,0 +1,174 @@
+/**
+ * Copyright (C), 2019-2019, 天津斯睿曼科技有限公司
+ * FileName: StorageAccessServiceImpl
+ * Author:   EDZ
+ * Date:     2019/7/9 11:04
+ * Description: 入库单
+ * History:
+ * <author>          <time>          <version>          <desc>
+ * 作者姓名           修改时间           版本号              描述
+ */
+package com.mingyuansoftware.aifactory.service.impl;
+
+import com.github.pagehelper.Page;
+import com.github.pagehelper.PageHelper;
+import com.mingyuansoftware.aifactory.enums.WlCode;
+import com.mingyuansoftware.aifactory.mapper.GoodsMapper;
+import com.mingyuansoftware.aifactory.mapper.StockKucunGoodsMapper;
+import com.mingyuansoftware.aifactory.mapper.StorageAccessMapper;
+import com.mingyuansoftware.aifactory.mapper.StorageGoodsMapper;
+import com.mingyuansoftware.aifactory.model.*;
+import com.mingyuansoftware.aifactory.model.dto.StorageAccessDto;
+import com.mingyuansoftware.aifactory.pojo.LayuiCommonResponse;
+import com.mingyuansoftware.aifactory.service.StorageAccessService;
+import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.stereotype.Service;
+import org.springframework.transaction.annotation.Transactional;
+
+import java.math.BigDecimal;
+import java.util.Date;
+import java.util.List;
+
+/**
+ * 〈一句话功能简述〉<br> 
+ * 〈入库单〉
+ *
+ * @author EDZ
+ * @create 2019/7/9
+ * @since 1.0.0
+ */
+@Service
+public class StorageAccessServiceImpl implements StorageAccessService{
+
+    @Autowired
+    private StorageAccessMapper storageAccessMapper;
+
+    @Autowired
+    private StorageGoodsMapper storageGoodsMapper;
+
+    @Autowired
+    private GoodsMapper goodsMapper;
+    @Autowired
+    private StockKucunGoodsMapper stockKucunGoodsMapper;
+
+    @Override
+    @Transactional(rollbackFor = Exception.class)
+    public LayuiCommonResponse deleteByPrimaryKey(Integer storageAccessId) {
+
+            storageAccessMapper.deleteByPrimaryKey(storageAccessId);
+
+            return new LayuiCommonResponse(WlCode.SUCCESS_DELETE,0,"");
+
+    }
+
+    @Override
+    @Transactional(rollbackFor = Exception.class)
+    public LayuiCommonResponse insert(StorageAccess storageAccess) {
+
+
+            storageAccess.setCreateTime(new Date());
+            storageAccess.setIsDelete(0);
+            storageAccessMapper.insert(storageAccess);
+            List<StorageGoods> storageGoods = storageAccess.getStorageGoods();
+            for (int i = 0; i < storageGoods.size(); i++) {
+                StorageGoods storageGood = storageGoods.get(i);
+                storageGood.setStorageAccessId(storageAccess.getStorageAccessId());
+                storageGoodsMapper.insert(storageGood);
+
+                StockKucunGoods stockKucunGoods = new StockKucunGoods();
+                stockKucunGoods.setSkgCreateDatetime(new Date());
+                stockKucunGoods.setSkgCount(storageGood.getQuantity());
+                stockKucunGoods.setWarehouseId(storageAccess.getWarehouseId());
+                stockKucunGoods.setSkgType(storageAccess.getType());
+                stockKucunGoods.setGid(storageGood.getGoodsId());
+                stockKucunGoods.setSkgDanJia(storageGood.getAveragePrice());
+                stockKucunGoods.setSkgSerialNumber(storageAccess.getStorageNumber());
+                stockKucunGoods.setSkgWanglaiDanwei("");
+                //新增代码
+                stockKucunGoods.setChangeType((byte)1);
+                stockKucunGoodsMapper.insert(stockKucunGoods);
+            }
+            return new LayuiCommonResponse(WlCode.SUCCESS_INSERT,0,storageAccess);
+
+
+    }
+
+    @Override
+    public LayuiCommonResponse selectByPrimaryKey(Integer storageAccessId) {
+        try {
+            StorageAccess storageAccess = storageAccessMapper.selectByPrimaryKey(storageAccessId);
+            List<StorageGoods> storageGoods = storageGoodsMapper.selectByPrimaryKey(storageAccessId);
+            storageAccess.setStorageGoods(storageGoods);
+            return new LayuiCommonResponse(WlCode.SUCCESS_GET,0,storageAccess);
+        } catch (Exception e) {
+            e.printStackTrace();
+            return new LayuiCommonResponse(WlCode.FAIL_GET,0,"");
+        }
+
+    }
+
+    @Override
+    public LayuiCommonResponse selectAll(int page, int limit,StorageAccessDto storageAccessDto) {
+        try {
+            PageHelper.startPage(page, limit);
+            List<StorageAccess> storageAccesses = storageAccessMapper.selectAll(storageAccessDto);
+            Page<StorageAccess> page1= (Page<StorageAccess>) storageAccesses;
+            List<StorageAccess> result = page1.getResult();
+            return new LayuiCommonResponse(WlCode.SUCCESS_GET, (int) page1.getTotal(), result);
+        } catch (Exception e) {
+            e.printStackTrace();
+            return new LayuiCommonResponse(WlCode.FAIL_GET,0,"" );
+        }
+
+    }
+
+    @Override
+    public LayuiCommonResponse selectGoodsByPage(int page, int limit) {
+
+        try {
+            PageHelper.startPage(page, limit);
+            List<Goods> goods = goodsMapper.selectAll();
+            Page<Goods> page1= (Page<Goods>) goods;
+            List<Goods> result = page1.getResult();
+            return new LayuiCommonResponse(WlCode.SUCCESS_GET, (int) page1.getTotal(), result);
+        } catch (Exception e) {
+            e.printStackTrace();
+            return new LayuiCommonResponse(WlCode.FAIL_GET,0,"" );
+        }
+
+    }
+
+    @Override
+    public LayuiCommonResponse selectDetailGoods(int page, int limit,StorageGoodsDetail storageGoodsDetail) {
+        try {
+            PageHelper.startPage(page, limit);
+            List<StorageGoods> storageGoods = storageGoodsMapper.selectAll(storageGoodsDetail);
+            Page<StorageGoods> page1= (Page<StorageGoods>) storageGoods;
+            List<StorageGoods> result = page1.getResult();
+            return new LayuiCommonResponse(WlCode.SUCCESS_GET, (int) page1.getTotal(), result);
+        } catch (Exception e) {
+            e.printStackTrace();
+            return new LayuiCommonResponse(WlCode.FAIL_GET,0,"" );
+        }
+    }
+
+    @Override
+    @Transactional(rollbackFor = Exception.class)
+    public LayuiCommonResponse updateByPrimaryKey(StorageAccess storageAccess) {
+
+            storageAccess.setUpdateTime(new Date());
+            storageAccessMapper.updateByPrimaryKey(storageAccess);
+            storageGoodsMapper.deleteByPrimaryKey(storageAccess.getStorageAccessId());
+            List<StorageGoods> storageGoods = storageAccess.getStorageGoods();
+
+            for (int i = 0; i < storageGoods.size(); i++) {
+                StorageGoods storageGood = storageGoods.get(i);
+                storageGood.setStorageAccessId(storageAccess.getStorageAccessId());
+                storageGoodsMapper.insert(storageGood);
+            }
+
+
+            return new LayuiCommonResponse(WlCode.SUCCESS_UPDAE,0,storageAccess);
+
+    }
+}

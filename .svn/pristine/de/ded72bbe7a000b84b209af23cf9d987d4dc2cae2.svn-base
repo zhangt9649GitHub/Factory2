@@ -1,0 +1,149 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd" >
+<mapper namespace="com.mingyuansoftware.aifactory.mapper.PaymentOrderMapper" >
+  <resultMap id="BaseResultMap" type="com.mingyuansoftware.aifactory.model.PaymentOrder" >
+    <id column="payment_order_id" property="paymentOrderId" jdbcType="INTEGER" />
+    <result column="payment_order_number" property="paymentOrderNumber" jdbcType="VARCHAR" />
+    <result column="category" property="category" jdbcType="VARCHAR" />
+    <result column="define_date" property="defineDate" jdbcType="DATE" />
+    <result column="beneficiary_id" property="beneficiaryId" jdbcType="INTEGER" />
+    <result column="beneficiary" property="beneficiary" jdbcType="VARCHAR" />
+    <result column="associated_document_id" property="associatedDocumentId" jdbcType="INTEGER" />
+    <result column="associated_document" property="associatedDocument" jdbcType="VARCHAR" />
+    <result column="amount" property="amount" jdbcType="DECIMAL" />
+    <result column="pending_payment_amount" property="pendingPaymentAmount" jdbcType="DECIMAL" />
+    <result column="pending_payment_amount_view" property="pendingPaymentAmountView" jdbcType="DECIMAL" />
+    <result column="pending_write_off_amount" property="pendingWriteOffAmount" jdbcType="DECIMAL" />
+    <result column="payment_amount" property="paymentAmount" jdbcType="DECIMAL" />
+    <result column="write_off_amount" property="writeOffAmount" jdbcType="DECIMAL" />
+    <result column="payment_method" property="paymentMethod" jdbcType="VARCHAR" />
+    <result column="comment" property="comment" jdbcType="VARCHAR" />
+    <result column="staff_id" property="staffId" jdbcType="INTEGER" />
+    <result column="name" property="name" jdbcType="VARCHAR" />
+    <result column="create_time" property="createTime" jdbcType="TIMESTAMP" />
+    <result column="update_time" property="updateTime" jdbcType="TIMESTAMP" />
+    <result column="is_delete" property="isDelete" jdbcType="TINYINT" />
+    <result column="discount_amount" property="discountAmount" jdbcType="DECIMAL" />
+  </resultMap>
+  <delete id="deleteByPrimaryKey" parameterType="java.lang.Integer" >
+    delete from payment_order
+    where payment_order_id = #{paymentOrderId,jdbcType=INTEGER}
+  </delete>
+  <insert id="insert" parameterType="com.mingyuansoftware.aifactory.model.PaymentOrder" >
+    <selectKey resultType="java.lang.Integer" keyProperty="paymentOrderId" order="AFTER" >
+      SELECT LAST_INSERT_ID()
+    </selectKey>
+    insert into payment_order (payment_order_number, category, define_date, 
+      beneficiary_id, beneficiary,associated_document_id, associated_document, amount,
+      pending_payment_amount, pending_payment_amount_view, pending_write_off_amount,
+      payment_amount, write_off_amount, payment_method, 
+      `comment`, staff_id, name, create_time,
+      update_time, is_delete,discount_amount)
+    values (#{paymentOrderNumber,jdbcType=VARCHAR}, #{category,jdbcType=VARCHAR}, #{defineDate,jdbcType=DATE},
+      #{beneficiaryId,jdbcType=INTEGER},#{beneficiary,jdbcType=VARCHAR}, #{associatedDocumentId,jdbcType=INTEGER},
+      #{associatedDocument,jdbcType=VARCHAR}, #{amount,jdbcType=DECIMAL},#{pendingPaymentAmount,jdbcType=DECIMAL},
+      #{pendingPaymentAmountView,jdbcType=DECIMAL}, #{pendingWriteOffAmount,jdbcType=DECIMAL},
+      #{paymentAmount,jdbcType=DECIMAL}, #{writeOffAmount,jdbcType=DECIMAL}, #{paymentMethod,jdbcType=VARCHAR}, #{comment,jdbcType=VARCHAR},
+      #{staffId,jdbcType=INTEGER}, #{name,jdbcType=VARCHAR}, #{createTime,jdbcType=TIMESTAMP},
+      #{updateTime,jdbcType=TIMESTAMP}, #{isDelete,jdbcType=TINYINT}, #{discountAmount,jdbcType=DECIMAL})
+  </insert>
+  <update id="updateByPrimaryKey" parameterType="com.mingyuansoftware.aifactory.model.PaymentOrder" >
+    update payment_order
+    set payment_order_number = #{paymentOrderNumber,jdbcType=VARCHAR},
+      category = #{category,jdbcType=VARCHAR},
+      define_date = #{defineDate,jdbcType=DATE},
+      beneficiary = #{beneficiary,jdbcType=VARCHAR},
+      associated_document = #{associatedDocument,jdbcType=VARCHAR},
+      amount = #{amount,jdbcType=DECIMAL},
+      pending_payment_amount = #{pendingPaymentAmount,jdbcType=DECIMAL},
+      pending_write_off_amount = #{pendingWriteOffAmount,jdbcType=DECIMAL},
+      payment_amount = #{paymentAmount,jdbcType=DECIMAL},
+      write_off_amount = #{writeOffAmount,jdbcType=DECIMAL},
+      payment_method = #{paymentMethod,jdbcType=VARCHAR},
+      `comment` = #{comment,jdbcType=VARCHAR},
+      staff_id = #{staffId,jdbcType=INTEGER},
+      create_time = #{createTime,jdbcType=TIMESTAMP},
+      update_time = #{updateTime,jdbcType=TIMESTAMP},
+      is_delete = #{isDelete,jdbcType=TINYINT}
+    where payment_order_id = #{paymentOrderId,jdbcType=INTEGER}
+  </update>
+  <select id="selectByPrimaryKey" resultMap="BaseResultMap" parameterType="java.lang.Integer" >
+    select payment_order_id, payment_order_number, category, define_date, beneficiary, 
+    associated_document, amount, pending_payment_amount_view, pending_write_off_amount, payment_amount,
+    write_off_amount, payment_method, `comment`, staff_id, name, create_time, update_time,
+    is_delete,discount_amount
+    from payment_order
+    where payment_order_id = #{paymentOrderId,jdbcType=INTEGER}
+  </select>
+  <select id="selectAll" resultMap="BaseResultMap" >
+    select payment_order_id, payment_order_number, category, define_date, beneficiary, 
+    associated_document, amount, pending_payment_amount, pending_write_off_amount, payment_amount, 
+    write_off_amount, payment_method, `comment`, staff_id, create_time, update_time, 
+    is_delete
+    from payment_order
+  </select>
+  <select id="selectPaymentOrderList" resultMap="BaseResultMap" parameterType="com.mingyuansoftware.aifactory.model.dto.PaymentOrderDto" >
+    select payment_order_id, payment_order_number, category, define_date, beneficiary, associated_document,
+    amount, pending_payment_amount, pending_write_off_amount, payment_amount, write_off_amount,
+    payment_method, `comment`, staff_id, create_time, update_time, is_delete
+    from payment_order
+    <where>
+      <if test=" paymentOrderDto.paymentOrderNumber != null and paymentOrderDto.paymentOrderNumber != '' ">
+        and  payment_order_number like "%"#{paymentOrderDto.paymentOrderNumber}"%"
+      </if>
+      <if test=" paymentOrderDto.category != null and paymentOrderDto.category != '' ">
+        and  category like "%"#{paymentOrderDto.category}"%"
+      </if>
+      <if test=" paymentOrderDto.defineDate != null and paymentOrderDto.defineDate != '' ">
+        and  define_date like "%"#{paymentOrderDto.defineDate}"%"
+      </if>
+      <if test=" paymentOrderDto.beneficiary != null and paymentOrderDto.beneficiary != '' ">
+        and  beneficiary like "%"#{paymentOrderDto.beneficiary}"%"
+      </if>
+      <if test=" paymentOrderDto.paymentAmount != null and paymentOrderDto.paymentAmount != '' or paymentOrderDto.paymentAmount == '0'.toString() ">
+        and  payment_amount = #{paymentOrderDto.paymentAmount}
+      </if>
+      <if test=" paymentOrderDto.comment != null and paymentOrderDto.comment != '' ">
+        and  comment like "%"#{paymentOrderDto.comment}"%"
+      </if>
+      and is_delete= 0
+    </where>
+    order by payment_order_id desc
+  </select>
+  <select id="selectCount" resultType="java.lang.Integer" parameterType="com.mingyuansoftware.aifactory.model.dto.PaymentOrderDto" >
+    select count(payment_order_id)
+    from payment_order
+    <where>
+      <if test=" paymentOrderDto.paymentOrderNumber != null and paymentOrderDto.paymentOrderNumber != '' ">
+        and  payment_order_number like "%"#{paymentOrderDto.paymentOrderNumber}"%"
+      </if>
+      <if test=" paymentOrderDto.category != null and paymentOrderDto.category != '' ">
+        and  category like "%"#{paymentOrderDto.category}"%"
+      </if>
+      <if test=" paymentOrderDto.defineDate != null and paymentOrderDto.defineDate != '' ">
+        and  define_date like "%"#{paymentOrderDto.defineDate}"%"
+      </if>
+      <if test=" paymentOrderDto.beneficiary != null and paymentOrderDto.beneficiary != '' ">
+        and  beneficiary like "%"#{paymentOrderDto.beneficiary}"%"
+      </if>
+      <if test=" paymentOrderDto.paymentAmount != null and paymentOrderDto.paymentAmount != '' or paymentOrderDto.paymentAmount == '0'.toString() ">
+        and  payment_amount = #{paymentOrderDto.paymentAmount}
+      </if>
+      <if test=" paymentOrderDto.comment != null and paymentOrderDto.comment != '' ">
+        and  comment like "%"#{paymentOrderDto.comment}"%"
+      </if>
+      and is_delete= 0
+    </where>
+    order by payment_order_id desc
+  </select>
+  <update id="updatePaymentOrderById" parameterType="java.lang.Integer" >
+    update payment_order
+    set
+      is_delete = 1,
+      update_time = now()
+    where payment_order_id = #{paymentOrderId,jdbcType=INTEGER}
+  </update>
+  <select id="selectStaffNameById" parameterType="java.lang.Integer" resultType="java.lang.String">
+    select name from staff where staff_id = #{staffId,jdbcType=INTEGER}
+  </select>
+</mapper>

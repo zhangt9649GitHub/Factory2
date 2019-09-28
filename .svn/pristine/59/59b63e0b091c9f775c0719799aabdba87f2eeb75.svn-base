@@ -1,0 +1,347 @@
+package com.mingyuansoftware.aifactory.controller;
+
+
+import com.github.pagehelper.PageHelper;
+import com.mingyuansoftware.aifactory.config.LogConfig;
+import com.mingyuansoftware.aifactory.constants.Constants;
+import com.mingyuansoftware.aifactory.enums.HtCode;
+import com.mingyuansoftware.aifactory.model.*;
+import com.mingyuansoftware.aifactory.model.dto.GoodsDto;
+import com.mingyuansoftware.aifactory.pojo.LayuiCommonResponse;
+import com.mingyuansoftware.aifactory.service.GoodsService;
+import com.mingyuansoftware.aifactory.service.GoodsVarietyService;
+import com.mingyuansoftware.aifactory.service.LogService;
+import com.mingyuansoftware.aifactory.util.BaseToString;
+import com.mingyuansoftware.aifactory.util.DateUtil;
+import com.mingyuansoftware.aifactory.util.DeleteFileUtil;
+import io.swagger.annotations.*;
+import org.apache.poi.hssf.usermodel.HSSFRow;
+import org.apache.poi.hssf.usermodel.HSSFSheet;
+import org.apache.poi.hssf.usermodel.HSSFWorkbook;
+import org.apache.shiro.SecurityUtils;
+import org.apache.shiro.authz.annotation.RequiresPermissions;
+import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.validation.annotation.Validated;
+import org.springframework.web.bind.annotation.*;
+import org.springframework.web.multipart.MultipartFile;
+
+import javax.servlet.ServletOutputStream;
+import javax.servlet.http.HttpServletResponse;
+import java.io.*;
+import java.math.BigDecimal;
+import java.net.URLEncoder;
+import java.util.*;
+
+
+@Api(value = "GoodsManagement", description = "货物管理API", tags = {"货物管理"})
+@RestController
+@RequestMapping("/goods")
+public class GoodsManagementController {
+
+    @Autowired
+    private GoodsService goodsService;
+    @Autowired
+    private LogService logService;
+    @Autowired
+    private GoodsVarietyService goodsVarietyService;
+
+    @ApiOperation(value = "获取货物列表", notes = "获取Goods对象列表信息", tags = {"@郝腾"})
+    @ApiImplicitParams({
+            @ApiImplicitParam(name = "page", value = "第几页", paramType = "query", dataType = "int"),
+            @ApiImplicitParam(name = "limit", value = "每页容量", paramType = "query", dataType = "int"),
+            @ApiImplicitParam(name = "goodsDto", value = "货物参数实体类", paramType = "query", dataType = "GoodsDto"),
+    })
+    @RequestMapping(value = "/getGoodsList", method = RequestMethod.GET)
+    @ResponseBody
+    @RequiresPermissions(value = {"getGoodsList"})
+    public LayuiCommonResponse getGoodsList(@Validated @RequestParam(defaultValue = "1") int page,
+                                            @Validated @RequestParam(defaultValue = "10") int limit,
+                                            @Validated GoodsDto goodsDto) {
+        LayuiCommonResponse response = new LayuiCommonResponse();
+        try {
+            PageHelper.startPage(page, limit);
+            List<Goods> goodsList =goodsService.selectGoodsList(goodsDto);
+            int count = goodsService.selectCount(goodsDto);
+            response.setMsg(HtCode.SUCCESS_GET.getInfo());
+            response.setCode(HtCode.SUCCESS_GET.getCode());
+            response.setCount(count);
+            response.setData(goodsList);
+        } catch (Exception e) {
+            e.printStackTrace();
+            response.setCode(HtCode.FAIL_GET.getCode());
+            response.setMsg(HtCode.FAIL_GET.getInfo());
+        }
+        return response;
+    }
+
+
+    @ApiOperation(value = "新增货物", notes = "新增货物", tags = {"@郝腾"})
+    @ApiImplicitParam(name = "goods", value = "货物实体类", required = true, dataType = "Goods")
+    @RequestMapping(value = "/insertGoods", method = RequestMethod.POST)
+    @ResponseBody
+    @RequiresPermissions(value = {"insertGoods"})
+    public LayuiCommonResponse insertGoods(@RequestBody Goods goods) {
+        LayuiCommonResponse response = new LayuiCommonResponse();
+        try {
+            goodsService.insertGoods(goods);
+            if(LogConfig.STATE){
+                String text = BaseToString.BaseEntityToString(goods);
+                Staff staff =(Staff) SecurityUtils.getSubject().getSession().getAttribute("user");
+                int staffId = staff.getStaffId();
+                logService.saveLog(staffId,1,text);
+            }
+            response.setCode(HtCode.SUCCESS_ADD.getCode());
+            response.setMsg(HtCode.SUCCESS_ADD.getInfo());
+        } catch (Exception e) {
+            e.printStackTrace();
+            response.setCode(HtCode.FAIL_ADD.getCode());
+            response.setMsg(HtCode.FAIL_ADD.getInfo());
+            return response;
+        }
+        return response;
+    }
+
+    @ApiOperation(value = "删除货物信息", notes = "删除货物信息", tags = {"@郝腾"})
+    @ApiImplicitParam(name = "goodsId", value = "货物id", required = true, dataType = "int", paramType = "query")
+    @RequestMapping(value = "/deleteGoodsById", method = RequestMethod.POST)
+    @ResponseBody
+    @RequiresPermissions(value = {"deleteGoodsById"})
+    public LayuiCommonResponse deleteGoodsById(int goodsId) {
+        LayuiCommonResponse response = new LayuiCommonResponse();
+        try {
+            goodsService.deleteGoodsById(goodsId);
+            if(LogConfig.STATE){
+                String[] str= new String[]{goodsId+""};
+                Map<String, String[]> a_mMap= new HashMap<>();
+                a_mMap.put("goodsId",str);
+                String text = BaseToString.MapToString(a_mMap);
+                Staff staff =(Staff) SecurityUtils.getSubject().getSession().getAttribute("user");
+                int staffId = staff.getStaffId();
+                logService.saveLog(staffId,3,text);
+            }
+            response.setCode(HtCode.SUCCESS_DELETE.getCode());
+            response.setMsg(HtCode.SUCCESS_DELETE.getInfo());
+        } catch (Exception e) {
+            e.printStackTrace();
+            response.setCode(HtCode.FAIL_DELETE.getCode());
+            response.setMsg(HtCode.FAIL_DELETE.getInfo());
+            return response;
+        }
+        return response;
+    }
+
+    @ApiOperation(value = "查看货物信息", notes = "查看货物信息", tags = {"@郝腾"})
+    @ApiImplicitParam(name = "goodsId", value = "货物id", required = true, dataType = "int", paramType = "query")
+    @RequestMapping(value = "/getGoodsById", method = RequestMethod.POST)
+    @ResponseBody
+    public LayuiCommonResponse getGoodsById(int goodsId) {
+        LayuiCommonResponse response = new LayuiCommonResponse();
+        try {
+            Goods goods = goodsService.selectGoodsById(goodsId);
+            response.setMsg(HtCode.SUCCESS_GET.getInfo());
+            response.setCode(HtCode.SUCCESS_GET.getCode());
+            response.setData(goods);
+        } catch (Exception e) {
+            e.printStackTrace();
+            response.setCode(HtCode.FAIL_GET.getCode());
+            response.setMsg(HtCode.FAIL_GET.getInfo());
+        }
+        return response;
+    }
+
+
+    @ApiOperation(value = "更新货物信息", notes = "更新货物信息", tags = {"@郝腾"})
+    @ApiImplicitParam(name = "goods", value = "货物及详情", dataType = "Goods")
+    @RequestMapping(value = "/updateGoodsInfo", method = RequestMethod.POST)
+    @ResponseBody
+    @RequiresPermissions(value = {"updateGoodsInfo"})
+    public LayuiCommonResponse updateGoodsInfo(@RequestBody Goods goods) {
+        LayuiCommonResponse response = new LayuiCommonResponse();
+        try {
+          Goods goods1 = goodsService.selectGoodsById(goods.getGoodsId());
+          goods.setCreateTime(goods1.getCreateTime());
+            goodsService.updateGoodsInfo(goods);
+            if(LogConfig.STATE){
+                String text = BaseToString.BaseEntityToString(goods);
+                Staff staff =(Staff) SecurityUtils.getSubject().getSession().getAttribute("user");
+                int staffId = staff.getStaffId();
+                logService.saveLog(staffId,2,text);
+            }
+            response.setCode(HtCode.SUCCESS_UPDATE.getCode());
+            response.setMsg(HtCode.SUCCESS_UPDATE.getInfo());
+        } catch (Exception e) {
+            e.printStackTrace();
+            response.setCode(HtCode.FAIL_UPDATE.getCode());
+            response.setMsg(HtCode.FAIL_UPDATE.getInfo());
+            return response;
+        }
+        return response;
+    }
+
+
+    @ApiOperation(value = "导出货物列表", notes = "导出货物列表",tags = {"@郝腾"})
+    @ApiImplicitParams({
+            @ApiImplicitParam(name = "partsCd", value = "部品CD", paramType = "query", dataType = "String"),
+            @ApiImplicitParam(name = "goodsName", value = "品名", paramType = "query", dataType = "String"),
+            @ApiImplicitParam(name = "variety", value = "品种", paramType = "query", dataType = "String"),
+            @ApiImplicitParam(name = "unit", value = "单位", paramType = "query", dataType = "String"),
+            @ApiImplicitParam(name = "specification", value = "规格", paramType = "query", dataType = "String"),
+            @ApiImplicitParam(name = "weight", value = "重量", paramType = "query", dataType = "Float"),
+            @ApiImplicitParam(name = "unitPrice", value = "日元单价", paramType = "query", dataType = "BigDecimal"),
+            @ApiImplicitParam(name = "aPrice", value = "a单价", paramType = "query", dataType = "BigDecimal"),
+            @ApiImplicitParam(name = "bPrice", value = "b单价", paramType = "query", dataType = "BigDecimal"),
+            @ApiImplicitParam(name = "sellingPrice", value = "销售价格", paramType = "query", dataType = "BigDecimal"),
+            @ApiImplicitParam(name = "wholesalePrices", value = "批发价格", paramType = "query", dataType = "BigDecimal"),
+            @ApiImplicitParam(name = "minimumStock", value = "最低库存", paramType = "query", dataType = "BigDecimal"),
+            @ApiImplicitParam(name = "japanStock", value = "日本侧库存", paramType = "query", dataType = "BigDecimal"),
+            @ApiImplicitParam(name = "tjStock", value = "天津侧库存", paramType = "query", dataType = "BigDecimal")
+    })
+    @RequestMapping(value = "/exportGoodsList", method = RequestMethod.GET)
+    @ResponseBody
+    @RequiresPermissions(value = {"exportGoodsList"})
+    public void exportGoodsList(HttpServletResponse response, @Validated String partsCd, @Validated String goodsName,@Validated String variety,
+                                @Validated String unit,@Validated String specification,@Validated Float weight, @Validated BigDecimal unitPrice,
+                                @Validated BigDecimal aPrice,@Validated BigDecimal bPrice,@Validated BigDecimal sellingPrice,@Validated BigDecimal wholesalePrices,
+                                @Validated BigDecimal minimumStock,@Validated BigDecimal japanStock,@Validated BigDecimal tjStock)
+            throws IOException {
+        GoodsDto goodsDto = new GoodsDto();
+        goodsDto.setPartsCd(partsCd);
+        goodsDto.setGoodsName(goodsName);
+        goodsDto.setVariety(variety);
+        goodsDto.setUnit(unit);
+        goodsDto.setSpecification(specification);
+        goodsDto.setWeight(weight);
+        goodsDto.setUnitPrice(unitPrice);
+        goodsDto.setaPrice(aPrice);
+        goodsDto.setbPrice(bPrice);
+        goodsDto.setSellingPrice(sellingPrice);
+        goodsDto.setWholesalePrices(wholesalePrices);
+        goodsDto.setMinimumStock(minimumStock);
+        goodsDto.setJapanStock(japanStock);
+        goodsDto.setTjStock(tjStock);
+        List<Goods> goodsList =goodsService.selectGoodsList(goodsDto);
+        String fileName = DateUtil.getStringTodayMillisecond()  + ".xls";//设置要导出的文件的名字
+        response.setContentType("application/application/vnd.ms-excel");
+        response.setHeader("Content-disposition",
+                "attachment;filename=" + URLEncoder.encode(DateUtil.getStringTodayMillisecond() + ".xls", "UTF-8"));
+        ServletOutputStream out = response.getOutputStream();
+        HSSFWorkbook workbook = new HSSFWorkbook();
+        HSSFSheet sheet = workbook.createSheet();
+        HSSFRow row = sheet.createRow(0);
+        row.createCell(0).setCellValue("部品CD");
+        row.createCell(1).setCellValue("品名");
+        row.createCell(2).setCellValue("品种");
+        row.createCell(3).setCellValue("单位");
+        row.createCell(4).setCellValue("规格");
+        row.createCell(5).setCellValue("重量");
+        row.createCell(6).setCellValue("日元单价");
+        row.createCell(7).setCellValue("a单价");
+        row.createCell(8).setCellValue("b单价");
+        row.createCell(9).setCellValue("销售价格");
+        row.createCell(10).setCellValue("批发价格");
+        row.createCell(11).setCellValue("最低库存");
+        row.createCell(12).setCellValue("日本侧库存");
+        row.createCell(13).setCellValue("天津侧库存");
+        ByteArrayOutputStream arrayInputStream = new ByteArrayOutputStream();
+        int index = 1;
+        try {
+            for (Goods goods1 : goodsList) {
+                row = sheet.createRow(index);
+                row.createCell(0).setCellValue(goods1.getPartsCd());
+                row.createCell(1).setCellValue(goods1.getGoodsName());
+                row.createCell(2).setCellValue(goods1.getVariety());
+                row.createCell(3).setCellValue(goods1.getUnit());
+                row.createCell(4).setCellValue(goods1.getSpecification());
+                row.createCell(5).setCellValue(String.valueOf(goods1.getWeight()));
+                row.createCell(6).setCellValue(String.valueOf(goods1.getUnitPrice()));
+                row.createCell(7).setCellValue(String.valueOf(goods1.getaPrice()));
+                row.createCell(8).setCellValue(String.valueOf(goods1.getbPrice()));
+                row.createCell(9).setCellValue(String.valueOf(goods1.getSellingPrice()));
+                row.createCell(10).setCellValue(String.valueOf(goods1.getWholesalePrices()));
+                row.createCell(11).setCellValue(String.valueOf(goods1.getMinimumStock()));
+                row.createCell(12).setCellValue(String.valueOf(goods1.getJapanStock()));
+                row.createCell(13).setCellValue(String.valueOf(goods1.getTjStock()));
+                index++;
+            }
+        } catch (Exception e) {
+            e.printStackTrace();
+        }
+        workbook.write(arrayInputStream);
+        byte[] bytes = arrayInputStream.toByteArray();
+        out.write(bytes);
+        out.close();
+    }
+
+    @ApiOperation(value = "获取货物类别列表", notes = "获取货物类别列表", tags = {"@郝腾"})
+    @RequestMapping(value = "/getGoodsCategoryList", method = RequestMethod.POST)
+    @ResponseBody
+    public LayuiCommonResponse getGoodsCategoryList() {
+        LayuiCommonResponse response = new LayuiCommonResponse();
+        try {
+            List<GoodsCategory> goodsCategories = new ArrayList<>();
+            for (int s: Constants.MAP_CATEGORY.keySet()
+                 ) {
+                GoodsCategory goodsCategory = new GoodsCategory();
+                goodsCategory.setKey(s);
+                goodsCategory.setValue(Constants.MAP_CATEGORY.get(s));
+                goodsCategories.add(goodsCategory);
+            }
+            response.setMsg(HtCode.SUCCESS_GET.getInfo());
+            response.setCode(HtCode.SUCCESS_GET.getCode());
+            response.setData(goodsCategories);
+        } catch (Exception e) {
+            e.printStackTrace();
+            response.setCode(HtCode.FAIL_GET.getCode());
+            response.setMsg(HtCode.FAIL_GET.getInfo());
+        }
+        return response;
+    }
+
+
+    @ApiOperation(value = "获取货物品种列表", notes = "获取货物品种列表", tags = {"@郝腾"})
+    @RequestMapping(value = "/getGoodsVarietyList", method = RequestMethod.POST)
+    @ResponseBody
+    public LayuiCommonResponse getGoodsVarietyList() {
+        LayuiCommonResponse response = new LayuiCommonResponse();
+        try {
+           List<GoodsVariety>  goodsVarietyList =goodsVarietyService.selectGoodsVarietyList();
+            response.setMsg(HtCode.SUCCESS_GET.getInfo());
+            response.setCode(HtCode.SUCCESS_GET.getCode());
+            response.setData(goodsVarietyList);
+        } catch (Exception e) {
+            e.printStackTrace();
+            response.setCode(HtCode.FAIL_GET.getCode());
+            response.setMsg(HtCode.FAIL_GET.getInfo());
+        }
+        return response;
+    }
+
+
+    @ApiOperation(value = "导入货物表", notes = "导入货物表", tags = {"@郝腾"})
+    @RequestMapping(value = "/importGoods", method = RequestMethod.POST)
+    @ResponseBody
+    @RequiresPermissions(value = {"importGoods"})
+    public LayuiCommonResponse importGoods(@ApiParam(value = "MultipartFile", required = true) MultipartFile file) {
+        LayuiCommonResponse response = new LayuiCommonResponse();
+        try {
+            goodsService.importGoods(file);
+            response.setCode(HtCode.SUCCESS_IMPORT.getCode());
+            response.setMsg(HtCode.SUCCESS_IMPORT.getInfo());
+        } catch (Exception e) {
+            e.printStackTrace();
+            response.setCode(HtCode.FAIL_IMPORT.getCode());
+            response.setMsg(e.getMessage());
+        } finally {
+            //删除文件夹内的文件
+            String os = System.getProperty("os.name");
+            if (os.toLowerCase().startsWith("win")) {//如果是Windows系统
+                String unZipAddress = "D:/importCsv/";
+                DeleteFileUtil.delFolder(unZipAddress);
+            } else {  //linux 和mac
+                String unZipAddress = "/usr/local/csv/";
+                DeleteFileUtil.delFolder(unZipAddress);
+            }
+        }
+        return response;
+    }
+}

@@ -1,0 +1,85 @@
+package com.mingyuansoftware.aifactory.service;
+
+import com.mingyuansoftware.aifactory.model.NoteDocument;
+import com.mingyuansoftware.aifactory.model.dto.NoteDocumentDto;
+import org.springframework.stereotype.Service;
+import org.springframework.web.multipart.MultipartFile;
+
+import java.util.List;
+
+@Service
+public interface NoteDocumentService {
+
+    /**
+     * 注文书列表
+     * @param noteDocumentDto
+     * @return
+     */
+    List<NoteDocumentDto> selectNoteDocumentList(NoteDocumentDto noteDocumentDto);
+
+    /**
+     * 注文书列表总条数
+     * @param noteDocumentDto
+     * @return
+     */
+    int selectCount(NoteDocumentDto noteDocumentDto);
+
+    /**
+     * 导入注文书信息,保存到List中
+     * @param file
+     */
+    List<NoteDocument> importNoteDocumentExcel(String fileName, MultipartFile file);
+
+    /**
+     * 添加注文书
+     * @param noteDocument
+     * @return
+     */
+    int insertNoteDocument(NoteDocument noteDocument);
+
+    /**
+     * 更新注文书
+     * @param noteDocument
+     * @return
+     */
+    int updateNoteDocumentInfo(NoteDocument noteDocument);
+
+    /**
+     * 查询注文书能否更新操作(只有未生成采购订单的注文书才可以更新操作)注文书状态为 1.无采购
+     * @param ndid
+     * @return
+     */
+    int selectUpdateNoteDocumentInfo(int ndid);
+
+    /**
+     * 根据注文书id查询注文书内容
+     * @param ndid
+     * @return
+     */
+    NoteDocument selectNoteDocumentById(int ndid);
+
+    /**
+     * 根据注文书id查询(是否同一)供应商
+     * @param noteDocument
+     * @return
+     */
+    List<NoteDocument> selectCPONoteDocumentSupplier(List<NoteDocument> noteDocument);
+
+    /**
+     * 导入注文书数据(一键导入)
+     * @param file
+     */
+    void importNoteDocument(MultipartFile file);
+
+    /**
+     * 根据注文书id查询注文书中的货物信息
+     * @param ndid
+     * @return
+     */
+    NoteDocumentDto selectGoodInfoByNote(Integer ndid);
+
+    /**
+     * 导入完成 1.合并同一货物数量和总价 2.修改发注残
+     */
+    void updateNoteDocumentData();
+}

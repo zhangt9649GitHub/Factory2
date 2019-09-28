@@ -1,0 +1,211 @@
+//员工管理
+$(document).ready(function(){
+	layui.use(['form', 'table', 'layer','laydate'], function() {
+	
+		var $ = layui.$,
+			layer = layui.layer,
+			form = layui.form,
+			laydate = layui.laydate,
+			table = layui.table,
+			row;
+	
+		laydate.render({
+			elem: '#ruzhiriqi'
+		});
+
+		table.render({
+			elem: '#idTest',
+			height: 520,
+			page: true,
+			method: 'post',
+			cellMinWidth: 120 ,// 定义所有常规单元格的最小宽度
+			url: '/staff/getStaffList',
+			cols: [
+				[
+					{
+						field: 'jobNumber',
+						title: '工号',
+						unresize: true,
+						templet: '#jobNumber'
+					}, {
+						field: 'name',
+						title: '姓名',
+						unresize: true
+					}, {
+						field: 'role',
+						title: '角色',
+						unresize: true
+					}, {
+						field: 'phone',
+						title: '电话',
+						unresize: true
+					}, {
+						field: 'entryTime',
+						title: '入职日期',
+						unresize: true
+					}
+				
+				]
+			],
+			done: function(response){
+				row = '';
+
+				//初始化
+				$('.zq-search-form .search').css('margin-left',0);
+				$(".layui-table-body.layui-table-main").scrollLeft(0);
+
+				// 设置搜索滚动
+				$('.zq-search-form .search').width($('.layui-table-view .layui-table-header table').width());
+
+
+				// 监听查询滚动条的变化
+				$(".layui-table-body.layui-table-main").scroll(function() {
+					console.log();
+					$('.zq-search-form .search').css('margin-left',-($(this).scrollLeft()));
+				});
+
+			}
+		});
+	
+		// 监听数据表格行单击事件
+
+		table.on('row(demo)', function(obj) {
+			//标注选中样式
+			// console.log(obj.data) //得到当前行数据
+			row = obj.data;
+			obj.tr.addClass('layui-table-click').siblings().removeClass('layui-table-click');
+		});
+
+		// 查询
+		form.on('submit(*)', function(data){
+			//执行重载
+			table.reload('idTest', {
+				page: {
+					curr: 1 //重新从第 1 页开始
+				}
+				,where: {
+					jobNumber: $.trim(data.field.jobNumber),
+					name: $.trim(data.field.name),
+					role: $.trim(data.field.role),
+					phone: $.trim(data.field.phone),
+					entryTime: $.trim(data.field.entryTime)
+				}
+			});
+			return false;
+		});
+
+
+
+		// 触发事件
+		var active = {
+			add: function(that,href){
+				if(href){
+					location.href = href;
+				}else{
+					layer.msg('页面开发中')
+				}
+			},
+			edit: function(that,href){
+				if(row){
+					if(href){
+						location.href = href + '?staffId=' + row.staffId;
+					}else{
+						layer.msg('页面开发中')
+					}
+				}else{
+					layer.msg('请选择一条数据')
+				}
+			},
+			delete: function(){
+				if(row){
+					layer.confirm('您确定删除此员工信息吗?', {icon: 3, title:'提示'}, function(index){
+						var formdata = new FormData();
+						formdata.append('id', parseInt(row.staffId));
+						axios.post('/staff/delete',formdata
+						).then(function (response) {
+							layer.close(index);
+							layer.msg(response.data.msg);
+							if(response.data.code == 30002){
+
+								layui.table.reload('idTest');
+								row = '';
+							}
+
+						}).catch(function (error) {
+							console.log(error);
+						});
+					});
+					
+				}else{
+					layer.msg('请选择一条数据')
+				}
+			},
+			// 重置密码
+			resetPassword: function(){
+				if(row){
+					layer.confirm('您确定要重置此员工的后台登入密码吗?', {icon: 3, title:'提示'}, function(index){
+						var formdata = new FormData();
+						formdata.append('id', parseInt(row.staffId));
+						axios.post('/staff/updatePasswd',formdata
+						).then(function (response) {
+							layer.close(index);
+							layer.msg(response.data.msg);
+							if(response.data.code == 30006){
+
+								layui.table.reload('idTest');
+
+							}
+
+						}).catch(function (error) {
+							console.log(error);
+						});
+					});
+
+				}else{
+					layer.msg('请选择一条数据')
+				}
+			},
+			// 重置
+			reset: function () {
+				$('.zq-search-form button[type="reset"]').click();
+			},
+			// 经验值管理
+			popupPage1: function(that,href){
+				if(row){
+					if(href){
+						let url = href + '?staffId=' + row.staffId;
+						zqIframeView('经验值管理',url,500,520)
+					}else{
+						layer.msg('页面开发中')
+					}
+				}else{
+					layer.msg('请选择一条数据')
+				}
+			},
+			// 调岗记录
+			popupPage2: function(that,href){
+				if(row){
+					if(href){
+						let url = href + '?staffId=' + row.staffId;
+						zqIframeView('调岗记录',url,500,520)
+					}else{
+						layer.msg('页面开发中')
+					}
+				}else{
+					layer.msg('请选择一条数据')
+				}
+			}
+			
+		};
+		// 点击调用
+		$('body').on('click','.zq-active', function() {
+			var othis = $(this),
+				type = othis.data('type'),
+				href = othis.data('href');
+			active[type] ? active[type].call(this, othis, href) : '';
+		});
+	
+	
+	})
+	
+});

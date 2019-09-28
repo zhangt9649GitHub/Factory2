@@ -1,0 +1,183 @@
+// 排产单明细
+$(document).ready(function() {
+	layui.use(['form', 'table', 'layer', 'laydate'], function() {
+
+		var layer = layui.layer,
+			form = layui.form,
+			laydate = layui.laydate,
+			table = layui.table,
+			row;
+
+
+		// 动态表格
+		table.render({
+			elem: '#idTest',
+			height: 520,
+			page: true,
+			cellMinWidth: 120, // 定义所有常规单元格的最小宽度
+			// totalRow: true, //开启合计
+			url: '/productionOrderDetails/getProductionOrderDetailsList',
+			cols: [
+				[
+					{
+						field: 'partsCd',
+						title: '部品CD',
+						unresize: true,
+						templet: '#partsCd'
+					}, {
+						field: 'goodsName',
+						title: '名称',
+						unresize: true
+					}, {
+						field: 'specification',
+						title: '规格',
+						unresize: true
+					}, {
+						field: 'unit',
+						title: '单位',
+						unresize: true
+
+					}, {
+						field: 'totalTaskAmount',
+						title: '总任务量',
+						unresize: true
+					}, {
+						field: 'salesBooking',
+						title: '销售预定数',
+						unresize: true
+					}, {
+						field: 'skgCount',
+						title: '现库存',
+						unresize: true
+					}, {
+						field: 'quantity',
+						title: '排产数量',
+						unresize: true
+					}, {
+						field: 'cycle',
+						title: '生产周期',
+						unresize: true
+					}, {
+						field: 'shift',
+						title: '班次',
+						unresize: true
+					}, {
+						field: 'isNew',
+						title: '有无新增入库',
+						unresize: true,
+						templet: '#isNew'
+					}, {
+						field: 'serialNumber',
+						title: '生产指示书',
+						unresize: true,
+					}, {
+						field: 'productionOrderNumber',
+						title: '排产单编号',
+						unresize: true
+					},
+
+				]
+			],
+			done: function(response){
+
+				row = '';
+				//初始化
+				$('.zq-search-form .search').css('margin-left',0);
+				$(".layui-table-body.layui-table-main").scrollLeft(0);
+
+				// 设置搜索滚动
+				$('.zq-search-form .search').width($('.layui-table-view .layui-table-header table').width());
+
+
+				// 监听查询滚动条的变化
+				$(".layui-table-body.layui-table-main").scroll(function() {
+					console.log();
+					$('.zq-search-form .search').css('margin-left',-($(this).scrollLeft()));
+				});
+
+			}
+		});
+
+
+		form.on('submit(*)', function(data){
+			//执行重载
+			table.reload('idTest', {
+				page: {
+					curr: 1 //重新从第 1 页开始
+				}
+				,where: {
+					partsCd: $.trim(data.field.partsCd),
+					goodsName: $.trim(data.field.goodsName),
+					specification: $.trim(data.field.specification),
+					unit: $.trim(data.field.unit),
+					totalTaskAmount: $.trim(data.field.totalTaskAmount),
+					salesBooking: $.trim(data.field.salesBooking),
+					skgCount: $.trim(data.field.skgCount),
+					quantity: $.trim(data.field.quantity),
+					cycle: $.trim(data.field.cycle),
+					shift:$.trim(data.field.shift),
+					isNew: $.trim(data.field.isNew),
+					serialNumber: $.trim(data.field.serialNumber),
+					productionOrderNumber: $.trim(data.field.productionOrderNumber)
+				}
+			});
+			return false;
+		});
+
+		// 监听数据表格行单击事件
+
+		table.on('row(demo)', function(obj) {
+			//标注选中样式
+			// console.log(obj.data); //得到当前行数据
+			row = obj.data;
+			obj.tr.addClass('layui-table-click').siblings().removeClass('layui-table-click');
+		});
+
+
+
+
+		// 触发事件
+		var active = {
+			// 重置
+			reset: function () {
+				$('.zq-search-form button[type="reset"]').click();
+			},
+			//	设为已读
+			setRead: function () {
+				if(row){
+					layer.confirm('您确定把此数据设为已读吗?', {icon: 3, title:'提示'}, function(index){
+						var formdata = new FormData();
+						formdata.append('productionOrderDetailsId', parseInt(row.productionOrderDetailsId));
+						axios.post('/productionOrderDetails/updateProductionOrderDetailsIsRead',formdata
+						).then(function (response) {
+							layer.close(index);
+							layer.msg(response.data.msg);
+							if(response.data.code == 10008){
+
+								layui.table.reload('idTest');
+								row = '';
+							}
+
+						}).catch(function (error) {
+							console.log(error);
+						});
+					});
+
+				} else {
+					layer.msg('请选择一条数据')
+				}
+			}
+
+		};
+		// 点击调用
+		$('body').on('click', '.zq-active', function() {
+			var othis = $(this),
+				type = othis.data('type');
+
+			active[type] ? active[type].call(this, othis) : '';
+		});
+
+
+
+	})
+});

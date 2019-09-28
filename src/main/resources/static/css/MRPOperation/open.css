@@ -1,0 +1,21 @@
+.layui-table-body{overflow-x: hidden;}
+
+
+.zq-wrap .zq-container{
+    width:90%;
+    margin-top: 20px;
+}
+
+.zq-container .layui-table-view{
+    border-color: #e6e6e6!important;
+}
+.zq-wrap .layui-table td,
+.zq-wrap .layui-table th{
+    border-color: #e6e6e6;
+}
+.zq-wrap .layui-tab-item .layui-card{
+    padding: 10px;
+}
+.layui-card-header{
+    overflow: hidden;
+}

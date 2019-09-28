@@ -1,0 +1,61 @@
+
+
+#tree-table tbody tr td:first-child{
+    cursor: pointer;
+}
+#tree-table{
+    width: 100%;
+    min-width: 3000px;
+    margin: 0;
+}
+#tree-table thead tr th{
+    border-top: 0;
+}
+#tree-table thead tr th:first-child,
+#tree-table tbody tr td:first-child{
+    border-left: 0;
+}
+#tree-table thead tr th:last-child,
+#tree-table tbody tr td:last-child{
+    border-right: 0;
+}
+.wrap{
+    height: 440px;
+    border: 1px solid #e6e6e6;
+    margin-top: 30px;
+    /*overflow: auto;*/
+}
+
+.layui-laypage a,
+.layui-laypage span{
+    margin-bottom: 0;
+    height: 26px;
+    line-height: 26px;
+    border: 0;
+    padding: 0 10px;
+}
+/*!* 设置列表页滚动条样式 *!*/
+/*!*定义滚动条高宽及背景 高宽分别对应横竖滚动条的尺寸*!*/
+/*#tree-table::-webkit-scrollbar*/
+/*{*/
+    /*width: 8px;*/
+    /*height: 8px;*/
+    /*background-color: transparent;*/
+/*}*/
+
+/*!*定义滚动条轨道 内阴影+圆角*!*/
+/*#tree-table::-webkit-scrollbar-track*/
+/*{*/
+    /*-webkit-box-shadow: inset 0 0 6px rgba(0,0,0,0.3);*/
+    /*border-radius: 10px;*/
+    /*background-color: #F5F5F5;*/
+/*}*/
+
+/*!*定义滑块 内阴影+圆角*!*/
+/*#tree-table::-webkit-scrollbar-thumb*/
+/*{*/
+    /*border-radius: 4px;*/
+    /*-webkit-box-shadow: inset 0 0 2px #828E94;*/
+    /*background: #828E94;*/
+/*}*/
+/*!* 设置列表页滚动条样式 *!*/

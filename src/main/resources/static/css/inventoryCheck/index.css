@@ -1,0 +1,26 @@
+
+
+/*#open .zq-btn-list {*/
+	/*position: absolute;*/
+	/*bottom: 0;*/
+	/*left: 0;*/
+	/*right: 0;*/
+	/*background-color: #F8F8F8;*/
+	/*z-index: 1;*/
+	/*text-align: right;*/
+/*}*/
+
+/*#open{*/
+	/*background-color: #253138;*/
+	/*box-sizing: border-box;*/
+/*}*/
+.zq-form-wrap{
+	padding: 0;
+}
+.zq-form-wrap textarea{
+	resize:none;
+}
+
+#open{
+	min-height: unset;
+}

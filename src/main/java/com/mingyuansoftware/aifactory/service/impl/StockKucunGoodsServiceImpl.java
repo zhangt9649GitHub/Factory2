@@ -1,0 +1,177 @@
+package com.mingyuansoftware.aifactory.service.impl;
+
+import com.mingyuansoftware.aifactory.constants.Constants;
+import com.mingyuansoftware.aifactory.mapper.BizdictionaryMapper;
+import com.mingyuansoftware.aifactory.mapper.StockKucunGoodsMapper;
+import com.mingyuansoftware.aifactory.model.*;
+import com.mingyuansoftware.aifactory.model.dto.InboundAndOutboundDto;
+import com.mingyuansoftware.aifactory.service.StockKucunGoodsService;
+import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.stereotype.Service;
+import org.springframework.transaction.annotation.Propagation;
+import org.springframework.transaction.annotation.Transactional;
+
+import java.math.BigDecimal;
+import java.util.ArrayList;
+import java.util.Date;
+import java.util.List;
+import java.util.Map;
+
+@Service
+public class StockKucunGoodsServiceImpl implements StockKucunGoodsService {
+
+    @Autowired
+    private StockKucunGoodsMapper stockKucunGoodsMapper;
+
+    @Autowired
+    private BizdictionaryMapper bizdictionaryMapper;
+
+    @Override
+    public List<KucunGoods> getStockKucunGoodsCount(int warehouseId,Integer goodsId, String partsCd,String goodsName) {
+        try{
+            return stockKucunGoodsMapper.selectStockKucunGoodsCountByWarehouseId(warehouseId,goodsId,partsCd,goodsName);
+        }catch (Exception e){
+            e.printStackTrace();
+        }
+        return null;
+    }
+
+    @Override
+    public int getCountStockKucunGoods(int warehouseId,Integer goodsId, String partsCd,String goodsName) {
+        try{
+            return stockKucunGoodsMapper.selectCountStockKucunGoodsByWarehouseId(warehouseId,goodsId,partsCd,goodsName);
+        }catch (Exception e){
+            e.printStackTrace();
+        }
+        return 0;
+    }
+
+    @Override
+    @Transactional(propagation = Propagation.REQUIRED, rollbackFor = Exception.class)
+    public Integer insertStockKucunGoods(Map<String, Object> parameters) {
+        StockKucunGoods stockKucunGoods = new StockKucunGoods();
+        stockKucunGoods.setSkgCreateDatetime(new Date());
+        stockKucunGoods.setSkgCount((BigDecimal) parameters.get("skgCount"));
+        stockKucunGoods.setWarehouseId((Integer) parameters.get("warehouseId"));
+        stockKucunGoods.setSkgType((String) parameters.get("skgType"));
+        stockKucunGoods.setGid((Integer)parameters.get("gid"));
+        stockKucunGoods.setSkgDanJia((BigDecimal) parameters.get("skgDanJia"));
+        stockKucunGoods.setSkgSerialNumber((String) parameters.get("skgSerialNumber"));
+        stockKucunGoods.setSkgWanglaiDanwei((String) parameters.get("skgWanglaiDanwei"));
+        stockKucunGoods.setChangeType(Byte.valueOf((String) parameters.get("changeType")));
+        return stockKucunGoodsMapper.insert(stockKucunGoods);
+    }
+
+    @Override
+    public KucunGoods getStockKucunGoodsCountByGoodsIdAndWarehouseId(int warehouseId, int goodsId) {
+        try{
+            if(warehouseId ==0){
+                return stockKucunGoodsMapper.getStockKucunGoodsCountByGoodsId(goodsId);
+            }else{
+                if(warehouseId>0){
+                    return stockKucunGoodsMapper.getStockKucunGoodsCountByGoodsIdAndWarehouseId(warehouseId,goodsId);
+                }
+            }
+        }catch (Exception e){
+            e.printStackTrace();
+        }
+        return null;
+    }
+
+    @Override
+    public TotalInboundAndOutboundAnalysis selectInboundAndOutboundAnalysisList(InboundAndOutboundDto inboundAndOutboundDto) {
+        try{
+            TotalInboundAndOutboundAnalysis totalInboundAndOutboundAnalysis = new TotalInboundAndOutboundAnalysis();
+            //入库数量合计
+             BigDecimal totalInventoryQuantity = new BigDecimal(0);
+            //入库单价合计
+            BigDecimal totalInventoryUnitPrice = new BigDecimal(0);
+            //入库金额合计
+            BigDecimal totalInventoryAmount = new BigDecimal(0);
+            //出库数量合计
+            BigDecimal totalOutboundQuantity = new BigDecimal(0);
+            //出库单价合计
+            BigDecimal totalOutboundUnitPrice = new BigDecimal(0);
+            //出库金额合计
+            BigDecimal totalOutboundAmount = new BigDecimal(0);
+            //在库数量合计
+            BigDecimal totalInStockQuantity = new BigDecimal(0);
+            //在库单价合计
+            BigDecimal totalInStockUnitPrice = new BigDecimal(0);
+            //在库金额合计
+            BigDecimal totalInStockAmount = new BigDecimal(0);
+            List<InboundAndOutboundAnalysis> inboundAndOutboundAnalysisList = stockKucunGoodsMapper.selectInboundAndOutboundAnalysisList(inboundAndOutboundDto);
+           /* List<InboundAndOutboundAnalysis> inboundAndOutboundAnalysisList = new ArrayList<>();
+            //将满足条件的出入库库存信息加入到集合中
+            for (InboundAndOutboundAnalysis inboundAndOutboundAnalysis:inboundAndOutboundAnalysisList1
+                 ) {
+                if(inboundAndOutboundAnalysis.getSkgSerialNumber()!=null){
+                    //出库单
+                    if(inboundAndOutboundAnalysis.getSkgSerialNumber().substring(0,2).equals("07")){
+                        inboundAndOutboundAnalysisList.add(inboundAndOutboundAnalysis);
+                    }
+                    //入库单
+                    if(inboundAndOutboundAnalysis.getSkgSerialNumber().substring(0,2).equals("08")){
+                        inboundAndOutboundAnalysisList.add(inboundAndOutboundAnalysis);
+                    }
+                }
+                if(inboundAndOutboundAnalysis.getSkgType()!=null){
+                    for (int s:Constants.MAP_KUCUN_SCREENING.keySet()
+                         ) {
+                        if(inboundAndOutboundAnalysis.getSkgType().equals(Constants.MAP_KUCUN_SCREENING.get(s))){
+                            inboundAndOutboundAnalysisList.add(inboundAndOutboundAnalysis);
+                        }
+                    }
+                }
+            }*/
+            for (InboundAndOutboundAnalysis inboundAndOutboundAnalysis:inboundAndOutboundAnalysisList
+                 ) {
+                inboundAndOutboundAnalysis.setInStockAmount(inboundAndOutboundAnalysis.getInStockQuantity().multiply(inboundAndOutboundAnalysis.getInStockUnitPrice()));
+                inboundAndOutboundAnalysis.setInventoryAmount(inboundAndOutboundAnalysis.getInventoryQuantity().multiply(inboundAndOutboundAnalysis.getInventoryUnitPrice()));
+                inboundAndOutboundAnalysis.setOutboundAmount(inboundAndOutboundAnalysis.getOutboundQuantity().multiply(inboundAndOutboundAnalysis.getOutboundUnitPrice()));
+                //入库数量合计
+                totalInventoryQuantity = inboundAndOutboundAnalysis.getInventoryQuantity().add(totalInventoryQuantity);
+                //入库单价合计
+                totalInventoryUnitPrice = inboundAndOutboundAnalysis.getInventoryUnitPrice().add(totalInventoryUnitPrice);
+                //入库金额合计
+                totalInventoryAmount = inboundAndOutboundAnalysis.getInventoryAmount().add(totalInventoryAmount);
+                //出库数量合计
+                totalOutboundQuantity = inboundAndOutboundAnalysis.getOutboundQuantity().add(totalOutboundQuantity);
+                //出库单价合计
+                totalOutboundUnitPrice = inboundAndOutboundAnalysis.getOutboundUnitPrice().add(totalOutboundUnitPrice);
+                //出库金额合计
+                totalOutboundAmount = inboundAndOutboundAnalysis.getOutboundAmount().add(totalOutboundAmount);
+                //在库数量合计
+                totalInStockQuantity = inboundAndOutboundAnalysis.getInStockQuantity().add(totalInStockQuantity);
+                //在库单价合计
+                totalInStockUnitPrice = inboundAndOutboundAnalysis.getInStockUnitPrice().add(totalInStockUnitPrice);
+                //在库金额合计
+                totalInStockAmount = inboundAndOutboundAnalysis.getInStockAmount().add(totalInStockAmount);
+            }
+            totalInboundAndOutboundAnalysis.setInboundAndOutboundAnalysisList(inboundAndOutboundAnalysisList);
+            totalInboundAndOutboundAnalysis.setTotalInStockAmount(totalInStockAmount);
+            totalInboundAndOutboundAnalysis.setTotalInStockQuantity(totalInStockQuantity);
+            totalInboundAndOutboundAnalysis.setTotalInStockUnitPrice(totalInStockUnitPrice);
+            totalInboundAndOutboundAnalysis.setTotalInventoryAmount(totalInventoryAmount);
+            totalInboundAndOutboundAnalysis.setTotalInventoryQuantity(totalInventoryQuantity);
+            totalInboundAndOutboundAnalysis.setTotalInventoryUnitPrice(totalInventoryUnitPrice);
+            totalInboundAndOutboundAnalysis.setTotalOutboundAmount(totalOutboundAmount);
+            totalInboundAndOutboundAnalysis.setTotalOutboundQuantity(totalOutboundQuantity);
+            totalInboundAndOutboundAnalysis.setTotalOutboundUnitPrice(totalOutboundUnitPrice);
+            return totalInboundAndOutboundAnalysis;
+        }catch (Exception e){
+            e.printStackTrace();
+        }
+        return null;
+    }
+
+    @Override
+    public int selectCountInboundAndOutboundAnalysisList(InboundAndOutboundDto inboundAndOutboundDto) {
+        try{
+          return stockKucunGoodsMapper.selectCountInboundAndOutboundAnalysisList(inboundAndOutboundDto);
+        }catch (Exception e){
+            e.printStackTrace();
+        }
+        return 0;
+    }
+}

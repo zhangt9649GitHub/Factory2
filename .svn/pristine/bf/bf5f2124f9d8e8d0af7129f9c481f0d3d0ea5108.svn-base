@@ -1,0 +1,347 @@
+<#include "../public_header.ftl">
+
+
+<link rel="stylesheet" type="text/css" href="/static/css/index/index.css">
+<script type="text/javascript" src="/static/js/index/index.js"></script>
+
+</head>
+<body>
+
+<!-- 左边导航 -->
+<div class="layui-side sidebar zq-sidebar">
+	<div class="logo">
+		<img src="/static/img/logo.png" alt="SONIC">
+	</div>
+	<div class="layui-side-block">
+		<div class="layui-side-inner slimscrollleft">
+			<!-- 用户 -->
+			<div class="zq-user-box">
+				<div class="user-img">
+					<img src="/static/img/user.jpg" alt="user-img" title="Mat Helme" class="img-thumbnail">
+				</div>
+				<h5><a href="#">${(Session.user.name)!''}</a> </h5>
+				<ul class="list-inline">
+					<li class="list-inline-item">
+						<a href="#" class="zq-active" data-type="changePassword" data-href="/admin/index/password">
+							<span class="layui-icon layui-icon-password"></span>
+						</a>
+					</li>
+
+					<li class="list-inline-item">
+						<a href="#" class="text-custom zq-active" data-type="signOut">
+							<span class="layui-icon layui-icon-close"></span>
+						</a>
+					</li>
+				</ul>
+			</div>
+			<!-- 用户 -->
+			<ul class="layui-nav layui-nav-tree zq-nav-tree" lay-filter="filter">
+				<#if salesManagement??>
+					<li class="layui-nav-item">
+						<a href="###">
+							<span class="iconfont icondingdanguanli-"></span>
+							<span>销售管理</span>
+						</a>
+						<dl class="layui-nav-child">
+							<#if getSalesOrderList??>
+								<dd><a href="###" data-href="/admin/salesOrders/index">销售订单</a></dd>
+							</#if>
+							<#if getSalesReturnList??>
+								<dd><a href="###" data-href="/admin/salesReturn/index">销售退货单</a></dd>
+							</#if>
+							<#if getSalesDetailsList??>
+								<dd><a href="###" data-href="/admin/salesDetails/index">销售明细</a></dd>
+							</#if>
+						</dl>
+					</li>
+				</#if>
+
+				<#if purchasingManagement??>
+					<li class="layui-nav-item">
+						<a href="###">
+							<span class="iconfont iconcaigouguanli"></span>
+							采购管理
+						</a>
+						<dl class="layui-nav-child">
+							<#if getPurchaseApplyList??>
+								<dd><a href="###" data-href="/admin/purchaseRequisition/index">采购申请单</a></dd>
+							</#if>
+							<#if getPurchaseOrderList??>
+								<dd><a href="###" data-href="/admin/purchaseOrder/index">采购订单</a></dd>
+							</#if>
+							<#if getPurchaseReturnOrderList??>
+								<dd><a href="###" data-href="/admin/purchaseReturn/index">采购退换货单</a></dd>
+							</#if>
+							<#if getNoteDocumentList??>
+								<dd><a href="###" data-href="/admin/notesManagement/index">注文书管理</a></dd>
+							</#if>
+							<!--<dd><a href="###" data-href="/admin/purchaseLeadTimeWarning/index">采购交货期预警</a></dd>-->
+						</dl>
+					</li>
+				</#if>
+
+				<#if productionModule??>
+					<li class="layui-nav-item">
+						<a href="###">
+							<span class="iconfont iconshengchan1"></span>
+							生产模块
+						</a>
+						<div class="layui-nav-child">
+							<#if getBomFormList??>
+								<dd><a href="###" data-href="/admin/listOfProductStructure/index">产品结构清单（BOM）</a></dd>
+							</#if>
+							<#if getProductionInstructionList??>
+								<dd><a href="###" data-href="/admin/productionInstructions/index">生产指示书</a></dd>
+							</#if>
+							<#if getProductionInstructionDetailedList??>
+								<dd><a href="###" data-href="/admin/productionInstructionsDetailed/index">生产指示书明细</a></dd>
+							</#if>
+							<#if 1??>
+								<dd><a href="###" data-href="/admin/MRPOperation/index">MRP运算</a></dd>
+							</#if>
+							<#if getProductionOrderList??>
+								<dd><a href="###" data-href="/admin/productionOrder/index">排产单</a></dd>
+							</#if>
+							<#if getStyleBookList??>
+								<dd><a href="###" data-href="/admin/styleBook/index">式样书</a></dd>
+							</#if>
+							<#if getPickingList??>
+								<dd><a href="###" data-href="/admin/pickingList/index">领料单</a></dd>
+							</#if>
+							<#if getRefundPickingList??>
+								<dd><a href="###" data-href="/admin/returnOrder/index">退料单</a></dd>
+							</#if>
+							<#if getProductionOrderDetailsList??>
+								<dd><a href="###" data-href="/admin/productionOrderDetail/index">排产单明细</a></dd>
+							</#if>
+							<#if getProductionDailyList??>
+								<dd><a href="###" data-href="/admin/productionDaily/index">生产日报</a></dd>
+							</#if>
+							<#if getPickingDetailsList??>
+								<dd><a href="###" data-href="/admin/productionPickingDetails/index">生产领料明细</a></dd>
+							</#if>
+							<#if 1??>
+								<dd><a href="###" data-href="/admin/productionPlanAnalysis/index">生产计划分析</a></dd>
+							</#if>
+						</div>
+					</li>
+				</#if>
+
+				<#if inventoryManagement??>
+					<li class="layui-nav-item">
+						<a href="###">
+							<span class="iconfont iconkucun"></span>
+							库存管理
+						</a>
+						<dl class="layui-nav-child">
+							<#if getStorageAccessList??>
+								<dd><a href="###" data-href="/admin/inboundOrder/index">入库单</a></dd>
+							</#if>
+							<#if getProductionEntryList??>
+								<dd><a href="###" data-href="/admin/productionReceipt/index">生产入库单</a></dd>
+							</#if>
+							<#if getOutboundOrderList??>
+								<dd><a href="###" data-href="/admin/outboundOrder/index">出库单</a></dd>
+							</#if>
+							<#if getInventoryCheckList??>
+								<dd><a href="###" data-href="/admin/inventoryCheck/index">库存盘点</a></dd>
+							</#if>
+							<#if getRequisitionList??>
+								<dd><a href="###" data-href="/admin/requisition/index">调拨单</a></dd>
+							</#if>
+							<#if getDetailStorageAccessList??>
+								<dd><a href="###" data-href="/admin/inboundDetails/index">入库明细</a></dd>
+							</#if>
+							<#if getOutboundOrderDetailsList??>
+								<dd><a href="###" data-href="/admin/outboundDetails/index">出库明细</a></dd>
+							</#if>
+							<#if 1??>
+								<dd><a href="###" data-href="/admin/inventoryStatus/index">库存状态</a></dd>
+							</#if>
+							<#if getTjGoodsKucunList??>
+								<dd><a href="###" data-href="/admin/inventoryBalanceSheet/index">天津库存表</a></dd>
+							</#if>
+							<#--<dd><a href="###" data-href="/admin/inventoryWarning/index">库存预警</a></dd>-->
+						</dl>
+					</li>
+				</#if>
+
+
+				<#if finance??>
+					<li class="layui-nav-item">
+						<a href="###">
+							<span class="iconfont iconziyuan"></span>
+							财务
+						</a>
+						<div class="layui-nav-child">
+							<#if getReceiptList??>
+								<dd><a href="###" data-href="/admin/receipt/index">收款单</a></dd>
+							</#if>
+							<#if getPaymentOrderList??>
+								<dd><a href="###" data-href="/admin/paymentSlip/index">付款单</a></dd>
+							</#if>
+							<#if getPayrollList??>
+								<dd><a href="###" data-href="/admin/payroll/index">工资单</a></dd>
+							</#if>
+							<#if getReimburseList??>
+								<dd><a href="###" data-href="/admin/reimbursementForm/index">报销单</a></dd>
+							</#if>
+							<#--<#if 1??>-->
+								<#--<dd><a href="###" data-href="/admin/performanceManagement/index">绩效管理</a></dd>-->
+							<#--</#if>-->
+						</div>
+					</li>
+				</#if>
+
+				<#if basicData??>
+					<li class="layui-nav-item">
+						<a href="###">
+							<span class="iconfont iconjichuziliao"></span>
+							基础资料
+						</a>
+						<dl class="layui-nav-child">
+							<#if getGoodsList??>
+								<dd><a href="###" data-href="/admin/cargoManagement/index">货物管理</a></dd>
+							</#if>
+							<#if getGoodsVarietyList??>
+								<dd><a href="###" data-href="/admin/varietyManagement/index">货物品种管理</a></dd>
+							</#if>
+							<#if selectWarehouseAll??>
+								<dd><a href="###" data-href="/admin/warehouseManagement/index">仓库管理</a></dd>
+							</#if>
+							<#if selectWarehousePositionAll??>
+								<dd><a href="###" data-href="/admin/positionManagement/index">仓位管理</a></dd>
+							</#if>
+							<#if getSupList??>
+								<dd><a href="###" data-href="/admin/supplierManagement/index">供应商管理</a></dd>
+							</#if>
+							<#if getStaffList??>
+								<dd><a href="###" data-href="/admin/employeeManagement/index">员工管理</a></dd>
+							</#if>
+							<#if selectCustomerList??>
+								<dd><a href="###" data-href="/admin/customerManagement/index">客户管理</a></dd>
+							</#if>
+						</dl>
+					</li>
+				</#if>
+
+				<#if reportForm??>
+					<li class="layui-nav-item">
+						<a href="###">
+							<span class="iconfont iconbaobiao7"></span>
+							报表
+						</a>
+						<div class="layui-nav-child">
+
+
+							<#if getMaterialRequirementList??>
+								<dd><a href="###" data-href="/admin/materialRequirementsList/index">材料需求清单</a></dd>
+							</#if>
+							<#if getValueEstimationList??>
+								<dd><a href="###" data-href="/admin/productionValueEstimate/index">在产产值估算</a></dd>
+							</#if>
+							<#if getProductionCostingList??>
+								<dd><a href="###" data-href="/admin/productionCostCalculation/index">生产成本计算</a></dd>
+							</#if>
+							<#if 1??>
+								<dd><a href="###" data-href="/admin/salesAnalysis/index">销售分析</a></dd>
+							</#if>
+							<#if getInboundAndOutboundAnalysisList??>
+								<dd><a href="###" data-href="/admin/outboundDatabaseAnalysisTable/index">出入库分析表</a></dd>
+							</#if>
+							<#if getProductionScheduleAnalysisList??>
+								<dd><a href="###" data-href="/admin/productionScheduleAnalysis/index">生产进度分析</a></dd>
+							</#if>
+						</div>
+					</li>
+				</#if>
+
+				<#if systemSettings??>
+					<li class="layui-nav-item">
+						<a href="###">
+							<span class="iconfont iconxitongshezhi2"></span>
+							系统设置
+						</a>
+						<div class="layui-nav-child">
+							<#if getGroupAccessList??>
+								<dd><a href="###" data-href="/admin/authorityManagement/index">权限管理</a></dd>
+							</#if>
+							<#--<dd><a href="###" data-href="/admin/administratorList/index">管理员列表</a></dd>-->
+
+							<#if getAllBizd??>
+								<dd><a href="###" data-href="/admin/dataDictionary/index">数据字典</a></dd>
+							</#if>
+
+							<#if getStaffAccessList??>
+								<dd><a href="###" data-href="/admin/permissionTable/index">权限表</a></dd>
+							</#if>
+							<#if getConfigList??>
+								<dd><a href="###" data-href="/admin/systemParameterSetting/index">系统参数设置</a></dd>
+							</#if>
+						</div>
+					</li>
+				</#if>
+
+			</ul>
+		</div>
+	</div>
+</div>
+
+<!-- 左边导航 -->
+
+<!-- 内容 -->
+<div class="main zq-main">
+
+	<div class="layui-tab layui-tab-brief wrap" lay-allowClose="true" lay-filter="demo">
+		<!-- 栏目操作 -->
+		<div class="zq-active shrink" title="侧边收缩"  data-type="shrink">
+			<i class="layui-icon layui-icon-shrink-right"></i>
+		</div>
+		<div class="left-page zq-active" data-type="zq_leftPage">
+			<i class="layui-icon layui-icon-prev"></i>
+		</div>
+		<div class="right-page zq-active" data-type="zq_rightPage">
+			<i class="layui-icon layui-icon-next"></i>
+		</div>
+		<div class="layui-icon layui-icon-down operation zq-operation">
+			<ul class="layui-nav">
+				<li class="layui-nav-item">
+					<a href="###"></a>
+					<dl class="layui-nav-child">
+						<dd class="zq-active" data-type="zq_reloadCurrentTab"><a href="###">刷新当前标签页</a></dd>
+						<dd class="zq-active" data-type="zq_closeCurrentTab"><a href="###">关闭当前标签页</a></dd>
+						<dd class="zq-active" data-type="zq_closeOtherTabs"><a href="###">关闭其它标签页</a></dd>
+						<dd class="zq-active" data-type="zq_closeAllTabs"><a href="###">关闭全部标签页</a></dd>
+					</dl>
+				</li>
+			</ul>
+
+		</div>
+		<!-- 栏目操作 -->
+
+		<ul class="layui-tab-title nav zq-nav">
+			<li class="layui-this" lay-id="/admin/index/homepage">首页</li>
+			<#if getProductionScheduleAnalysisList??>
+			<li lay-id="/admin/productionScheduleAnalysis/index">生产进度分析</li>
+			</#if>
+		</ul>
+		<div class="layui-tab-content content zq-content">
+			<div class="layui-tab-item layui-show">
+				<iframe tab-id="/admin/index/homepage" src='/admin/index/homepage' frameborder="0" scrolling="yes" class="iframe"></iframe>
+			</div>
+			<#if getProductionScheduleAnalysisList??>
+			<div class="layui-tab-item">
+				<iframe tab-id="/admin/productionScheduleAnalysis/index" src='/admin/productionScheduleAnalysis/index' frameborder="0" scrolling="yes" class="iframe"></iframe>
+			</div>
+			</#if>
+		</div>
+	</div>
+
+
+</div>
+<!-- 内容 -->
+<!-- jQuery  -->
+
+
+</body>
+</html>

@@ -1,0 +1,135 @@
+package com.mingyuansoftware.aifactory.service.impl;
+
+import com.mingyuansoftware.aifactory.mapper.RefundPickingDetailsMapper;
+import com.mingyuansoftware.aifactory.mapper.RefundPickingMapper;
+import com.mingyuansoftware.aifactory.model.RefundPicking;
+import com.mingyuansoftware.aifactory.model.RefundPickingDetails;
+import com.mingyuansoftware.aifactory.model.dto.RefundPickingDto;
+import com.mingyuansoftware.aifactory.model.dto.StaffUserLoginDto;
+import com.mingyuansoftware.aifactory.service.RefundPickingService;
+import org.apache.shiro.SecurityUtils;
+import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.stereotype.Service;
+import org.springframework.transaction.annotation.Propagation;
+import org.springframework.transaction.annotation.Transactional;
+
+import java.util.Date;
+import java.util.List;
+
+@Service
+public class RefundPickingServiceImpl implements RefundPickingService {
+
+    @Autowired
+    private RefundPickingMapper refundPickingMapper;
+    @Autowired
+    private RefundPickingDetailsMapper refundPickingDetailsMapper;
+
+
+    @Override
+    public List<RefundPicking> selectRefundPickingList(RefundPickingDto refundPickingDto) {
+
+        try{
+           return refundPickingMapper.selectRefundPickingList(refundPickingDto);
+        }catch (Exception e){
+            e.printStackTrace();
+        }
+        return null;
+    }
+
+    @Override
+    public int selectCount(RefundPickingDto refundPickingDto) {
+        try{
+          return refundPickingMapper.selectCount(refundPickingDto);
+        }catch (Exception e){
+            e.printStackTrace();
+        }
+        return 0;
+    }
+
+    @Override
+    @Transactional(propagation = Propagation.REQUIRED, rollbackFor = Exception.class)
+    public void insertRefundPicking(RefundPicking refundPicking) {
+        refundPicking.setCreateTime(new Date());
+        refundPicking.setState((byte)1);
+        refundPicking.setIsDelete((byte)0);
+        /*  Staff staff =(Staff) SecurityUtils.getSubject().getSession().getAttribute("user");
+          int staffId = staff.getStaffId();
+        refundPicking.setStaffId(staffId);*/
+        refundPickingMapper.insert(refundPicking);
+       List<RefundPickingDetails> refundPickingDetailsList = refundPicking.getRefundPickingDetailsList();
+        for (RefundPickingDetails refundPickingDetails:refundPickingDetailsList
+             ) {
+            refundPickingDetails.setRefundPickingId(refundPicking.getRefundPickingId());
+            refundPickingDetailsMapper.insert(refundPickingDetails);
+        }
+    }
+
+    @Override
+    public RefundPicking selectRefundPickingById(int refundPickingId) {
+        try{
+            RefundPicking refundPicking = refundPickingMapper.selectByPrimaryKey(refundPickingId);
+            List<RefundPickingDetails> refundPickingDetailsList =refundPickingDetailsMapper.selectRefundPinkingDetailsById(refundPickingId);
+            refundPicking.setRefundPickingDetailsList(refundPickingDetailsList);
+            return refundPicking;
+        }catch (Exception e){
+            e.printStackTrace();
+        }
+        return null;
+    }
+
+    @Override
+    @Transactional(rollbackFor = Exception.class)
+    public void deleteRefundPickingById(int refundPickingId) {
+        refundPickingMapper.updateRefundPickingById(refundPickingId);
+    }
+
+    @Override
+    @Transactional(propagation = Propagation.REQUIRED, rollbackFor = Exception.class)
+    public void updateRefundPickingInfo(RefundPicking refundPicking) {
+        RefundPicking refundPicking1 = refundPickingMapper.selectByPrimaryKey(refundPicking.getRefundPickingId());
+        refundPicking.setRefundPickingNumber(refundPicking1.getRefundPickingNumber());
+        refundPicking.setState((byte)1);
+        refundPicking.setCreateTime(refundPicking1.getCreateTime());
+        refundPicking.setUpdateTime(new Date());
+        refundPicking.setIsDelete(refundPicking1.getIsDelete());
+       /* Staff staff =(Staff) SecurityUtils.getSubject().getSession().getAttribute("user");
+         int staffId = staff.getStaffId();
+        refundPicking.setStaffId(staffId);*/
+        refundPickingMapper.updateByPrimaryKey(refundPicking);
+        refundPickingDetailsMapper.deleteRefundPickingDetailsById(refundPicking.getRefundPickingId());
+        List<RefundPickingDetails> refundPickingDetailsList = refundPicking.getRefundPickingDetailsList();
+        for (RefundPickingDetails refundPickingDetails:refundPickingDetailsList
+             ) {
+            refundPickingDetails.setRefundPickingId(refundPicking.getRefundPickingId());
+            refundPickingDetailsMapper.insert(refundPickingDetails);
+        }
+    }
+
+    @Override
+    public List<RefundPicking> selectPdaRefundPickingList() {
+        try{
+            return refundPickingMapper.selectPdaRefundPickingList();
+        }catch (Exception e){
+            e.printStackTrace();
+        }
+        return null;
+    }
+
+    @Override
+    public int selectPdaRefundPickingCount() {
+        try{
+            return refundPickingMapper.selectPdaRefundPickingCount();
+        }catch (Exception e){
+            e.printStackTrace();
+        }
+        return 0;
+    }
+
+    @Override
+    @Transactional(rollbackFor = Exception.class)
+    public void updateRefundPickingState(int refundPickingId) {
+        //状态为已完成
+        int state = 3;
+        refundPickingMapper.updateRefundPickingState(refundPickingId,state);
+    }
+}

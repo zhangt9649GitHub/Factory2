@@ -1,0 +1,208 @@
+package com.mingyuansoftware.aifactory.controller;
+
+import com.github.pagehelper.PageHelper;
+import com.mingyuansoftware.aifactory.config.LogConfig;
+import com.mingyuansoftware.aifactory.enums.HtCode;
+import com.mingyuansoftware.aifactory.model.*;
+import com.mingyuansoftware.aifactory.model.dto.RequisitionDto;
+import com.mingyuansoftware.aifactory.pojo.LayuiCommonResponse;
+import com.mingyuansoftware.aifactory.service.BizDictionaryService;
+import com.mingyuansoftware.aifactory.service.LogService;
+import com.mingyuansoftware.aifactory.service.RequisitionService;
+import com.mingyuansoftware.aifactory.service.StockKucunGoodsService;
+import com.mingyuansoftware.aifactory.util.BaseToString;
+import io.swagger.annotations.Api;
+import io.swagger.annotations.ApiImplicitParam;
+import io.swagger.annotations.ApiImplicitParams;
+import io.swagger.annotations.ApiOperation;
+import org.apache.shiro.SecurityUtils;
+import org.apache.shiro.authz.annotation.RequiresPermissions;
+import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.validation.annotation.Validated;
+import org.springframework.web.bind.annotation.*;
+
+import java.math.BigDecimal;
+import java.util.HashMap;
+import java.util.List;
+import java.util.Map;
+
+@Api(value = "Requisition", description = "调拨单API", tags = {"调拨单"})
+@RestController
+@RequestMapping("/requisition")
+public class RequisitionController {
+
+    @Autowired
+    private RequisitionService requisitionService;
+    @Autowired
+    private LogService logService;
+    @Autowired
+    private BizDictionaryService bizDictionaryService;
+    @Autowired
+    private StockKucunGoodsService stockKucunGoodsService;
+
+    @ApiOperation(value = "获取调拨单列表", notes = "获取调拨单列表", tags = {"@郝腾"})
+    @ApiImplicitParams({
+            @ApiImplicitParam(name = "page", value = "第几页", paramType = "query", dataType = "int"),
+            @ApiImplicitParam(name = "limit", value = "每页容量", paramType = "query", dataType = "int"),
+            @ApiImplicitParam(name = "requisitionDto", value = "货物参数实体类", paramType = "query", dataType = "RequisitionDto"),
+    })
+    @RequestMapping(value = "/getRequisitionList", method = RequestMethod.GET)
+    @ResponseBody
+    @RequiresPermissions(value = {"getRequisitionList"})
+    public LayuiCommonResponse getRequisitionList(@Validated @RequestParam(defaultValue = "1") int page,
+                                            @Validated @RequestParam(defaultValue = "10") int limit,
+                                            @Validated RequisitionDto requisitionDto) {
+        LayuiCommonResponse response = new LayuiCommonResponse();
+        try {
+            PageHelper.startPage(page, limit);
+           List<Requisition> requisitionList = requisitionService.selectRequisitionList(requisitionDto);
+           int count = requisitionService.selectCount(requisitionDto);
+            response.setMsg(HtCode.SUCCESS_GET.getInfo());
+            response.setCode(HtCode.SUCCESS_GET.getCode());
+            response.setCount(count);
+            response.setData(requisitionList);
+        } catch (Exception e) {
+            e.printStackTrace();
+            response.setCode(HtCode.FAIL_GET.getCode());
+            response.setMsg(HtCode.FAIL_GET.getInfo());
+        }
+        return response;
+    }
+
+    @ApiOperation(value = "新增调拨单", notes = "新增调拨单", tags = {"@郝腾"})
+    @ApiImplicitParam(name = "requisition", value = "货物实体类", required = true, dataType = "Requisition")
+    @RequestMapping(value = "/insertRequisition", method = RequestMethod.POST)
+    @ResponseBody
+    @RequiresPermissions(value = {"insertRequisition"})
+    public LayuiCommonResponse insertRequisition( @RequestBody Requisition requisition) {
+        LayuiCommonResponse response = new LayuiCommonResponse();
+        try {
+            requisitionService.insertRequisition(requisition);
+            List<RequisitionDetails> requisitionDetailsList =requisition.getRequisitionDetailsList();
+            for (RequisitionDetails requisitionDetails:requisitionDetailsList
+                 ) {
+                Map<String,Object> parameters = new HashMap<>();
+                parameters.put("skgCount",requisitionDetails.getQuantity().multiply(new BigDecimal(-1)));
+                parameters.put("warehouseId",requisition.getOutWarehouseId());
+                parameters.put("skgType","调拨出库");
+                parameters.put("gid",requisitionDetails.getGoodsId());
+                parameters.put("skgDanJia",requisitionDetails.getAveragePrice());
+                parameters.put("skgSerialNumber",requisition.getRequisitionNumber());
+                parameters.put("skgWanglaiDanwei","");
+                parameters.put("changeType","2");
+                stockKucunGoodsService.insertStockKucunGoods(parameters);
+                parameters.put("skgCount",requisitionDetails.getQuantity());
+                parameters.put("warehouseId",requisition.getIntoWarehouseId());
+                parameters.put("skgType","调拨入库");
+                stockKucunGoodsService.insertStockKucunGoods(parameters);
+            }
+
+            if(LogConfig.STATE){
+                String text = BaseToString.BaseEntityToString(requisition);
+                Staff staff =(Staff) SecurityUtils.getSubject().getSession().getAttribute("user");
+                int staffId = staff.getStaffId();
+                logService.saveLog(staffId,1,text);
+            }
+            response.setCode(HtCode.SUCCESS_ADD.getCode());
+            response.setMsg(HtCode.SUCCESS_ADD.getInfo());
+        } catch (Exception e) {
+            e.printStackTrace();
+            response.setCode(HtCode.FAIL_ADD.getCode());
+            response.setMsg(HtCode.FAIL_ADD.getInfo());
+            return response;
+        }
+        return response;
+    }
+
+   /* @ApiOperation(value = "删除调拨单", notes = "删除调拨单", tags = {"@郝腾"})
+    @ApiImplicitParam(name = "requisitionId", value = "调拨单id", required = true, dataType = "int", paramType = "query")
+    @RequestMapping(value = "/deleteRequisitionById", method = RequestMethod.POST)
+    @ResponseBody
+    public LayuiCommonResponse deleteRequisitionById(int requisitionId) {
+        LayuiCommonResponse response = new LayuiCommonResponse();
+        try {
+            requisitionService.deleteRequisitionById(requisitionId);
+            if(LogConfig.STATE){
+                String[] str= new String[]{requisitionId+""};
+                Map<String, String[]> a_mMap= new HashMap<>();
+                a_mMap.put("requisitionId",str);
+                String text = BaseToString.MapToString(a_mMap);
+                //登录接口写完之后修改
+                int staffId = 1;
+                logService.saveLog(staffId,3,text);
+            }
+            response.setCode(HtCode.SUCCESS_DELETE.getCode());
+            response.setMsg(HtCode.SUCCESS_DELETE.getInfo());
+        } catch (Exception e) {
+            e.printStackTrace();
+            response.setCode(HtCode.FAIL_DELETE.getCode());
+            response.setMsg(HtCode.FAIL_DELETE.getInfo());
+            return response;
+        }
+        return response;
+    }*/
+
+    @ApiOperation(value = "查看调拨单", notes = "查看调拨单", tags = {"@郝腾"})
+    @ApiImplicitParam(name = "requisitionId", value = "调拨单id", required = true, dataType = "int", paramType = "query")
+    @RequestMapping(value = "/getRequisitionById", method = RequestMethod.POST)
+    @ResponseBody
+    public LayuiCommonResponse getRequisitionById(int requisitionId) {
+        LayuiCommonResponse response = new LayuiCommonResponse();
+        try {
+            Requisition requisition = requisitionService.selectRequisitionById(requisitionId);
+            response.setMsg(HtCode.SUCCESS_GET.getInfo());
+            response.setCode(HtCode.SUCCESS_GET.getCode());
+            response.setData(requisition);
+        } catch (Exception e) {
+            e.printStackTrace();
+            response.setCode(HtCode.FAIL_GET.getCode());
+            response.setMsg(HtCode.FAIL_GET.getInfo());
+        }
+        return response;
+    }
+
+    /*@ApiOperation(value = "更新调拨单", notes = "更新调拨单", tags = {"@郝腾"})
+    @ApiImplicitParam(name = "requisition", value = "货物及详情", dataType = "Requisition")
+    @RequestMapping(value = "/updateRequisitionInfo", method = RequestMethod.POST)
+    @ResponseBody
+    public LayuiCommonResponse updateRequisitionInfo(@RequestBody Requisition requisition) {
+        LayuiCommonResponse response = new LayuiCommonResponse();
+        try {
+            requisitionService.updateRequisitionInfo(requisition);
+            if(LogConfig.STATE){
+                String text = BaseToString.BaseEntityToString(requisition);
+                //登录接口写完之后修改
+                int staffId = 1;
+                logService.saveLog(staffId,2,text);
+            }
+            response.setCode(HtCode.SUCCESS_UPDATE.getCode());
+            response.setMsg(HtCode.SUCCESS_UPDATE.getInfo());
+        } catch (Exception e) {
+            e.printStackTrace();
+            response.setCode(HtCode.FAIL_UPDATE.getCode());
+            response.setMsg(HtCode.FAIL_UPDATE.getInfo());
+            return response;
+        }
+        return response;
+    }*/
+
+    @ApiOperation(value = "获取调拨类型列表", notes = "获取调拨类型列表", tags = {"@郝腾"})
+    @RequestMapping(value = "/getRequisitionTypeList", method = RequestMethod.POST)
+    @ResponseBody
+    public LayuiCommonResponse getRequisitionTypeList() {
+        LayuiCommonResponse response = new LayuiCommonResponse();
+        try {
+            int parentId = 2;
+            List<Bizdictionary> bizdictionaryList =bizDictionaryService.selectListByParentId(parentId);
+            response.setMsg(HtCode.SUCCESS_GET.getInfo());
+            response.setCode(HtCode.SUCCESS_GET.getCode());
+            response.setData(bizdictionaryList);
+        } catch (Exception e) {
+            e.printStackTrace();
+            response.setCode(HtCode.FAIL_GET.getCode());
+            response.setMsg(HtCode.FAIL_GET.getInfo());
+        }
+        return response;
+    }
+
+}

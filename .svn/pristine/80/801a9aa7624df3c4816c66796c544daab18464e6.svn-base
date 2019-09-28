@@ -1,0 +1,153 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd" >
+<mapper namespace="com.mingyuansoftware.aifactory.mapper.ShipmentMapper" >
+  <resultMap id="BaseResultMap" type="com.mingyuansoftware.aifactory.model.Shipment" >
+    <id column="shipment_id" property="shipmentId" jdbcType="INTEGER" />
+    <result column="shipment_number" property="shipmentNumber" jdbcType="VARCHAR" />
+    <result column="state" property="state" jdbcType="TINYINT" />
+    <result column="create_time" property="createTime" jdbcType="TIMESTAMP" />
+    <result column="update_time" property="updateTime" jdbcType="TIMESTAMP" />
+    <result column="total_boxes_number" property="totalBoxesNumber" jdbcType="INTEGER" />
+    <result column="total_amount" property="totalAmount" jdbcType="DECIMAL" />
+    <result column="total_net_weight" property="totalNetWeight" jdbcType="DECIMAL" />
+    <result column="total_gross_weight" property="totalGrossWeight" jdbcType="DECIMAL" />
+    <result column="total_volume" property="totalVolume" jdbcType="DECIMAL" />
+    <result column="amount" property="amount" jdbcType="DECIMAL" />
+    <result column="sales_order_id" property="salesOrderId" jdbcType="INTEGER" />
+    <result column="comment" property="comment" jdbcType="VARCHAR" />
+    <result column="add_time" property="addTime" jdbcType="DATE" />
+    <result column="staff_id" property="staffId" jdbcType="INTEGER" />
+    <association column="staff_id" property="staff"
+                 select="com.mingyuansoftware.aifactory.mapper.StaffMapper.selectByPrimaryKey"></association>
+  </resultMap>
+  <delete id="deleteByPrimaryKey" parameterType="java.lang.Integer" >
+    delete from shipment
+    where shipment_id = #{shipmentId,jdbcType=INTEGER}
+  </delete>
+  <insert id="insert" parameterType="com.mingyuansoftware.aifactory.model.Shipment" >
+    <selectKey resultType="java.lang.Integer" keyProperty="shipmentId" order="AFTER" >
+      SELECT LAST_INSERT_ID()
+    </selectKey>
+    insert into shipment (shipment_number, `state`, create_time, 
+      update_time, total_boxes_number, total_amount, 
+      total_net_weight, total_gross_weight, total_volume, 
+      amount, sales_order_id, `comment`,add_time,staff_id
+      )
+    values (#{shipmentNumber,jdbcType=VARCHAR}, #{state,jdbcType=TINYINT}, #{createTime,jdbcType=TIMESTAMP}, 
+      #{updateTime,jdbcType=TIMESTAMP}, #{totalBoxesNumber,jdbcType=INTEGER}, #{totalAmount,jdbcType=DECIMAL}, 
+      #{totalNetWeight,jdbcType=DECIMAL}, #{totalGrossWeight,jdbcType=DECIMAL}, #{totalVolume,jdbcType=DECIMAL}, 
+      #{amount,jdbcType=DECIMAL}, #{salesOrderId,jdbcType=INTEGER}, #{comment,jdbcType=VARCHAR},#{addTime,jdbcType=DATE},
+      #{staffId,jdbcType=INTEGER}
+      )
+  </insert>
+  <update id="updateByPrimaryKey" parameterType="com.mingyuansoftware.aifactory.model.Shipment" >
+    update shipment
+    set shipment_number = #{shipmentNumber,jdbcType=VARCHAR},
+      `state` = #{state,jdbcType=TINYINT},
+      create_time = #{createTime,jdbcType=TIMESTAMP},
+      update_time = #{updateTime,jdbcType=TIMESTAMP},
+      total_boxes_number = #{totalBoxesNumber,jdbcType=INTEGER},
+      total_amount = #{totalAmount,jdbcType=DECIMAL},
+      total_net_weight = #{totalNetWeight,jdbcType=DECIMAL},
+      total_gross_weight = #{totalGrossWeight,jdbcType=DECIMAL},
+      total_volume = #{totalVolume,jdbcType=DECIMAL},
+      amount = #{amount,jdbcType=DECIMAL},
+      sales_order_id = #{salesOrderId,jdbcType=INTEGER},
+      `comment` = #{comment,jdbcType=VARCHAR},
+      add_time = #{addTime,jdbcType=DATE},
+      staff_id = #{staffId,jdbcType=INTEGER}
+    where shipment_id = #{shipmentId,jdbcType=INTEGER}
+  </update>
+  <select id="selectByPrimaryKey" resultMap="BaseResultMap" parameterType="java.lang.Integer" >
+    select shipment_id, shipment_number, `state`, create_time, update_time, total_boxes_number, 
+    total_amount, total_net_weight, total_gross_weight, total_volume, amount, sales_order_id, 
+    `comment`,add_time,staff_id
+    from shipment
+    where shipment_id = #{shipmentId,jdbcType=INTEGER}
+  </select>
+  <select id="selectAll" resultMap="BaseResultMap" >
+    select shipment_id, shipment_number, `state`, create_time, update_time, total_boxes_number, 
+    total_amount, total_net_weight, total_gross_weight, total_volume, amount, sales_order_id, 
+    `comment`,add_time,staff_id
+    from shipment
+  </select>
+
+  <select id="selectPdaOutboundGoodsTaskList" resultType="com.mingyuansoftware.aifactory.model.PdaOutBoundGoodsTask" >
+    select shipment_id, shipment_number, `state`, create_time, update_time, total_boxes_number,
+    total_amount, total_net_weight, total_gross_weight, total_volume, amount, sales_order_id,
+    `comment`,add_time,staff_id
+    from shipment where `state` = 1
+  </select>
+
+  <select id="selectPdaOutboundGoodsTaskListCount" resultType="java.lang.Integer" >
+    select COUNT(shipment_id)
+    from shipment where `state` = 1
+  </select>
+
+  <update id="updateShipmentState">
+    update shipment
+    set
+      `state` = #{state,jdbcType=TINYINT},
+      update_time = now()
+    where shipment_id = #{shipmentId,jdbcType=INTEGER}
+  </update>
+
+  <select id="selectShipmentList" resultType="com.mingyuansoftware.aifactory.model.Shipment" >
+    select sm.shipment_id, sm.shipment_number, sm.`state`, sm.create_time, sm.update_time, sm.total_boxes_number,
+    sm.total_amount, sm.total_net_weight, sm.total_gross_weight, sm.total_volume, sm.amount, sm.sales_order_id,
+    sm.`comment`,sm.add_time,so.sales_order_number
+    from shipment as sm
+    left join sales_order as so ON (sm.sales_order_id = so.sales_order_id)
+    <where>
+      <if test="shipmentDto.shipmentNumber != null and shipmentDto.shipmentNumber != ''">
+        and sm.shipment_number like "%"#{shipmentDto.shipmentNumber}"%"
+      </if>
+      <if test="shipmentDto.state != null and shipmentDto.state != ''">
+        and sm.`state` = #{shipmentDto.state}
+      </if>
+      <if test="shipmentDto.addTime != null and shipmentDto.addTime != ''">
+        and sm.add_time like "%"#{shipmentDto.addTime}"%"
+      </if>
+      <if test="shipmentDto.salesOrderNumber != null and shipmentDto.salesOrderNumber  != '' ">
+        and so.sales_order_number = #{shipmentDto.salesOrderNumber}
+      </if>
+    </where>
+  </select>
+
+  <select id="selectCountShipmentList" resultType="java.lang.Integer" >
+    select COUNT(sm.shipment_id)
+    from shipment as sm
+    left join sales_order as so ON (sm.sales_order_id = so.sales_order_id)
+    <where>
+      <if test="shipmentDto.shipmentNumber != null and shipmentDto.shipmentNumber != ''">
+        and sm.shipment_number like "%"#{shipmentDto.shipmentNumber}"%"
+      </if>
+      <if test="shipmentDto.state != null and shipmentDto.state != ''">
+        and sm.`state` = #{shipmentDto.state}
+      </if>
+      <if test="shipmentDto.addTime != null and shipmentDto.addTime != ''">
+        and sm.add_time like "%"#{shipmentDto.addTime}"%"
+      </if>
+      <if test="shipmentDto.salesOrderNumber != null and shipmentDto.salesOrderNumber  != '' ">
+        and so.sales_order_number = #{shipmentDto.salesOrderNumber}
+      </if>
+    </where>
+  </select>
+
+  <update id="updateShipmentPrintById">
+    update shipment
+    set
+      is_print = #{isPrint,jdbcType=TINYINT},
+      update_time = now()
+    where shipment_id = #{shipmentId,jdbcType=INTEGER}
+  </update>
+
+  <select id="selectShipmentPrint" resultMap="BaseResultMap" >
+    select shipment_id, shipment_number, `state`, create_time, update_time, total_boxes_number,
+    total_amount, total_net_weight, total_gross_weight, total_volume, amount, sales_order_id,
+    `comment`,add_time
+    from shipment
+    where is_print = 1 order by shipment_id ASC limit 1
+  </select>
+
+</mapper>

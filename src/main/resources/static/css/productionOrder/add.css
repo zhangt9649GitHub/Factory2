@@ -1,0 +1,18 @@
+
+.beizhu{
+	margin-top: -11px;
+	margin-bottom: 10px;
+}
+.beizhu textarea{
+	width: 100%;
+	border:1px solid black;
+	box-sizing: border-box;
+	/* resize:none */
+}
+.beizhu .layui-textarea:hover,.beizhu .layui-textarea:focus{
+	border-color:black !important;
+}
+
+.zq-datatable .title {
+    font-size: 18px;
+}

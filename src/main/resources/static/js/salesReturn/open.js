@@ -1,0 +1,171 @@
+$(document).ready(function(){
+	layui.use(['form', 'table', 'layer', 'laydate'], function() {
+		
+		var	layer = layui.layer,
+			form = layui.form,
+			laydate = layui.laydate,
+			table = layui.table;
+
+	
+		// 动态表格
+		table.render({
+			elem: '#idTest',
+			limit:10000,
+			cellMinWidth: 80, // 定义所有常规单元格的最小宽度
+			totalRow: true, //开启合计
+			data: [],
+			cols: [
+				[
+					{
+						field: 'partsCd',
+						title: '部品CD',
+						unresize: true,
+						totalRowText: '合计（小写）',
+						width: 120
+					}, {
+						field: 'goodsName',
+						title: '商品名称',
+						unresize: true
+					}, {
+						field: 'lotNumber',
+						title: '批次',
+						unresize: true
+					}, {
+						field: 'boxesNumber',
+						title: '箱数',
+						unresize: true,
+						totalRow: true
+					}, {
+						field: 'monthlySalesVolume',
+						title: '月贩卖量',
+						unresize: true
+					}, {
+						field: 'sellingMonths',
+						title: '贩卖月数',
+						unresize: true
+					}, {
+						field: 'unitPrice',
+						title: '单价',
+						unresize: true
+					}, {
+						field: 'quantity',
+						title: '退货数量',
+						unresize: true,
+						totalRow: true
+					}, {
+						field: 'totalPrice',
+						title: '总价',
+						unresize: true,
+						totalRow: true
+					}, {
+						field: 'netWeight',
+						title: '净重',
+						unresize: true,
+						totalRow: true
+					}, {
+						field: 'grossWeight',
+						title: '毛重',
+						unresize: true,
+						totalRow: true
+					}, {
+						field: 'volume',
+						title: '体积',
+						unresize: true,
+						totalRow: true
+					}, {
+						field: 'customsCategory',
+						title: '海关类别',
+						unresize: true
+					}, {
+						field: 'seaTariffNumber',
+						title: '海关税号',
+						unresize: true
+					}, {
+						field: 'comment',
+						title: '备注',
+						unresize: true
+					}
+
+				]
+			],
+			done: function(){
+				$('.layui-table-view .layui-table-body').niceScroll({
+					cursorcolor: '#828e94',
+					cursorborder: "1px solid #828e94",
+				});
+			}
+		});
+
+
+		// 获取编辑信息
+		let formdata = new FormData();
+		formdata.append('salesReturnId', parseInt($('input[name="salesReturnId"]').val()));
+		axios.post('/salesReturn/getSalesReturnById', formdata
+		).then(function (response) {
+			let data = response.data;
+
+			if(data.code == 0){
+				form.val('formTest',{
+					'salesReturnNumber': data.data.salesReturnNumber,
+					'addTime': data.data.addTime,
+					'customerId': data.data.customer.customerName,
+					'salesOrderId': data.data.salesOrder.salesOrderNumber,
+					'comment': data.data.comment,
+					'staffName': data.data.staff.name
+				});
+				let salesReturnDetailsList = [];
+				$.each(data.data.salesReturnDetailsList,function (i,item) {
+					let arr ={
+						goodsId: item.goods.goodsId,
+						partsCd: item.goods.partsCd,
+						goodsName: item.goods.goodsName,
+						lotNumber: item.goods.lotNumber,
+						boxesNumber: item.goods.boxesNumber,
+						monthlySalesVolume: item.goods.monthlySalesVolume,
+						sellingMonths: item.goods.sellingMonths,
+						skgCount: item.skgCount,
+						unitPrice: item.unitPrice,
+						quantity: item.quantity,
+						totalPrice: item.totalPrice,
+						netWeight: Number(item.goods.netWeight)* Number(item.quantity),
+						grossWeight: Number(item.goods.grossWeight)* Number(item.quantity),
+						volume: Number(item.goods.volume)* Number(item.quantity),
+
+						// 记录净重/毛重/体积的初始值
+						netWeight1: item.goods.netWeight,
+						grossWeight1: item.goods.grossWeight,
+						volume1: item.goods.volume,
+
+						customsCategory: item.customsCategory,
+						seaTariffNumber: item.seaTariffNumber,
+						comment: item.comment,
+					};
+					salesReturnDetailsList.push(arr);
+				});
+
+				salesReturnDetailsList.push({});
+				table.reload('idTest', {
+					data: salesReturnDetailsList
+				});
+
+			}
+
+		})
+	
+		
+		// 触发事件
+		var active = {
+	
+		};
+		// 点击调用
+		$('body').on('click', '.zq-active', function() {
+			var othis = $(this),
+				type = othis.data('type');
+			
+			active[type] ? active[type].call(this, othis) : '';
+		});
+	
+	
+	
+	})
+});

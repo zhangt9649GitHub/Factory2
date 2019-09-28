@@ -1,0 +1,116 @@
+package com.mingyuansoftware.aifactory.mapper;
+
+import com.mingyuansoftware.aifactory.model.PDAOutboundGoods;
+import com.mingyuansoftware.aifactory.model.SalesOrder;
+import com.mingyuansoftware.aifactory.model.SalesOrderDetails;
+import com.mingyuansoftware.aifactory.model.dto.SalesDetailsDto;
+import org.apache.ibatis.annotations.Mapper;
+import org.apache.ibatis.annotations.Param;
+import org.springframework.stereotype.Repository;
+
+import java.math.BigDecimal;
+import java.util.List;
+@Repository
+@Mapper
+public interface SalesOrderDetailsMapper {
+
+    int deleteByPrimaryKey(Integer salesOrderDetailsId);
+
+
+    int insert(SalesOrderDetails record);
+
+
+    SalesOrderDetails selectByPrimaryKey(Integer salesOrderDetailsId);
+
+
+    List<SalesOrderDetails> selectAll();
+
+
+    int updateByPrimaryKey(SalesOrderDetails record);
+
+    /**
+     * 根据销售订单id查询销售订单详情集合
+     * @param salesOrderId
+     * @return
+     */
+    List<SalesOrderDetails> selectSalesOrderDetailsListById(@Param("salesOrderId") int salesOrderId);
+
+    /**
+     * 根据销售订单获取货物列表总条数
+     * @param salesOrderId
+     * @return
+     */
+    int selectSalesReturnGoodsCount(@Param("salesOrderId") int salesOrderId);
+
+    /**
+     * 获取销售明细列表
+     * @param salesDetailsDto
+     * @param startTime
+     * @param endTime
+     * @return
+     */
+    List<SalesDetailsDto> selectSalesDetailsList(@Param("salesDetailsDto") SalesDetailsDto salesDetailsDto,@Param("startTime") String startTime,@Param("endTime") String endTime);
+
+    /**
+     * 获取销售明细列表总条数
+     * @param salesDetailsDto
+     * @param startTime
+     * @param endTime
+     * @return
+     */
+    int selectSalesDetailsCount(@Param("salesDetailsDto") SalesDetailsDto salesDetailsDto,@Param("startTime") String startTime,@Param("endTime") String endTime);
+
+
+    /**
+     * 根据销售订单id和货物id查询此货物的数量
+     * @param salesOrderId
+     * @param goodsId
+     * @return
+     */
+    SalesOrderDetails selectGoodsQuantityById(@Param("salesOrderId") int salesOrderId,@Param("goodsId") int goodsId);
+
+    /**
+     * 根据销售订单获取出库商品列表
+     * @param salesOrderId
+     * @return
+     */
+    List<PDAOutboundGoods> selectPdaOutboundGoodsList(@Param("salesOrderId") int salesOrderId);
+
+    /**
+     * 获取销售订单内货物的数量
+     * @param goodsId
+     * @param salesOrderId
+     * @return
+     */
+    SalesOrderDetails selectPdaOutboundGoodsCount(@Param("goodsId") int goodsId,@Param("salesOrderId") int salesOrderId);
+
+    /**
+     * 修改销售订单详情此条货物已配货
+     * @param salesOrderDetailsId
+     */
+    void updateSaleOrderDetailsStatus(int salesOrderDetailsId);
+
+    /**
+     * 更新销售订单内货物的退货数量
+     * @param salesOrderId
+     * @param goodsId
+     * @param quantity
+     */
+    void updateReturnQuantity(@Param("salesOrderId") int salesOrderId,@Param("goodsId") int goodsId, @Param("quantity") BigDecimal quantity);
+
+    /**
+     * 查询货物的退货数量
+     * @param salesOrderId
+     * @param goodsId
+     * @return
+     */
+    SalesOrderDetails selectReturnQuantity(@Param("salesOrderId") int salesOrderId,@Param("goodsId") int goodsId);
+
+    /**
+     * 获取销售订单内货物列表
+     * @param salesOrderId
+     * @return
+     */
+    List<SalesOrderDetails> selectSalesReturnGoodsList(@Param("salesOrderId") int salesOrderId);
+
+}

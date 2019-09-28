@@ -1,0 +1,220 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd" >
+<mapper namespace="com.mingyuansoftware.aifactory.mapper.PurchaseApplyMapper" >
+  <resultMap id="BaseResultMap" type="com.mingyuansoftware.aifactory.model.PurchaseApply" >
+    <id column="purchase_apply_id" property="purchaseApplyId" jdbcType="INTEGER" />
+    <result column="purchase_number" property="purchaseNumber" jdbcType="VARCHAR" />
+    <result column="define_date" property="defineDate" jdbcType="DATE" />
+    <result column="staff_id" property="staffId" jdbcType="INTEGER" />
+    <result column="comment" property="comment" jdbcType="VARCHAR" />
+    <result column="is_delete" property="isDelete" jdbcType="TINYINT" />
+    <result column="create_time" property="createTime" jdbcType="TIMESTAMP" />
+    <result column="update_time" property="updateTime" jdbcType="TIMESTAMP" />
+    <association column="purchase_apply_details_id" property="purchaseApplyDetailsId"
+                 select="com.mingyuansoftware.aifactory.mapper.PurchaseApplyDetailsMapper.selectByPrimaryKey"></association>
+  </resultMap>
+  <delete id="deleteByPrimaryKey" parameterType="java.lang.Integer" >
+    delete from purchase_apply
+    where purchase_apply_id = #{purchaseApplyId,jdbcType=INTEGER}
+  </delete>
+  <insert id="insert" parameterType="com.mingyuansoftware.aifactory.model.PurchaseApply" >
+    <selectKey resultType="java.lang.Integer" keyProperty="purchaseApplyId" order="AFTER" >
+      SELECT LAST_INSERT_ID()
+    </selectKey>
+    insert into purchase_apply (purchase_number, define_date, staff_id, 
+      `comment`, is_delete,create_time, update_time)
+    values (#{purchaseNumber,jdbcType=VARCHAR}, #{defineDate,jdbcType=DATE}, #{staffId,jdbcType=INTEGER}, 
+      #{comment,jdbcType=VARCHAR}, #{isDelete,jdbcType=TINYINT},#{createTime,jdbcType=TIMESTAMP}, #{updateTime,jdbcType=TIMESTAMP})
+  </insert>
+  <update id="updateByPrimaryKey" parameterType="com.mingyuansoftware.aifactory.model.PurchaseApply" >
+    update purchase_apply
+    set purchase_number = #{purchaseNumber,jdbcType=VARCHAR},
+      define_date = #{defineDate,jdbcType=DATE},
+      staff_id = #{staffId,jdbcType=INTEGER},
+      `comment` = #{comment,jdbcType=VARCHAR},
+      is_delete = #{isDelete,jdbcType=TINYINT},
+      create_time = #{createTime,jdbcType=TIMESTAMP},
+      update_time = #{updateTime,jdbcType=TIMESTAMP}
+    where purchase_apply_id = #{purchaseApplyId,jdbcType=INTEGER}
+  </update>
+  <select id="selectByPrimaryKey" resultMap="BaseResultMap" parameterType="java.lang.Integer" >
+    select purchase_apply_id, purchase_number, define_date, staff_id,
+    `comment`, is_delete, create_time, update_time
+    from purchase_apply
+    where purchase_apply_id = #{purchaseApplyId,jdbcType=INTEGER}
+  </select>
+  <select id="selectAll" resultMap="BaseResultMap" >
+    select purchase_apply_id, purchase_number, define_date, staff_id,
+    `comment`, is_delete, create_time, update_time
+    from purchase_apply
+  </select>
+  <select id="selectpurchaseApplyList" parameterType="com.mingyuansoftware.aifactory.model.dto.PurchaseApplyDto" resultType="com.mingyuansoftware.aifactory.model.dto.PurchaseApplyDetailsDto" >
+    select pa.purchase_apply_id, pa.purchase_number,padl.quantity,
+    padl.purchase_apply_details_id,
+    padl.goods_id,g.parts_cd,g.goods_name,g.specification,g.unit,
+    padl.purchase_cycle,padl.purpose,pa.define_date,
+    pa.staff_id,sf.`name`, g.months_in_stock,g.tj_stock,
+    g.supplier_id,su.supplier_name,
+    padl.stair_price, padl.handle_status,
+    padl.handle_idea, pa.`comment`,
+    padl.is_delete, pa.create_time, pa.update_time
+    from purchase_apply as pa
+    left join purchase_apply_details as padl on (pa.purchase_apply_id = padl.purchase_apply_id)
+    left join goods as g on (padl.goods_id = g.goods_id)
+    left join staff as sf on (pa.staff_id = sf.staff_id)
+    left join supplier as su on(g.supplier_id = su.supplier_id)
+    <where>
+        <if test=" purchaseApplyDto.partsCd != null and purchaseApplyDto.partsCd != '' ">
+            and g.parts_cd like "%"#{purchaseApplyDto.partsCd}"%"
+        </if>
+        <if test=" purchaseApplyDto.goodsName != null and purchaseApplyDto.goodsName != '' ">
+            and g.goods_name like "%"#{purchaseApplyDto.goodsName}"%"
+        </if>
+        <if test=" purchaseApplyDto.unit != null and purchaseApplyDto.unit != '' ">
+            and g.unit like "%"#{purchaseApplyDto.unit}"%"
+        </if>
+        <if test=" purchaseApplyDto.specification != null and purchaseApplyDto.specification != '' ">
+            and g.specification like "%"#{purchaseApplyDto.specification}"%"
+        </if>
+        <if test=" purchaseApplyDto.quantity != null and purchaseApplyDto.quantity != '' or purchaseApplyDto.quantity == '0'.toString() ">
+            and padl.quantity = #{purchaseApplyDto.quantity}
+        </if>
+        <if test=" purchaseApplyDto.purchaseCycle != null and purchaseApplyDto.purchaseCycle != '' ">
+            and padl.purchase_cycle like "%"#{purchaseApplyDto.purchaseCycle}"%"
+        </if>
+        <if test=" purchaseApplyDto.purpose != null and purchaseApplyDto.purpose != '' ">
+            and padl.purpose like "%"#{purchaseApplyDto.purpose}"%"
+        </if>
+        <if test=" purchaseApplyDto.defineDate != null and purchaseApplyDto.defineDate != '' ">
+            and pa.define_date like "%"#{purchaseApplyDto.defineDate}"%"
+        </if>
+        <if test=" purchaseApplyDto.name != null and purchaseApplyDto.name != '' ">
+            and sf.`name` like "%"#{purchaseApplyDto.name}"%"
+        </if>
+        <if test=" purchaseApplyDto.monthsInStock != null and purchaseApplyDto.monthsInStock != '' ">
+            and g.months_in_stock like "%"#{purchaseApplyDto.monthsInStock}"%"
+        </if>
+        <if test=" purchaseApplyDto.tjStock != null and purchaseApplyDto.tjStock != '' or purchaseApplyDto.tjStock == '0'.toString() ">
+            and g.tj_stock = #{purchaseApplyDto.tjStock}
+        </if>
+        <if test=" purchaseApplyDto.supplierName != null and purchaseApplyDto.supplierName != '' ">
+            and su.supplier_name like "%"#{purchaseApplyDto.supplierName}"%"
+        </if>
+        <if test=" purchaseApplyDto.stairPrice != null and purchaseApplyDto.stairPrice != '' ">
+            and padl.stair_price like "%"#{purchaseApplyDto.stairPrice}"%"
+        </if>
+        <if test=" purchaseApplyDto.handleStatus != null and purchaseApplyDto.handleStatus != '' ">
+            and padl.handle_status = #{purchaseApplyDto.handleStatus}
+        </if>
+        <if test=" purchaseApplyDto.handleIdea != null and purchaseApplyDto.handleIdea != '' ">
+            and padl.handle_idea like "%"#{purchaseApplyDto.handleIdea}"%"
+        </if>
+        <if test=" purchaseApplyDto.comment != null and purchaseApplyDto.comment != '' ">
+            and pa.`comment` like "%"#{purchaseApplyDto.comment}"%"
+        </if>
+        <if test=" purchaseApplyDto.purchaseNumber != null and purchaseApplyDto.purchaseNumber != '' ">
+            and pa.purchase_number like "%"#{purchaseApplyDto.purchaseNumber}"%"
+        </if>
+        and padl.is_delete = 0
+    </where>
+    order by pa.purchase_apply_id desc
+  </select>
+  <select id="selectCount" parameterType="com.mingyuansoftware.aifactory.model.dto.PurchaseApplyDto" resultType="java.lang.Integer" >
+    select count(pa.purchase_apply_id)
+    from purchase_apply as pa
+    left join purchase_apply_details as padl on (pa.purchase_apply_id = padl.purchase_apply_id)
+    left join goods as g on (padl.goods_id = g.goods_id)
+    left join staff as sf on (pa.staff_id = sf.staff_id)
+    left join supplier as su on(g.supplier_id = su.supplier_id)
+    <where>
+        <if test=" purchaseApplyDto.partsCd != null and purchaseApplyDto.partsCd != '' ">
+            and g.parts_cd like "%"#{purchaseApplyDto.partsCd}"%"
+        </if>
+        <if test=" purchaseApplyDto.goodsName != null and purchaseApplyDto.goodsName != '' ">
+            and g.goods_name like "%"#{purchaseApplyDto.goodsName}"%"
+        </if>
+        <if test=" purchaseApplyDto.unit != null and purchaseApplyDto.unit != '' ">
+            and g.unit like "%"#{purchaseApplyDto.unit}"%"
+        </if>
+        <if test=" purchaseApplyDto.specification != null and purchaseApplyDto.specification != '' ">
+            and g.specification like "%"#{purchaseApplyDto.specification}"%"
+        </if>
+        <if test=" purchaseApplyDto.quantity != null and purchaseApplyDto.quantity != '' or purchaseApplyDto.quantity == '0'.toString() ">
+            and padl.quantity = #{purchaseApplyDto.quantity}
+        </if>
+        <if test=" purchaseApplyDto.purchaseCycle != null and purchaseApplyDto.purchaseCycle != '' ">
+            and padl.purchase_cycle like "%"#{purchaseApplyDto.purchaseCycle}"%"
+        </if>
+        <if test=" purchaseApplyDto.purpose != null and purchaseApplyDto.purpose != '' ">
+            and padl.purpose like "%"#{purchaseApplyDto.purpose}"%"
+        </if>
+        <if test=" purchaseApplyDto.defineDate != null and purchaseApplyDto.defineDate != '' ">
+            and pa.define_date like "%"#{purchaseApplyDto.defineDate}"%"
+        </if>
+        <if test=" purchaseApplyDto.name != null and purchaseApplyDto.name != '' ">
+            and sf.`name` like "%"#{purchaseApplyDto.name}"%"
+        </if>
+        <if test=" purchaseApplyDto.monthsInStock != null and purchaseApplyDto.monthsInStock != '' ">
+            and g.months_in_stock like "%"#{purchaseApplyDto.monthsInStock}"%"
+        </if>
+        <if test=" purchaseApplyDto.tjStock != null and purchaseApplyDto.tjStock != '' or purchaseApplyDto.tjStock == '0'.toString() ">
+            and g.tj_stock = #{purchaseApplyDto.tjStock}
+        </if>
+        <if test=" purchaseApplyDto.supplierName != null and purchaseApplyDto.supplierName != '' ">
+            and su.supplier_name like "%"#{purchaseApplyDto.supplierName}"%"
+        </if>
+        <if test=" purchaseApplyDto.stairPrice != null and purchaseApplyDto.stairPrice != '' ">
+            and padl.stair_price like "%"#{purchaseApplyDto.stairPrice}"%"
+        </if>
+        <if test=" purchaseApplyDto.handleStatus != null and purchaseApplyDto.handleStatus != '' ">
+            and padl.handle_status = #{purchaseApplyDto.handleStatus}
+        </if>
+        <if test=" purchaseApplyDto.handleIdea != null and purchaseApplyDto.handleIdea != '' ">
+            and padl.handle_idea like "%"#{purchaseApplyDto.handleIdea}"%"
+        </if>
+        <if test=" purchaseApplyDto.comment != null and purchaseApplyDto.comment != '' ">
+            and pa.`comment` like "%"#{purchaseApplyDto.comment}"%"
+        </if>
+        <if test=" purchaseApplyDto.purchaseNumber != null and purchaseApplyDto.purchaseNumber != '' ">
+            and pa.purchase_number like "%"#{purchaseApplyDto.purchaseNumber}"%"
+        </if>
+        and padl.is_delete = 0
+    </where>
+    order by pa.purchase_apply_id desc
+  </select>
+  <select id="selectLastId" resultType="java.lang.Integer">
+      select @@identity
+  </select>
+  <update id="updatePurchaseApplyById" parameterType="java.lang.Integer">
+      update purchase_apply
+      set
+      update_time = now(),
+      is_delete = 1
+      where purchase_apply_id = #{purchaseApplyId,jdbcType=INTEGER}
+  </update>
+  <select id="selectPurchaseApplyById" parameterType="java.lang.Integer" resultType="com.mingyuansoftware.aifactory.model.PurchaseApply" >
+      select pa.purchase_apply_id, pa.purchase_number,pa.define_date,
+      padl.purchase_apply_details_id,pa.staff_id, sf.`name`,pa.`comment`,
+      pa.is_delete, pa.create_time, pa.update_time, padl.is_delete
+      from purchase_apply as pa
+      left join purchase_apply_details as padl on (pa.purchase_apply_id = padl.purchase_apply_id)
+      left join staff as sf on (pa.staff_id = sf.staff_id)
+      where padl.purchase_apply_details_id = #{purchaseApplyDetailsId}
+  </select>
+  <select id="selectExportPurchaseApplyList" resultType="com.mingyuansoftware.aifactory.model.dto.PurchaseApplyDto" >
+      select pa.purchase_apply_id, pa.purchase_number,padl.quantity,
+      padl.purchase_apply_details_id,
+      padl.goods_id,g.parts_cd,g.goods_name,g.specification,g.unit,
+      padl.purchase_cycle,padl.purpose,pa.define_date,
+      pa.staff_id,sf.`name`, g.months_in_stock,g.tj_stock,
+      g.supplier_id,su.supplier_name,
+      padl.stair_price, padl.handle_status, padl.handle_idea, pa.`comment`,
+      pa.is_delete, pa.create_time, pa.update_time, padl.is_delete
+      from purchase_apply as pa
+      left join purchase_apply_details as padl on (pa.purchase_apply_id = padl.purchase_apply_id)
+      left join goods as g on (padl.goods_id = g.goods_id)
+      left join staff as sf on (pa.staff_id = sf.staff_id)
+      left join supplier as su on(g.supplier_id = su.supplier_id)
+      where padl.is_delete = 0
+  </select>
+</mapper>

@@ -1,0 +1,22 @@
+
+.zq-search-form .zq-search-fixed .item{
+	width: 120px;
+}
+
+.zq-search-form .item[name="noteDcNumber"]{
+	width: 160px;
+	flex: unset;
+}
+
+.zq-search-form .zq-search-fixed .item.checkbox,
+.zq-search-form .search .item.checkbox{
+	width: 30px;
+	flex: unset;
+}
+.zq-search-form .search .item[name="tjStock"],
+.zq-search-form .search .item[name="field16"]{
+	width: 160px;
+	flex: unset;
+}
+
+

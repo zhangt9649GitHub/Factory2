@@ -1,0 +1,98 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd" >
+<mapper namespace="com.mingyuansoftware.aifactory.mapper.BomFormDetailMapper">
+    <resultMap id="BaseResultMap" type="com.mingyuansoftware.aifactory.model.BomFormDetail">
+        <id column="bom_detail_id" property="bomDetailId" jdbcType="INTEGER"/>
+        <result column="bom_id" property="bomId" jdbcType="INTEGER"/>
+        <result column="good_id" property="goodId" jdbcType="INTEGER"/>
+        <result column="quantity" property="quantity" jdbcType="DECIMAL"/>
+        <result column="create_time" property="createTime" jdbcType="TIMESTAMP"/>
+        <result column="update_time" property="updateTime" jdbcType="TIMESTAMP"/>
+        <result column="comment" property="comment" jdbcType="VARCHAR"/>
+        <result column="category" property="category" jdbcType="TINYINT" />
+        <result column="goods_name" property="goodsName" jdbcType="VARCHAR" />
+        <result column="cycle" property="cycle" jdbcType="DECIMAL" />
+        <!--<association column="good_id" property="goods"-->
+                     <!--select="com.mingyuansoftware.aifactory.mapper.GoodsMapper.selectByPrimaryKey"></association>-->
+    </resultMap>
+    <delete id="deleteByPrimaryKey" parameterType="java.lang.Integer">
+        delete from bom_form_detail
+        where bom_detail_id = #{bomDetailId,jdbcType=INTEGER}
+    </delete>
+    <insert id="insert" parameterType="com.mingyuansoftware.aifactory.model.BomFormDetail">
+        <selectKey resultType="java.lang.Integer" keyProperty="bomDetailId" order="AFTER">
+            SELECT LAST_INSERT_ID()
+        </selectKey>
+        insert into bom_form_detail (bom_id, good_id, quantity,
+        create_time, update_time, `comment`)
+        values (#{bomId,jdbcType=INTEGER}, #{goodId,jdbcType=INTEGER}, #{quantity,jdbcType=DECIMAL},
+        now(), #{updateTime,jdbcType=TIMESTAMP}, #{comment,jdbcType=VARCHAR})
+    </insert>
+    <update id="updateByPrimaryKey" parameterType="com.mingyuansoftware.aifactory.model.BomFormDetail">
+        update bom_form_detail
+        set bom_id = #{bomId,jdbcType=INTEGER},
+          good_id = #{goodId,jdbcType=INTEGER},
+          quantity = #{quantity,jdbcType=DECIMAL},
+          create_time = #{createTime,jdbcType=TIMESTAMP},
+          update_time = #{updateTime,jdbcType=TIMESTAMP},
+          `comment` = #{comment,jdbcType=VARCHAR}
+        where bom_detail_id = #{bomDetailId,jdbcType=INTEGER}
+    </update>
+    <select id="selectByPrimaryKey" resultMap="BaseResultMap" parameterType="java.lang.Integer">
+        select bom_detail_id, bom_id, good_id, quantity, create_time, update_time, `comment`
+        from bom_form_detail
+        where bom_detail_id = #{bomDetailId,jdbcType=INTEGER}
+    </select>
+    <select id="selectAll" resultMap="BaseResultMap">
+        select bom_detail_id, bom_id, good_id, quantity, create_time, update_time, `comment`
+        from bom_form_detail
+    </select>
+    <select id="selectBomFormDetailById" resultMap="BaseResultMap" parameterType="java.lang.Integer">
+        select bd.bom_detail_id, bd.bom_id, bd.good_id,
+        g.parts_cd,g.goods_name,gv.cn_name as variety,g.specification,g.unit,
+        bd.create_time, bd.update_time,bd.quantity, bd.`comment`,g.category,g.cycle
+        from bom_form_detail as bd
+        left join goods as g on bd.good_id = g.goods_id
+        left join goods_variety as gv on (g.variety_value = gv.variety_value)
+        where  bd.bom_id = #{bomId,jdbcType=INTEGER}
+     </select>
+    <delete id="deleteBomFormDetails" parameterType="java.lang.Integer">
+        delete from bom_form_detail
+        where bom_id = #{bomId,jdbcType=INTEGER}
+    </delete>
+
+    <update id="updateQuantity">
+        update bom_form_detail
+        set
+          quantity = #{quantity,jdbcType=DECIMAL},
+          update_time = now()
+        where bom_detail_id = #{bomDetailId,jdbcType=INTEGER}
+    </update>
+
+    <select id="selectBomFormDetailByGoodsId" resultMap="BaseResultMap">
+        select bom_detail_id, bom_id, good_id, quantity, create_time, update_time, `comment`
+        from bom_form_detail
+        WHERE bom_id = #{bomId} AND good_id = #{goodsId}
+    </select>
+
+    <insert id="insertList" parameterType="java.util.List">
+        <selectKey resultType="java.lang.Integer" keyProperty="bomDetailId" order="AFTER">
+            SELECT LAST_INSERT_ID()
+        </selectKey>
+        insert into bom_form_detail (bom_id, good_id, quantity,
+        create_time, update_time, `comment`)
+        values
+        <foreach collection="bomFormDetailList" item="item" index="index"
+                 separator=",">
+            (
+            #{item.bomId},
+            #{item.goodId},
+            #{item.quantity},
+            now(),
+            #{item.updateTime},
+            #{item.comment}
+            )
+        </foreach>
+    </insert>
+
+</mapper>

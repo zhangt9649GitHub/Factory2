@@ -1,0 +1,101 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd" >
+<mapper namespace="com.mingyuansoftware.aifactory.mapper.StaffInsuranceMapper" >
+  <resultMap id="BaseResultMap" type="com.mingyuansoftware.aifactory.model.StaffInsurance" >
+    <id column="insurance_id" property="insuranceId" jdbcType="INTEGER" />
+    <result column="staff_id" property="staffId" jdbcType="INTEGER" />
+    <result column="personal_insurance_benefits" property="personalInsuranceBenefits" jdbcType="DECIMAL" />
+    <result column="personal_endowment_insurance" property="personalEndowmentInsurance" jdbcType="DECIMAL" />
+    <result column="personal_medical_insurance" property="personalMedicalInsurance" jdbcType="DECIMAL" />
+    <result column="personal_unemployment_insurance" property="personalUnemploymentInsurance" jdbcType="DECIMAL" />
+    <result column="personal_insurance_total" property="personalInsuranceTotal" jdbcType="DECIMAL" />
+    <result column="personal_accumulation_fund" property="personalAccumulationFund" jdbcType="DECIMAL" />
+    <result column="personal_total_individual" property="personalTotalIndividual" jdbcType="DECIMAL" />
+    <result column="company_endowment_insurance" property="companyEndowmentInsurance" jdbcType="DECIMAL" />
+    <result column="company_medical_insurance" property="companyMedicalInsurance" jdbcType="DECIMAL" />
+    <result column="company_unemployment_insurance" property="companyUnemploymentInsurance" jdbcType="DECIMAL" />
+    <result column="inductrial_injury_insurance" property="inductrialInjuryInsurance" jdbcType="DECIMAL" />
+    <result column="fertility_insurance" property="fertilityInsurance" jdbcType="DECIMAL" />
+    <result column="company_insurance_total" property="companyInsuranceTotal" jdbcType="DECIMAL" />
+    <result column="company_accumulation_fund" property="companyAccumulationFund" jdbcType="DECIMAL" />
+    <result column="company_total_individual" property="companyTotalIndividual" jdbcType="DECIMAL" />
+  </resultMap>
+  <delete id="deleteByPrimaryKey" parameterType="java.lang.Integer" >
+    delete from staff_insurance
+    where insurance_id = #{insuranceId,jdbcType=INTEGER}
+  </delete>
+  <insert id="insert" parameterType="com.mingyuansoftware.aifactory.model.StaffInsurance" >
+    <selectKey resultType="java.lang.Integer" keyProperty="insuranceId" order="AFTER" >
+      SELECT LAST_INSERT_ID()
+    </selectKey>
+    insert into staff_insurance (staff_id, personal_insurance_benefits, 
+      personal_endowment_insurance, personal_medical_insurance, 
+      personal_unemployment_insurance, personal_insurance_total, 
+      personal_accumulation_fund, personal_total_individual, 
+      company_endowment_insurance, company_medical_insurance, 
+      company_unemployment_insurance, inductrial_injury_insurance, 
+      fertility_insurance, company_insurance_total,company_accumulation_fund,
+      company_total_individual)
+    values (#{staffId,jdbcType=INTEGER}, #{personalInsuranceBenefits,jdbcType=DECIMAL}, 
+      #{personalEndowmentInsurance,jdbcType=DECIMAL}, #{personalMedicalInsurance,jdbcType=DECIMAL}, 
+      #{personalUnemploymentInsurance,jdbcType=DECIMAL}, #{personalInsuranceTotal,jdbcType=DECIMAL}, 
+      #{personalAccumulationFund,jdbcType=DECIMAL}, #{personalTotalIndividual,jdbcType=DECIMAL}, 
+      #{companyEndowmentInsurance,jdbcType=DECIMAL}, #{companyMedicalInsurance,jdbcType=DECIMAL}, 
+      #{companyUnemploymentInsurance,jdbcType=DECIMAL}, #{inductrialInjuryInsurance,jdbcType=DECIMAL}, 
+      #{fertilityInsurance,jdbcType=DECIMAL}, #{companyInsuranceTotal,jdbcType=DECIMAL},  #{companyAccumulationFund,jdbcType=DECIMAL},
+      #{companyTotalIndividual,jdbcType=DECIMAL})
+  </insert>
+  <update id="updateByPrimaryKey" parameterType="com.mingyuansoftware.aifactory.model.StaffInsurance" >
+    update staff_insurance
+    set staff_id = #{staffId,jdbcType=INTEGER},
+      personal_insurance_benefits = #{personalInsuranceBenefits,jdbcType=DECIMAL},
+      personal_endowment_insurance = #{personalEndowmentInsurance,jdbcType=DECIMAL},
+      personal_medical_insurance = #{personalMedicalInsurance,jdbcType=DECIMAL},
+      personal_unemployment_insurance = #{personalUnemploymentInsurance,jdbcType=DECIMAL},
+      personal_insurance_total = #{personalInsuranceTotal,jdbcType=DECIMAL},
+      personal_accumulation_fund = #{personalAccumulationFund,jdbcType=DECIMAL},
+      personal_total_individual = #{personalTotalIndividual,jdbcType=DECIMAL},
+      company_endowment_insurance = #{companyEndowmentInsurance,jdbcType=DECIMAL},
+      company_medical_insurance = #{companyMedicalInsurance,jdbcType=DECIMAL},
+      company_unemployment_insurance = #{companyUnemploymentInsurance,jdbcType=DECIMAL},
+      inductrial_injury_insurance = #{inductrialInjuryInsurance,jdbcType=DECIMAL},
+      fertility_insurance = #{fertilityInsurance,jdbcType=DECIMAL},
+      company_insurance_total = #{companyInsuranceTotal,jdbcType=DECIMAL},
+      company_accumulation_fund = #{companyAccumulationFund,jdbcType=DECIMAL},
+      company_total_individual = #{companyTotalIndividual,jdbcType=DECIMAL}
+    where insurance_id = #{insuranceId,jdbcType=INTEGER}
+  </update>
+  <select id="selectByPrimaryKey" resultMap="BaseResultMap" parameterType="java.lang.Integer" >
+    select insurance_id, staff_id, personal_insurance_benefits, personal_endowment_insurance, 
+    personal_medical_insurance, personal_unemployment_insurance, personal_insurance_total, 
+    personal_accumulation_fund, personal_total_individual, company_endowment_insurance, 
+    company_medical_insurance, company_unemployment_insurance, inductrial_injury_insurance, 
+    fertility_insurance, company_insurance_total,company_accumulation_fund, company_total_individual
+    from staff_insurance
+    where insurance_id = #{insuranceId,jdbcType=INTEGER}
+  </select>
+  <select id="selectAll" resultMap="BaseResultMap" >
+    select insurance_id, staff_id, personal_insurance_benefits, personal_endowment_insurance, 
+    personal_medical_insurance, personal_unemployment_insurance, personal_insurance_total, 
+    personal_accumulation_fund, personal_total_individual, company_endowment_insurance, 
+    company_medical_insurance, company_unemployment_insurance, inductrial_injury_insurance, 
+    fertility_insurance, company_insurance_total,company_accumulation_fund, company_total_individual
+    from staff_insurance
+  </select>
+
+  <select id="selectByStaffId" resultMap="BaseResultMap" >
+    select insurance_id, staff_id, personal_insurance_benefits, personal_endowment_insurance,
+    personal_medical_insurance, personal_unemployment_insurance, personal_insurance_total,
+    personal_accumulation_fund, personal_total_individual, company_endowment_insurance,
+    company_medical_insurance, company_unemployment_insurance, inductrial_injury_insurance,
+    fertility_insurance, company_insurance_total,company_accumulation_fund, company_total_individual
+    from staff_insurance
+    where staff_id = #{staffId}
+  </select>
+
+  <delete id="deleteByStaffId" parameterType="java.lang.Integer" >
+    delete from staff_insurance
+     where staff_id = #{staffId}
+  </delete>
+
+</mapper>

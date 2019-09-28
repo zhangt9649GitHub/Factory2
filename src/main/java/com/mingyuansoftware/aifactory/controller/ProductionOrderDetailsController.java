@@ -1,0 +1,75 @@
+package com.mingyuansoftware.aifactory.controller;
+
+import com.github.pagehelper.PageHelper;
+import com.mingyuansoftware.aifactory.enums.HtCode;
+import com.mingyuansoftware.aifactory.model.dto.ProductionOrderDetailsDto;
+import com.mingyuansoftware.aifactory.pojo.LayuiCommonResponse;
+import com.mingyuansoftware.aifactory.service.ProductionOrderDetailsService;
+import io.swagger.annotations.Api;
+import io.swagger.annotations.ApiImplicitParam;
+import io.swagger.annotations.ApiImplicitParams;
+import io.swagger.annotations.ApiOperation;
+import org.apache.shiro.authz.annotation.RequiresPermissions;
+import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.validation.annotation.Validated;
+import org.springframework.web.bind.annotation.*;
+
+import java.util.List;
+
+@Api(value = "ProductionOrderDetails", description = "排产单明细API", tags = {"排产单明细"})
+@RestController
+@RequestMapping("/productionOrderDetails")
+public class ProductionOrderDetailsController {
+
+    @Autowired
+    private ProductionOrderDetailsService productionOrderDetailsService;
+
+    @ApiOperation(value = "获取排产单明细列表", notes = "获取排产单明细列表", tags = {"@郝腾"})
+    @ApiImplicitParams({
+            @ApiImplicitParam(name = "page", value = "第几页", paramType = "query", dataType = "int"),
+            @ApiImplicitParam(name = "limit", value = "每页容量", paramType = "query", dataType = "int"),
+            @ApiImplicitParam(name = "productionOrderDetailsDto", value = "排产单明细参数实体类", paramType = "query", dataType = "ProductionOrderDetailsDto"),
+    })
+    @RequestMapping(value = "/getProductionOrderDetailsList", method = RequestMethod.GET)
+    @ResponseBody
+    @RequiresPermissions(value = {"getProductionOrderDetailsList"})
+    public LayuiCommonResponse getProductionOrderDetailsList(@Validated @RequestParam(defaultValue = "1") int page,
+                                            @Validated @RequestParam(defaultValue = "10") int limit,
+                                            @Validated ProductionOrderDetailsDto productionOrderDetailsDto) {
+        LayuiCommonResponse response = new LayuiCommonResponse();
+        try {
+            PageHelper.startPage(page, limit);
+            List<ProductionOrderDetailsDto> productionOrderDetailsDtoList =productionOrderDetailsService.selectProductionOrderDetailsList(productionOrderDetailsDto);
+            int count = productionOrderDetailsService.selectCountProductionOrderDetails(productionOrderDetailsDto);
+            response.setMsg(HtCode.SUCCESS_GET.getInfo());
+            response.setCode(HtCode.SUCCESS_GET.getCode());
+            response.setCount(count);
+            response.setData(productionOrderDetailsDtoList);
+        } catch (Exception e) {
+            e.printStackTrace();
+            response.setCode(HtCode.FAIL_GET.getCode());
+            response.setMsg(HtCode.FAIL_GET.getInfo());
+        }
+        return response;
+    }
+
+    @ApiOperation(value = "排产单明细设为已读", notes = "排产单明细设为已读", tags = {"@郝腾"})
+    @ApiImplicitParam(name = "productionOrderDetailsId", value = "排产单详情id", required = true,paramType = "query", dataType = "int")
+    @RequestMapping(value = "/updateProductionOrderDetailsIsRead", method = RequestMethod.POST)
+    @ResponseBody
+    @RequiresPermissions(value = {"updateProductionOrderDetailsIsRead"})
+    public LayuiCommonResponse updateProductionOrderDetailsIsRead(@Validated int productionOrderDetailsId) {
+        LayuiCommonResponse response = new LayuiCommonResponse();
+        try {
+            productionOrderDetailsService.updateProductionOrderDetailsIsRead(productionOrderDetailsId);
+            response.setCode(HtCode.SUCCESS_UPDATE.getCode());
+            response.setMsg(HtCode.SUCCESS_UPDATE.getInfo());
+        } catch (Exception e) {
+            e.printStackTrace();
+            response.setCode(HtCode.FAIL_UPDATE.getCode());
+            response.setMsg(HtCode.FAIL_UPDATE.getInfo());
+            return response;
+        }
+        return response;
+    }
+}

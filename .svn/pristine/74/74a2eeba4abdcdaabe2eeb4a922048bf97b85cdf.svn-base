@@ -1,0 +1,624 @@
+<#include "../public_header.ftl">
+
+
+	<link rel="stylesheet" type="text/css" href="/static/css/productionScheduleAnalysis/index.css">
+	<script type="text/javascript" src="/static/js/productionScheduleAnalysis/index.js"></script>
+
+</head>
+<body>
+
+<div class="zq-wrap">
+
+	<div class="layui-row">
+
+		<div class="layui-card bg-1">
+
+			<div class="layui-card-header layui-clear">
+				<h3 class="left">生成进度分析 <span></span></h3>
+
+			</div>
+
+			<div class="layui-card-body">
+				<div class="zq-container zq-min-h800">
+
+					<form action="" class="layui-form">
+
+						<div class="layui-row layui-col-space10">
+
+
+
+							<div class="layui-col-md12">
+								<form class="layui-form">
+									<div class="zq-btn-list">
+										<div class="layui-inline">
+											<select name="category" lay-search>
+												<option value=""></option>
+											</select>
+										</div>
+										<div class="layui-inline">
+											<input type="text" name="goodsName" placeholder="请输入物品名" class="layui-input">
+										</div>
+										<button class="layui-btn green" lay-submit lay-filter="*">搜索</button>
+										<button class="layui-btn blue zq-active" type="button" data-type="showAndHide">详细</button>
+										<button class="layui-btn blue zq-active" data-href="/admin/inventoryStatus/index" data-title="库存状态" data-type="zq_newOpen" type="button">库存状态</button>
+
+									</div>
+									<div class="paging">
+										<div id="demo"></div>
+									</div>
+								</form>
+							</div>
+
+							<div class="layui-col-md12">
+								<dl class="state-list">
+									<dd class="bg-1">准备（可以生产）</dd>
+									<dd class="bg-2">生产完成</dd>
+									<dd class="bg-3">销售出货</dd>
+									<dd class="bg-4">需要继续加工生产</dd>
+									<dd class="bg-5">返品</dd>
+								</dl>
+							</div>
+
+
+							<div class="layui-col-md12">
+								<!-- 表格1 -->
+								<div class="table1 divtable">
+									<div class="header">
+										<div class="list date">
+											<div class="item border-none"></div>
+											<div class="item border-none"></div>
+											<div class="item border-none"></div>
+											<div class="item border-none"></div>
+											<div class="item tit">日期</div>
+											<div class="item generate">2019-03</div>
+											<div class="item generate">2019-04</div>
+											<div class="item generate">2019-05</div>
+											<div class="item generate">2019-03</div>
+											<div class="item generate">2019-03</div>
+											<div class="item generate">2019-03</div>
+											<div class="item generate">2019-03</div>
+											<div class="item generate">2019-03</div>
+											<div class="item generate">2019-03</div>
+											<div class="item generate">2019-03</div>
+										</div>
+										<div class="list state">
+											<div class="item border-none"></div>
+											<div class="item border-none">
+
+											</div>
+											<div class="item border-none">
+
+											</div>
+											<div class="item border-none">
+
+											</div>
+											<div class="item tit">
+												状态
+											</div>
+											<div class="item generate">
+												<i class="layui-icon">&#xe617;</i>
+												未开始
+											</div>
+											<div class="item generate">
+												<i class="layui-icon">&#xe617;</i>
+												生产
+											</div>
+											<div class="item generate">
+												<i class="layui-icon">&#xe617;</i>
+												生产
+											</div>
+											<div class="item generate">
+												<i class="layui-icon">&#xe617;</i>
+												生产
+											</div>
+											<div class="item generate">
+												<i class="layui-icon">&#xe617;</i>
+												生产
+											</div>
+											<div class="item generate">
+												<i class="layui-icon">&#xe617;</i>
+												生产
+											</div>
+											<div class="item generate">
+												<i class="layui-icon">&#xe617;</i>
+												生产
+											</div>
+											<div class="item generate">
+												<i class="layui-icon">&#xe617;</i>
+												生产
+											</div>
+											<div class="item generate">
+												<i class="layui-icon">&#xe617;</i>
+												生产
+											</div>
+											<div class="item generate">
+												<i class="layui-icon">&#xe617;</i>
+												生产
+											</div>
+										</div>
+										<div class="list tr2 serialNumber">
+											<div class="item tit">物品名</div>
+											<div class="item tit">平均月贩</div>
+											<div class="item tit" title="不包括运送中" data-field="monthsInStock">
+														<span>
+															在库月数(日本)
+														</span>
+
+												<span class="layui-table-sort layui-inline">
+															<i class="layui-edge layui-table-sort-asc" title="升序"></i>
+															<i class="layui-edge layui-table-sort-desc" title="降序"></i>
+														</span>
+
+											</div>
+											<div class="item tit item-sort" data-field="inventory">
+												<span>库存/最低库存</span>
+												<span class="layui-table-sort layui-inline">
+															<i class="layui-edge layui-table-sort-asc" title="升序"></i>
+															<i class="layui-edge layui-table-sort-desc" title="降序"></i>
+														</span>
+											</div>
+											<div class="item">压缩</div>
+											<div class="item item-click generate">128</div>
+											<div class="item item-click generate">129</div>
+											<div class="item item-click generate">130</div>
+											<div class="item item-click generate">131</div>
+											<div class="item item-click generate">132</div>
+											<div class="item item-click generate">133</div>
+											<div class="item item-click generate">134</div>
+											<div class="item item-click generate">135</div>
+											<div class="item item-click generate">136</div>
+											<div class="item item-click generate">137</div>
+										</div>
+									</div>
+
+									<div class="body">
+										<div class="wrap">
+											<div class="list divtable-click">
+												<div class="item " data-id="0">
+													[商品]B017J-48
+												</div>
+												<div class="item">
+													180
+												</div>
+												<div class="item">
+													2
+												</div>
+												<div class="item">
+													<span>5609</span>/<span class="color-blue">3400</span>
+												</div>
+												<div class="item item-hover">
+													180
+													<ul>
+														<li class="bg-1" style="width: 100%;"></li>
+														<li class="bg-2" style="width: 0;"></li>
+														<li class="bg-3" style="width: 0;"></li>
+														<li class="bg-4" style="width: 0;"></li>
+														<li class="bg-5" style="width: 0;"></li>
+													</ul>
+													<ol>
+														<li class="bg-1" >
+															<lable>准备：</lable>
+															<span>180</span>
+														</li>
+
+													</ol>
+												</div>
+												<div class="item item-hover not-started">
+													190
+													<ul>
+														<li class="bg-1" style="width: 100%;"></li>
+														<li class="bg-2" style="width: 0;"></li>
+														<li class="bg-3" style="width: 0;"></li>
+														<li class="bg-4" style="width: 0;"></li>
+														<li class="bg-5" style="width: 0;"></li>
+													</ul>
+													<ol>
+														<li class="bg-1" >
+															<lable>准备：</lable>
+															<span>190</span>
+														</li>
+
+													</ol>
+												</div>
+												<div class="item item-hover">
+													340
+													<ul>
+														<li class="bg-1" style="width: 60%;"></li>
+														<li class="bg-2" style="width: 0;"></li>
+														<li class="bg-3" style="width: 20%;"></li>
+														<li class="bg-4" style="width: 20%;"></li>
+														<li class="bg-5" style="width: 0;"></li>
+													</ul>
+													<ol>
+														<li class="bg-1" >
+															<lable>准备：</lable>
+															<span>204</span>
+														</li>
+
+														<li class="bg-3" >
+															<lable>卖上：</lable>
+															<span>68</span>
+														</li>
+														<li class="bg-4" >
+															<lable>替换：</lable>
+															<span>68</span>
+														</li>
+													</ol>
+												</div>
+												<div class="item item-hover">
+													280
+													<ul>
+														<li class="bg-1" style="width: 0;"></li>
+														<li class="bg-2" style="width: 0;"></li>
+														<li class="bg-3" style="width: 0;"></li>
+														<li class="bg-4" style="width: 0;"></li>
+														<li class="bg-5" style="width: 100%;"></li>
+													</ul>
+													<ol>
+														<li class="bg-5" >
+															<lable>反品：</lable>
+															<span>280</span>
+														</li>
+													</ol>
+												</div>
+												<div class="item item-hover">
+													200
+													<ul>
+														<li class="bg-1" style="width: 20%;"></li>
+														<li class="bg-2" style="width: 20%;"></li>
+														<li class="bg-3" style="width: 20%;"></li>
+														<li class="bg-4" style="width: 20%;"></li>
+														<li class="bg-5" style="width: 20%;"></li>
+													</ul>
+													<ol>
+														<li class="bg-1" >
+															<lable>准备：</lable>
+															<span>40</span>
+														</li>
+														<li class="bg-2" >
+															<lable>生产：</lable>
+															<span>40</span>
+														</li>
+														<li class="bg-3" >
+															<lable>卖上：</lable>
+															<span>40</span>
+														</li>
+														<li class="bg-4" >
+															<lable>替换：</lable>
+															<span>40</span>
+														</li>
+														<li class="bg-5" >
+															<lable>反品：</lable>
+															<span>40</span>
+														</li>
+													</ol>
+												</div>
+												<div class="item item-hover">
+													160
+													<ul>
+														<li class="bg-1" style="width: 100%;"></li>
+														<li class="bg-2" style="width: 0;"></li>
+														<li class="bg-3" style="width: 0;"></li>
+														<li class="bg-4" style="width: 0;"></li>
+														<li class="bg-5" style="width: 0;"></li>
+													</ul>
+													<ol>
+														<li class="bg-1" >
+															<lable>准备：</lable>
+															<span>160</span>
+														</li>
+													</ol>
+												</div>
+												<div class="item item-hover">
+													280
+													<ul>
+														<li class="bg-1" style="width: 0;"></li>
+														<li class="bg-2" style="width: 0;"></li>
+														<li class="bg-3" style="width: 0;"></li>
+														<li class="bg-4" style="width: 100%;"></li>
+														<li class="bg-5" style="width: 0;"></li>
+													</ul>
+													<ol>
+														<li class="bg-4" >
+															<lable>替换：</lable>
+															<span>280</span>
+														</li>
+
+													</ol>
+												</div>
+												<div class="item item-hover">
+													160
+													<ul>
+														<li class="bg-1" style="width: 0;"></li>
+														<li class="bg-2" style="width: 0;"></li>
+														<li class="bg-3" style="width: 100%;"></li>
+														<li class="bg-4" style="width: 0;"></li>
+														<li class="bg-5" style="width: 0;"></li>
+													</ul>
+													<ol>
+														<li class="bg-3" >
+															<lable>卖上：</lable>
+															<span>160</span>
+														</li>
+													</ol>
+												</div>
+												<div class="item item-hover">
+													340
+													<ul>
+														<li class="bg-1" style="width: 50%;"></li>
+														<li class="bg-2" style="width: 0;"></li>
+														<li class="bg-3" style="width: 0;"></li>
+														<li class="bg-4" style="width: 50%;"></li>
+														<li class="bg-5" style="width: 0;"></li>
+													</ul>
+													<ol>
+														<li class="bg-1" >
+															<lable>准备：</lable>
+															<span>170</span>
+														</li>
+														<li class="bg-4" >
+															<lable>替换：</lable>
+															<span>170</span>
+														</li>
+													</ol>
+												</div>
+												<div class="item item-hover">
+													120
+													<ul>
+														<li class="bg-1" style="width: 100%;"></li>
+														<li class="bg-2" style="width: 0;"></li>
+														<li class="bg-3" style="width: 0;"></li>
+														<li class="bg-4" style="width: 0;"></li>
+														<li class="bg-5" style="width: 0;"></li>
+													</ul>
+													<ol>
+														<li class="bg-1" >
+															<lable>准备：</lable>
+															<span>120</span>
+														</li>
+													</ol>
+												</div>
+												<div class="item item-hover">
+													160
+													<ul>
+														<li class="bg-1" style="width: 0;"></li>
+														<li class="bg-2" style="width: 0;"></li>
+														<li class="bg-3" style="width: 0;"></li>
+														<li class="bg-4" style="width: 0;"></li>
+														<li class="bg-5" style="width: 100%;"></li>
+													</ul>
+													<ol>
+														<li class="bg-5" >
+															<lable>反品：</lable>
+															<span>160</span>
+														</li>
+													</ol>
+												</div>
+
+											</div>
+
+										</div>
+									</div>
+
+								</div>
+
+								<!-- 表格2 -->
+								<div class="table2 divtable">
+									<div class="header">
+										<div class="list tr2">
+
+
+										</div>
+									</div>
+
+									<div class="body ">
+
+									</div>
+
+								</div>
+								<!-- 表格3 -->
+								<div class="table3 divtable ">
+									<div class="header">
+										<div class="list tr2">
+										</div>
+									</div>
+
+									<div class="body ">
+
+									</div>
+
+								</div>
+							</div>
+
+
+
+						</div>
+
+					</form>
+
+
+				</div>
+			</div>
+
+
+		</div>
+
+	</div>
+
+
+</div>
+<#-- 加载模块-日期 -->
+<script type="text/html" id="date">
+	{{# if(d){ }}
+
+		{{#  layui.each(d, function(index, item){ }}
+
+			<div class="item generate">{{item.createTime}}</div>
+		{{#  }) }}
+	{{#  } }}
+</script>
+
+<#-- 加载模块-状态 -->
+<script type="text/html" id="state">
+	{{# if(d){ }}
+
+		{{#  layui.each(d, function(index, item){ }}
+
+		<div class="item generate">
+			<i class="layui-icon">&#xe617;</i>
+			{{# if(item.state == 1){ }}
+			未开始
+			{{# }else{ }}
+			生产
+			{{#  } }}
+		</div>
+		{{#  }) }}
+	{{#  } }}
+</script>
+
+<#-- 加载模块-生产指示书 -->
+<script type="text/html" id="serialNumber">
+	{{# if(d){ }}
+
+		{{#  layui.each(d, function(index, item){ }}
+
+		<div class="item item-click generate">{{ item.serialNumber }}</div>
+		{{#  }) }}
+	{{#  } }}
+</script>
+
+
+<#-- 加载模块-表格内容 -->
+<script type="text/html" id="table-data">
+	{{# if(d){ }}
+
+		{{#  layui.each(d, function(index, item){ }}
+			{{# if(item.selected){ }}
+			<div class="list divtable-click">
+			{{# }else{ }}
+			<div class="list">
+			{{# } }}
+				<div class="item" data-id="{{ item.goodsId }}">
+					{{ item.goodsName }}
+				</div>
+
+
+				<div class="item">
+					{{ item.averageMonthlyVendor  }}
+				</div>
+				<div class="item">
+					{{ item.monthsInStock }}
+				</div>
+				<div class="item">
+					<span>{{ item.inventory }}</span>/<span class="color-blue">{{ item.minimumStock }}</span>
+				</div>
+				<div class="item item-hover">
+					{{ !item.totalQuantity ? 0 : item.totalQuantity }}
+					<ul>
+						<li class="bg-1" style="width: {{ !item.prepareProductionRate ? 0 : item.prepareProductionRate }}%;"></li>
+						<li class="bg-2" style="width: {{ !item.productionCompleteRate ? 0 : item.productionCompleteRate}}%;"></li>
+						<li class="bg-3" style="width: {{ !item.salesShipmentRate ? 0 : item.salesShipmentRate }}%;"></li>
+						<li class="bg-4" style="width: {{ !item.processingProductionRate ? 0 : item.processingProductionRate }}%;"></li>
+						<li class="bg-5" style="width: {{ !item.returnQuantityRate ? 0 : item.returnQuantityRate }}%;"></li>
+					</ul>
+					<ol>
+						<li class="bg-1" >
+							<lable>准备：</lable>
+							<span>{{ !item.prepareProduction ? 0 : item.prepareProduction }}</span>
+						</li>
+						<li class="bg-2" >
+							<lable>生产：</lable>
+							<span>{{ !item.productionComplete ? 0 : item.productionComplete }}</span>
+						</li>
+						<li class="bg-3" >
+							<lable>买上：</lable>
+							<span>{{ !item.salesShipment ? 0 : item.salesShipment }}</span>
+						</li>
+						<li class="bg-4" >
+							<lable>替换：</lable>
+							<span>{{ !item.processingProduction ? 0 : item.processingProduction }}</span>
+						</li>
+						<li class="bg-5" >
+							<lable>反品：</lable>
+							<span>{{ !item.returnQuantity ? 0 : item.returnQuantity }}</span>
+						</li>
+					</ol>
+				</div>
+
+				{{#  layui.each(item.productionProcessRateList, function(i, items){ }}
+					{{# if(items.state == 1){ }}
+						<div class="item item-hover not-started">
+							{{ !items.totalQuantity ? 0 : items.totalQuantity }}
+							<ul>
+								<li class="bg-1" style="width: {{ !items.prepareProductionRate ? 0 : items.prepareProductionRate }}%;"></li>
+								<li class="bg-2" style="width: {{ !items.productionCompleteRate ? 0 : items.productionCompleteRate}}%;"></li>
+								<li class="bg-3" style="width: {{ !items.salesShipmentRate ? 0 : items.salesShipmentRate }}%;"></li>
+								<li class="bg-4" style="width: {{ !items.processingProductionRate ? 0 : items.processingProductionRate }}%;"></li>
+								<li class="bg-5" style="width: {{ !items.returnQuantityRate ? 0 : items.returnQuantityRate }}%;"></li>
+							</ul>
+							<ol>
+								<li class="bg-1" >
+									<lable>准备：</lable>
+									<span>{{ !items.prepareProduction ? 0 : items.prepareProduction }}</span>
+								</li>
+								<li class="bg-2" >
+									<lable>生产：</lable>
+									<span>{{ !items.productionComplete ? 0 : items.productionComplete }}</span>
+								</li>
+								<li class="bg-3" >
+									<lable>买上：</lable>
+									<span>{{ !items.salesShipment ? 0 : items.salesShipment }}</span>
+								</li>
+								<li class="bg-4" >
+									<lable>替换：</lable>
+									<span>{{ !items.processingProduction ? 0 : items.processingProduction }}</span>
+								</li>
+								<li class="bg-5" >
+									<lable>反品：</lable>
+									<span>{{ !items.returnQuantity ? 0 : items.returnQuantity }}</span>
+								</li>
+							</ol>
+						</div>
+					{{# }else{ }}
+						<div class="item item-hover">
+							{{ !items.totalQuantity ? 0 : items.totalQuantity }}
+							<ul>
+								<li class="bg-1" style="width: {{ !items.prepareProductionRate ? 0 : items.prepareProductionRate }}%;"></li>
+								<li class="bg-2" style="width: {{ !items.productionCompleteRate ? 0 : items.productionCompleteRate}}%;"></li>
+								<li class="bg-3" style="width: {{ !items.salesShipmentRate ? 0 : items.salesShipmentRate }}%;"></li>
+								<li class="bg-4" style="width: {{ !items.processingProductionRate ? 0 : items.processingProductionRate }}%;"></li>
+								<li class="bg-5" style="width: {{ !items.returnQuantityRate ? 0 : items.returnQuantityRate }}%;"></li>
+							</ul>
+							<ol>
+								<li class="bg-1" >
+									<lable>准备：</lable>
+									<span>{{ !items.prepareProduction ? 0 : items.prepareProduction }}</span>
+								</li>
+								<li class="bg-2" >
+									<lable>生产：</lable>
+									<span>{{ !items.productionComplete ? 0 : items.productionComplete }}</span>
+								</li>
+								<li class="bg-3" >
+									<lable>买上：</lable>
+									<span>{{ !items.salesShipment ? 0 : items.salesShipment }}</span>
+								</li>
+								<li class="bg-4" >
+									<lable>替换：</lable>
+									<span>{{ !items.processingProduction ? 0 : items.processingProduction }}</span>
+								</li>
+								<li class="bg-5" >
+									<lable>反品：</lable>
+									<span>{{ !items.returnQuantity ? 0 : items.returnQuantity }}</span>
+								</li>
+							</ol>
+						</div>
+					{{#  } }}
+
+				{{#  }) }}
+			</div>
+		{{#  }) }}
+	{{#  } }}
+</script>
+
+</body>
+</html>

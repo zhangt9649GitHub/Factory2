@@ -1,0 +1,432 @@
+package com.mingyuansoftware.aifactory.service.impl;
+
+import com.mingyuansoftware.aifactory.mapper.*;
+import com.mingyuansoftware.aifactory.model.*;
+import com.mingyuansoftware.aifactory.model.dto.PurchaseDeliveryDateDto;
+import com.mingyuansoftware.aifactory.model.dto.PurchaseOrderDetailsDto;
+import com.mingyuansoftware.aifactory.model.dto.PurchaseOrderDto;
+import com.mingyuansoftware.aifactory.service.PurchaseOrderService;
+import com.mingyuansoftware.aifactory.util.Base64;
+import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.stereotype.Service;
+import org.springframework.transaction.annotation.Propagation;
+import org.springframework.transaction.annotation.Transactional;
+import org.springframework.web.multipart.MultipartFile;
+
+import java.io.File;
+import java.math.BigDecimal;
+import java.util.Date;
+import java.util.List;
+
+/**
+ * @author 张婷
+ * @date 2019/7/13 17:46
+ */
+
+@Service
+public class PurchaseOrderServiceImpl implements PurchaseOrderService {
+
+    @Autowired
+    private PurchaseOrderMapper purchaseOrderMapper;
+    @Autowired
+    private PurchaseOrderDetailsMapper purchaseOrderDetailsMapper;
+    @Autowired
+    private SalesOrderMapper salesOrderMapper;
+    @Autowired
+    private SupplierMapper supplierMapper;
+
+    @Override
+    public List<PurchaseOrderDetailsDto> selectPurchaseOrderList(PurchaseOrderDto purchaseOrderDto) {
+        try {
+            List<PurchaseOrderDetailsDto> purchaseOrderDetailsDtoList = purchaseOrderMapper.selectPurchaseOrderList(purchaseOrderDto);
+            for (PurchaseOrderDetailsDto purchaseOrderDetailsDto : purchaseOrderDetailsDtoList) {
+                BigDecimal pendAmount = supplierMapper.selectByPrimaryKey(purchaseOrderDetailsDto.getSupplierId()).getPendingAmount();
+                purchaseOrderDetailsDto.setPendAmount(pendAmount);
+            }
+            return purchaseOrderDetailsDtoList;
+        } catch (Exception e) {
+            e.printStackTrace();
+        }
+        return null;
+    }
+
+    @Override
+    public int selectCount(PurchaseOrderDto purchaseOrderDto) {
+        try {
+            return purchaseOrderMapper.selectCount(purchaseOrderDto);
+        } catch (Exception e) {
+            e.printStackTrace();
+        }
+        return 0;
+    }
+
+    @Override
+    @Transactional(propagation = Propagation.REQUIRED, rollbackFor = Exception.class)
+    public int insertPurchaseOrder(PurchaseOrder purchaseOrder) {
+        if (purchaseOrder.getSalesOrderId() == null) {
+            purchaseOrder.setSalesOrderId(0);
+        }
+        purchaseOrder.setIsDelete((byte) 0);
+        purchaseOrder.setCreateTime(new Date());
+        purchaseOrder.setOrderStatus((byte) 1);
+        purchaseOrder.setStorageState((byte) 1);
+        purchaseOrder.setPaymentStatus((byte) 1);
+        purchaseOrder.setDiscountAmount(BigDecimal.ZERO);
+        purchaseOrder.setActuallyPaidAmount(BigDecimal.ZERO);
+        purchaseOrder.setPurchaseReturnSituation((byte) 1); //1.无退货
+        purchaseOrder.setPendingAmount(purchaseOrder.getPurchaseAmount());//设置代付款金额为采购金额
+        int insertPurchaseOrder = purchaseOrderMapper.insert(purchaseOrder);
+        //获取最新的采购订单id
+        int purchaseOrderId = purchaseOrderMapper.selectLastId();
+        //获取新增的采购订单的详情的内容
+        List<PurchaseOrderDetails> purchaseOrderDetailsList = purchaseOrder.getPurchaseOrderDetailsList();
+        if (!(purchaseOrderDetailsList.isEmpty())) {
+            for (PurchaseOrderDetails purchaseOrderDetails : purchaseOrderDetailsList) {
+                purchaseOrderDetails.setPurchaseOrderId(purchaseOrderId);
+                purchaseOrderDetails.setPodStorageState((byte) 1);//设置pda操作货物入库状态
+                purchaseOrderDetails.setPurchaseReturnAmount(BigDecimal.ZERO);
+                purchaseOrderDetails.setInQuantity(BigDecimal.ZERO);
+                purchaseOrderDetails.setNotInQuantity(purchaseOrderDetails.getQuantity());
+                purchaseOrderDetails.setExcludingTaxAmount(BigDecimal.ZERO);
+                purchaseOrderDetails.setTaxRate(BigDecimal.ZERO);
+                purchaseOrderDetails.setTax(BigDecimal.ZERO);
+                purchaseOrderDetailsMapper.insert(purchaseOrderDetails);
+            }
+        }
+        return insertPurchaseOrder;
+    }
+
+    @Override
+    @Transactional(rollbackFor = Exception.class)
+    public int deletePurchaseOrder(int purchaseOrderId) {
+        return purchaseOrderMapper.deletePurchaseOrder(purchaseOrderId);
+    }
+
+    @Override
+    public PurchaseOrder selectPurchaseOrderById(int purchaseOrderId) {
+        try {
+            PurchaseOrder purchaseOrder = purchaseOrderMapper.selectPurchaseOrderById(purchaseOrderId);
+            List<PurchaseOrderDetails> purchaseOrderDetailsList = purchaseOrderDetailsMapper.selectPurchaseOrderDetailsById(purchaseOrderId);
+            purchaseOrder.setPurchaseOrderDetailsList(purchaseOrderDetailsList);
+            return purchaseOrder;
+        } catch (Exception e) {
+            e.printStackTrace();
+        }
+        return null;
+    }
+
+    @Override
+    @Transactional(propagation = Propagation.REQUIRED, rollbackFor = Exception.class)
+    public int updatePurchaseOrderInfo(PurchaseOrder purchaseOrder) {
+        //如果入库状态为已入库,或者付款状态为已付款,都不能编辑除确认合同之外的内容
+        PurchaseOrder purchaseOrder2 = purchaseOrderMapper.selectByPrimaryKey(purchaseOrder.getPurchaseOrderId());
+        if (purchaseOrder2.getStorageState() != 1) {
+            return 0;
+        }
+        if (purchaseOrder2.getPaymentStatus() != 1) {
+            return 0;
+        }
+        //采购订单编号,用户时间,创建人,供应商,订单状态,交货日期,入库时间,入库状态
+        //采购金额,折扣金额,实付金额,待付金额,付款日期,付款状态,采购类型,备注
+        //不可操作:采购订单编号,订单状态,入库时间,入库状态,折扣金额,实付金额,待付金额,付款日期,付款状态,采购类型,
+        //可以操作的有:销售订单,用户时间,交货日期,供应商,货物,数量,单价,不含税金额,税率,税额,采购金额
+        //含税金额,财务金额,大写,备注信息
+        if (purchaseOrder.getSalesOrderId() == null) {
+            purchaseOrder.setSalesOrderId(0);
+        }
+        PurchaseOrder purchaseOrder1 = purchaseOrderMapper.selectPurchaseOrderById(purchaseOrder.getPurchaseOrderId());
+        purchaseOrder.setPurchaseOrderNumber(purchaseOrder1.getPurchaseOrderNumber());
+        purchaseOrder.setIsDelete(purchaseOrder1.getIsDelete());
+        purchaseOrder.setCreateTime(purchaseOrder1.getCreateTime());
+        purchaseOrder.setUpdateTime(new Date());
+        purchaseOrder.setOrderStatus(purchaseOrder1.getOrderStatus());
+        purchaseOrder.setStorageTime(purchaseOrder1.getStorageTime());
+        purchaseOrder.setStorageState(purchaseOrder1.getStorageState());
+        purchaseOrder.setDiscountAmount(purchaseOrder1.getDiscountAmount());
+        purchaseOrder.setActuallyPaidAmount(purchaseOrder1.getActuallyPaidAmount());
+        purchaseOrder.setPendingAmount(purchaseOrder.getPurchaseAmount());
+        purchaseOrder.setPaymentDate(purchaseOrder1.getPaymentDate());
+        purchaseOrder.setPaymentStatus(purchaseOrder1.getPaymentStatus());
+        purchaseOrder.setPurchaseReturnSituation(purchaseOrder1.getPurchaseReturnSituation());
+//            purchaseOrder.setPurchaseType(purchaseOrder1.getPurchaseType());
+        //先将数据库中采购订单货物详情删除
+        purchaseOrderDetailsMapper.deletePurchaseOrderDetails(purchaseOrder.getPurchaseOrderId());
+        //遍历新增修改后的采购订单详情
+        List<PurchaseOrderDetails> purchaseOrderDetailsList = purchaseOrder.getPurchaseOrderDetailsList();
+        for (PurchaseOrderDetails purchaseOrderDetails : purchaseOrderDetailsList) {
+            purchaseOrderDetails.setPurchaseOrderId(purchaseOrder.getPurchaseOrderId());
+            purchaseOrderDetails.setGoodsId(purchaseOrderDetails.getGoodsId());
+            purchaseOrderDetails.setPodStorageState((byte) 1);//设置pda操作货物入库装状态
+            purchaseOrderDetails.setPurchaseReturnAmount(BigDecimal.ZERO);
+            purchaseOrderDetails.setInQuantity(BigDecimal.ZERO);
+            purchaseOrderDetails.setNotInQuantity(purchaseOrderDetails.getQuantity());
+            purchaseOrderDetails.setExcludingTaxAmount(BigDecimal.ZERO);
+            purchaseOrderDetails.setTaxRate(BigDecimal.ZERO);
+            purchaseOrderDetails.setTax(BigDecimal.ZERO);
+            purchaseOrderDetailsMapper.insert(purchaseOrderDetails);
+            //修改货物的a单价的值
+//                goodsMapper.updateAPriceByGoodsId(purchaseOrderDetails.getGoodsId(),purchaseOrderDetails.getPurchasePrice());
+        }
+        int updatePurchaseOrder = purchaseOrderMapper.updateByPrimaryKey(purchaseOrder);
+
+        return updatePurchaseOrder;
+    }
+
+    @Override
+    public List<PurchaseOrderDetails> selectPurchaseOrderGoodsUpdate(Integer supplierId, Integer purchaseOrderDetailsId) {
+        try {
+            return purchaseOrderMapper.selectPurchaseOrderGoodsUpdate(supplierId, purchaseOrderDetailsId);
+        } catch (Exception e) {
+            e.printStackTrace();
+        }
+        return null;
+    }
+
+    @Override
+    public int selectGoodsUpdateCount(Integer supplierId, Integer purchaseOrderDetailsId) {
+        try {
+            return purchaseOrderMapper.selectGoodsUpdateCount(supplierId, purchaseOrderDetailsId);
+        } catch (Exception e) {
+            e.printStackTrace();
+        }
+        return 0;
+    }
+
+    @Override
+    public List<PurchaseOrderDetails> selectPurchaseOrderGoodsInsert(Integer supplierId) {
+        try {
+            return purchaseOrderMapper.selectPurchaseOrderGoodsInsert(supplierId);
+        } catch (Exception e) {
+            e.printStackTrace();
+        }
+        return null;
+    }
+
+    @Override
+    public int selectGoodsInsertCount(Integer supplierId) {
+        try {
+            return purchaseOrderMapper.selectGoodsInsertCount(supplierId);
+        } catch (Exception e) {
+            e.printStackTrace();
+        }
+        return 0;
+    }
+
+    @Override
+    public List<PurchaseOrderDto> selectExportPurchaseOrderList() {
+        try {
+            return purchaseOrderMapper.selectExportPurchaseOrderList();
+        } catch (Exception e) {
+            e.printStackTrace();
+        }
+        return null;
+    }
+
+    @Override
+    @Transactional(rollbackFor = Exception.class)
+    public UploadFileAttachment updatePurchaseOrderById(MultipartFile fileAttachment, int purchaseOrderId) {
+        UploadFileAttachment uploadFileAttachment = new UploadFileAttachment();
+        //先删除文件夹内的文件，保证是空文件夹(如果文件夹为空,则删除文件夹)
+        String os = System.getProperty("os.name");
+            /*if (os.toLowerCase().startsWith("win")) {//如果是Windows系统
+                String unZipAddress = "/importCsv/";
+                DeleteFileUtil.delFolder(unZipAddress);
+            } else {  //linux 和mac
+                String unZipAddress = "/usr/local/csv/";
+                DeleteFileUtil.delFolder(unZipAddress);
+            }*/
+        String fileName = fileAttachment.getOriginalFilename();
+        String folderName = Base64.getRandomFileName();
+        //zip文件路径
+        String ufSavePath = "";
+        if (os.toLowerCase().startsWith("win")) {  //如果是Windows系统
+            File dest = new File("D:/importAttachment/" + folderName + fileName);
+            if (!dest.getParentFile().exists()) { //判断文件父目录是否存在
+                dest.getParentFile().mkdir();
+            }
+
+            try {
+                fileAttachment.transferTo(dest); //保存文件
+                ufSavePath = "/importAttachment/" + folderName + fileName;
+                uploadFileAttachment.setPurchaseOrderId(purchaseOrderId);
+                uploadFileAttachment.setFileAttachment(ufSavePath);
+                purchaseOrderMapper.updatePurchaseOrderById(uploadFileAttachment);
+                return uploadFileAttachment;
+            } catch (Exception e) {
+                // TODO Auto-generated catch block
+                e.printStackTrace();
+            }
+        } else {  //linux 和mac
+            File dest = new File("/usr/local/importAttachment/" + folderName + fileName);
+            if (!dest.getParentFile().exists()) { //判断文件父目录是否存在
+                dest.getParentFile().mkdir();
+            }
+            try {
+                fileAttachment.transferTo(dest); //保存文件
+                ufSavePath = "/usr/local/importAttachment/" + folderName + fileName;
+                uploadFileAttachment.setPurchaseOrderId(purchaseOrderId);
+                uploadFileAttachment.setFileAttachment(ufSavePath);
+                purchaseOrderMapper.updatePurchaseOrderById(uploadFileAttachment);
+                return uploadFileAttachment;
+            } catch (Exception e) {
+                // TODO Auto-generated catch block
+                e.printStackTrace();
+            }
+        }
+        return null;
+    }
+
+    @Override
+    public int affirmationContract(int purchaseOrderId) {
+        try {
+            return purchaseOrderMapper.affirmationContract(purchaseOrderId);
+        } catch (Exception e) {
+            e.printStackTrace();
+        }
+        return 0;
+    }
+
+    @Override
+    public List<PurchaseOrder> selectPDaPurchaseOrderList() {
+        try {
+            return purchaseOrderMapper.selectPDaPurchaseOrderList();
+        } catch (Exception e) {
+            e.printStackTrace();
+        }
+        return null;
+    }
+
+    @Override
+    public int selectPDaPurchaseOrderListCount() {
+        try {
+            return purchaseOrderMapper.selectPDaPurchaseOrderListCount();
+        } catch (Exception e) {
+            e.printStackTrace();
+        }
+        return 0;
+    }
+
+    @Override
+    public List<SalesOrder> selectSalesOrder() {
+        try {
+            return salesOrderMapper.selectAll();
+        } catch (Exception e) {
+            e.printStackTrace();
+        }
+        return null;
+    }
+
+    @Override
+    public int selectPurchaseOrderStatus(int purchaseOrderId) {
+        try {
+            PurchaseOrder purchaseOrder = purchaseOrderMapper.selectByPrimaryKey(purchaseOrderId);
+            return purchaseOrder.getOrderStatus();
+        } catch (Exception e) {
+            e.printStackTrace();
+        }
+        return 0;
+    }
+
+    @Override
+    public int selectLimit(PurchaseOrder purchaseOrder) {
+        try {
+            //如果入库状态为已入库,或者付款状态为已付款,都不能编辑内容
+            PurchaseOrder purchaseOrder1 = purchaseOrderMapper.selectByPrimaryKey(purchaseOrder.getPurchaseOrderId());
+            if (purchaseOrder1.getStorageState() != 1) {
+                return 0;
+            }
+            if (purchaseOrder1.getPaymentStatus() != 1) {
+                return 0;
+            }
+            return 1;
+        } catch (Exception e) {
+            e.printStackTrace();
+        }
+        return 0;
+    }
+
+    @Override
+    public PurchaseOrder selectFileAttachment(int purchaseOrderId) {
+        try {
+            return purchaseOrderMapper.selectByPrimaryKey(purchaseOrderId);
+        } catch (Exception e) {
+            e.printStackTrace();
+        }
+        return null;
+    }
+
+    @Override
+    public int editFileAttachment(int purchaseOrderId) {
+        try {
+            return purchaseOrderMapper.editFileAttachmentById(purchaseOrderId);
+        } catch (Exception e) {
+            e.printStackTrace();
+        }
+        return 0;
+    }
+
+    @Override
+    public List<PDAPurchaseStorageTask> selectPDaPurchaseOrderTaskList() {
+        try {
+            return purchaseOrderMapper.selectPDaPurchaseOrderTaskList();
+        } catch (Exception e) {
+            e.printStackTrace();
+        }
+        return null;
+    }
+
+    @Override
+    public int selectStorage(Integer purchaseOrderId) {
+        try {
+            PurchaseOrder purchaseOrder = purchaseOrderMapper.selectByPrimaryKey(purchaseOrderId);
+            return purchaseOrder.getStorageState();
+        } catch (Exception e) {
+            e.printStackTrace();
+        }
+        return 0;
+    }
+
+    @Override
+    public BigDecimal selectPrice(Integer purchaseOrderDetailsId) {
+        try {
+            PurchaseOrderDetails purchaseOrderDetails = purchaseOrderDetailsMapper.selectByPrimaryKey(purchaseOrderDetailsId);
+            return purchaseOrderDetails.getPurchasePrice();
+        } catch (Exception e) {
+            e.printStackTrace();
+        }
+        return null;
+    }
+
+    @Override
+    public void updatePurchaseOrderFinance(PurchaseOrder purchaseOrder) {
+        try {
+            purchaseOrderMapper.updateFinanceSum(purchaseOrder);
+            List<PurchaseOrderDetails> purchaseOrderDetailsList = purchaseOrder.getPurchaseOrderDetailsList();
+            for (PurchaseOrderDetails purchaseOrderDetails : purchaseOrderDetailsList) {
+                purchaseOrderDetailsMapper.updatePurchaseOrderFinance(purchaseOrderDetails.getPurchaseOrderDetailsId(), purchaseOrderDetails.getFinanceMoney());
+            }
+        } catch (Exception e) {
+            e.printStackTrace();
+        }
+    }
+
+    @Override
+    public List<PurchaseDeliveryDateDto> selectPurchaseDeliveryDateList(PurchaseDeliveryDateDto purchaseDeliveryDateDto) {
+        try {
+            return purchaseOrderMapper.selectPurchaseDeliveryDateList(purchaseDeliveryDateDto);
+        } catch (Exception e) {
+            e.printStackTrace();
+        }
+        return null;
+    }
+
+    @Override
+    public int selectPurchaseDeliveryDateCount(PurchaseDeliveryDateDto purchaseDeliveryDateDto) {
+        try {
+            return purchaseOrderMapper.selectPurchaseDeliveryDateCount(purchaseDeliveryDateDto);
+        } catch (Exception e) {
+            e.printStackTrace();
+        }
+        return 0;
+    }
+}
