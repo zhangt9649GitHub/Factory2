@@ -1,0 +1,89 @@
+package com.mingyuansoftware.aifactory.service;
+
+import com.mingyuansoftware.aifactory.model.BomForm;
+import com.mingyuansoftware.aifactory.model.ProductionOrder;
+import com.mingyuansoftware.aifactory.model.dto.BomFormDto;
+import com.mingyuansoftware.aifactory.model.dto.BomFormGoodsDto;
+import org.springframework.stereotype.Service;
+import org.springframework.web.multipart.MultipartFile;
+
+import java.util.List;
+
+@Service
+public interface BomFormService {
+    /**
+     * 查询BOM表单列表
+     * @param bomFormDto
+     * @return
+     */
+    List<BomForm> selectBomFormList(BomFormDto bomFormDto);
+
+    /**
+     * 获取BOm表单总条数
+     * @param bomFormDto
+     * @return
+     */
+    int selectCount(BomFormDto bomFormDto);
+
+    /**
+     * 根据id查询bom表单信息
+     * @param bomId
+     * @return
+     */
+    BomForm selectBomFormDetailById(int bomId);
+
+    /**
+     * 新增bom表单
+     * @param bomForm
+     * @return
+     */
+    int insertBomForm(BomForm bomForm);
+
+    /**
+     * 根据bomeId删除bom表单
+     * @param bomId
+     * @return
+     */
+    int deleteBomFormById(int bomId);
+
+    /**
+     * 修改bom表单内容
+     * @param bomForm
+     * @return
+     */
+    int updateBomFormDetail(BomForm bomForm);
+
+    /**
+     * 导入bom表单数据
+     * @param file
+     */
+    void importBomForm( MultipartFile file);
+
+    /**
+     * 根据货物id获取bom表单
+     * @param goodsId
+     * @return
+     */
+    BomForm selectBomFormByGoodsId(int goodsId);
+
+    /**
+     * 根据货物Id查询bom表单中的排产货物原料列表(单)
+     * @param goodsId
+     * @return
+     */
+    BomForm selectProductionOrderGoodsMaterialList(int goodsId);
+
+    /**
+     * 根据货物Id查询bom表单中的排产货物原料列表总条数(单)
+     * @param goodsId
+     * @return
+     */
+    int selectProductionOrderGoodsMaterialCount(int goodsId);
+
+    /**
+     * 根据货物Id查询bom表单中的排产货物原料列表总条数(多)
+     * @param productionOrder
+     * @return
+     */
+    List<BomForm> selectProductionOrderGoodsMaterialsList(ProductionOrder productionOrder);
+}

@@ -1,0 +1,48 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd" >
+<mapper namespace="com.mingyuansoftware.aifactory.mapper.StaffExperienceMapper" >
+  <resultMap id="BaseResultMap" type="com.mingyuansoftware.aifactory.model.StaffExperience" >
+    <id column="experience_id" property="experienceId" jdbcType="INTEGER" />
+    <result column="goods_id" property="goodsId" jdbcType="INTEGER" />
+    <result column="experience_value" property="experienceValue" jdbcType="VARCHAR" />
+    <result column="staff_id" property="staffId" jdbcType="INTEGER" />
+    <association column="goods_id" property="goods"
+                 select="com.mingyuansoftware.aifactory.mapper.GoodsMapper.selectByPrimaryKey"></association>
+  </resultMap>
+  <delete id="deleteByPrimaryKey" parameterType="java.lang.Integer" >
+    delete from staff_experience
+    where experience_id = #{experienceId,jdbcType=INTEGER}
+  </delete>
+  <insert id="insert" parameterType="com.mingyuansoftware.aifactory.model.StaffExperience" >
+    <selectKey resultType="java.lang.Integer" keyProperty="experienceId" order="AFTER" >
+      SELECT LAST_INSERT_ID()
+    </selectKey>
+    insert into staff_experience (goods_id, experience_value, staff_id
+      )
+    values (#{goodsId,jdbcType=INTEGER}, #{experienceValue,jdbcType=VARCHAR}, #{staffId,jdbcType=INTEGER}
+      )
+  </insert>
+  <update id="updateByPrimaryKey" parameterType="com.mingyuansoftware.aifactory.model.StaffExperience" >
+    update staff_experience
+    set goods_id = #{goodsId,jdbcType=INTEGER},
+      experience_value = #{experienceValue,jdbcType=VARCHAR},
+      staff_id = #{staffId,jdbcType=INTEGER}
+    where experience_id = #{experienceId,jdbcType=INTEGER}
+  </update>
+  <select id="selectByPrimaryKey" resultMap="BaseResultMap" parameterType="java.lang.Integer" >
+    select experience_id, goods_id, experience_value, staff_id
+    from staff_experience
+    where experience_id = #{experienceId,jdbcType=INTEGER}
+  </select>
+  <select id="selectAll" resultMap="BaseResultMap" >
+    select experience_id, goods_id, experience_value, staff_id
+    from staff_experience
+  </select>
+
+  <select id="selectStaffExperienceList" resultMap="BaseResultMap" >
+    select experience_id, goods_id, experience_value, staff_id
+    from staff_experience
+    where staff_id = #{staffId}
+  </select>
+
+</mapper>

@@ -1,0 +1,256 @@
+package com.mingyuansoftware.aifactory.controller;
+
+import com.github.pagehelper.PageHelper;
+import com.mingyuansoftware.aifactory.config.LogConfig;
+import com.mingyuansoftware.aifactory.enums.HtCode;
+import com.mingyuansoftware.aifactory.enums.ZtCode;
+import com.mingyuansoftware.aifactory.model.*;
+import com.mingyuansoftware.aifactory.model.dto.ProductionOrderDto;
+import com.mingyuansoftware.aifactory.pojo.LayuiCommonResponse;
+import com.mingyuansoftware.aifactory.service.BomFormService;
+import com.mingyuansoftware.aifactory.service.GoodsService;
+import com.mingyuansoftware.aifactory.service.LogService;
+import com.mingyuansoftware.aifactory.service.ProductionOrderService;
+import com.mingyuansoftware.aifactory.util.BaseToString;
+import com.mingyuansoftware.aifactory.util.MyException;
+import io.swagger.annotations.Api;
+import io.swagger.annotations.ApiImplicitParam;
+import io.swagger.annotations.ApiImplicitParams;
+import io.swagger.annotations.ApiOperation;
+import org.apache.shiro.SecurityUtils;
+import org.apache.shiro.authz.annotation.RequiresPermissions;
+import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.validation.annotation.Validated;
+import org.springframework.web.bind.annotation.*;
+
+import java.util.HashMap;
+import java.util.List;
+import java.util.Map;
+
+@Api(value = "ProductionOrder", description = "排产单API", tags = {"排产单"})
+@RestController
+@RequestMapping("/productionOrder")
+public class ProductionOrderController {
+
+    @Autowired
+    private ProductionOrderService productionOrderService;
+    @Autowired
+    private LogService logService;
+    @Autowired
+    private GoodsService goodsService;
+    @Autowired
+    private BomFormService bomFormService;
+
+    @ApiOperation(value = "获取排产单列表", notes = "获取排产单列表", tags = {"@郝腾"})
+    @ApiImplicitParams({
+            @ApiImplicitParam(name = "page", value = "第几页", paramType = "query", dataType = "int"),
+            @ApiImplicitParam(name = "limit", value = "每页容量", paramType = "query", dataType = "int"),
+            @ApiImplicitParam(name = "productionOrderDto", value = "排产单参数实体类", paramType = "query", dataType = "ProductionOrderDto")
+    })
+    @RequestMapping(value = "/getProductionOrderList", method = RequestMethod.GET)
+    @ResponseBody
+    @RequiresPermissions(value = {"getProductionOrderList"})
+    public LayuiCommonResponse getProductionOrderList(@Validated @RequestParam(defaultValue = "1") int page,
+                                              @Validated @RequestParam(defaultValue = "10") int limit,
+                                              @Validated ProductionOrderDto productionOrderDto) {
+        LayuiCommonResponse response = new LayuiCommonResponse();
+        try {
+            PageHelper.startPage(page, limit);
+            List<ProductionOrder> productionOrderList =productionOrderService.selectProductionOrderList(productionOrderDto);
+            int count = productionOrderService.selectCount(productionOrderDto);
+            response.setMsg(HtCode.SUCCESS_GET.getInfo());
+            response.setCode(HtCode.SUCCESS_GET.getCode());
+            response.setCount(count);
+            response.setData(productionOrderList);
+        } catch (Exception e) {
+            e.printStackTrace();
+            response.setCode(HtCode.FAIL_GET.getCode());
+            response.setMsg(HtCode.FAIL_GET.getInfo());
+        }
+        return response;
+    }
+
+    @ApiOperation(value = "获取排产货物列表", notes = "获取排产货物列表", tags = {"@郝腾"})
+    @ApiImplicitParams({
+            @ApiImplicitParam(name = "page", value = "第几页", paramType = "query", dataType = "int"),
+            @ApiImplicitParam(name = "limit", value = "每页容量", paramType = "query", dataType = "int"),
+            @ApiImplicitParam(name = "partsCd", value = "部品CD", paramType = "query", dataType = "String"),
+            @ApiImplicitParam(name = "goodsName", value = "品名", paramType = "query", dataType = "String")
+    })
+    @RequestMapping(value = "/getProductionOrderGoodsList", method = RequestMethod.GET)
+    @ResponseBody
+    public LayuiCommonResponse getProductionOrderGoodsList(@Validated @RequestParam(defaultValue = "1") int page,
+                                               @Validated @RequestParam(defaultValue = "10") int limit,
+                                               @Validated String partsCd,@Validated String goodsName) {
+        LayuiCommonResponse response = new LayuiCommonResponse();
+        try {
+            PageHelper.startPage(page, limit);
+            List<ProductionOrderGoods> productionOrderGoodsList = goodsService.selectProductionOrderGoodsList(partsCd,goodsName);
+            int count = goodsService.selectProductionOrderGoodsCount(partsCd,goodsName);
+            response.setMsg(HtCode.SUCCESS_GET.getInfo());
+            response.setCode(HtCode.SUCCESS_GET.getCode());
+            response.setCount(count);
+            response.setData(productionOrderGoodsList);
+        } catch (Exception e) {
+            e.printStackTrace();
+            response.setCode(HtCode.FAIL_GET.getCode());
+            response.setMsg(HtCode.FAIL_GET.getInfo());
+        }
+        return response;
+    }
+    @ApiOperation(value = "获取排产货物原料列表", notes = "根据货物Id查询bom表单中的排产货物原料列表", tags = {"@张婷"})
+    @ApiImplicitParams({
+            @ApiImplicitParam(name = "page", value = "第几页", paramType = "query", dataType = "int"),
+            @ApiImplicitParam(name = "limit", value = "每页容量", paramType = "query", dataType = "int"),
+            @ApiImplicitParam(name = "goodsId", value = "货物Id", required = true, dataType = "int", paramType = "query")
+    })
+    @RequestMapping(value = "/getProductionOrderGoodsMaterialList", method = RequestMethod.GET)
+    @ResponseBody
+    public LayuiCommonResponse getProductionOrderGoodsMaterialList(@Validated @RequestParam(defaultValue = "1") int page,
+                                               @Validated @RequestParam(defaultValue = "10") int limit, @Validated int goodsId) {
+        LayuiCommonResponse response = new LayuiCommonResponse();
+        try {
+            PageHelper.startPage(page, limit);
+            BomForm bomForms = bomFormService.selectProductionOrderGoodsMaterialList(goodsId);
+            int count = bomFormService.selectProductionOrderGoodsMaterialCount(goodsId);
+            response.setMsg(ZtCode.SUCCESS_GET.getInfo());
+            response.setCode(ZtCode.SUCCESS_GET.getCode());
+            response.setCount(count);
+            response.setData(bomForms);
+        } catch (Exception e) {
+            e.printStackTrace();
+            response.setCode(ZtCode.FAIL_GET.getCode());
+            response.setMsg(ZtCode.FAIL_GET.getInfo());
+        }
+        return response;
+    }
+
+
+    @ApiOperation(value = "新增排产单", notes = "新增排产单", tags = {"@郝腾"})
+    @ApiImplicitParam(name = "productionOrder", value = "排产单实体类", required = true, dataType = "ProductionOrder")
+    @RequestMapping(value = "/insertProductionOrder", method = RequestMethod.POST)
+    @ResponseBody
+    @RequiresPermissions(value = {"insertProductionOrder"})
+    public LayuiCommonResponse insertProductionOrder(@RequestBody ProductionOrder productionOrder) {
+        LayuiCommonResponse response = new LayuiCommonResponse();
+        try {
+            productionOrderService.insertProductionOrder(productionOrder);
+            if(LogConfig.STATE){
+                String text = BaseToString.BaseEntityToString(productionOrder);
+                 Staff staff =(Staff) SecurityUtils.getSubject().getSession().getAttribute("user");
+                int staffId = staff.getStaffId();
+                logService.saveLog(staffId,1,text);
+            }
+            response.setCode(HtCode.SUCCESS_ADD.getCode());
+            response.setMsg(HtCode.SUCCESS_ADD.getInfo());
+        } catch (MyException e){
+            e.printStackTrace();
+            response.setCode(HtCode.FAIL_ADD.getCode());
+            response.setMsg(e.getMessage());
+            return response;
+        } catch (Exception e) {
+            e.printStackTrace();
+            response.setCode(HtCode.FAIL_ADD.getCode());
+            response.setMsg(HtCode.FAIL_ADD.getInfo());
+            return response;
+        }
+        return response;
+    }
+
+    @ApiOperation(value = "查看排产单", notes = "查看排产单", tags = {"@郝腾"})
+    @ApiImplicitParam(name = "productionOrderId", value = "排产单id", required = true, dataType = "int", paramType = "query")
+    @RequestMapping(value = "/getProductionOrderById", method = RequestMethod.POST)
+    @ResponseBody
+    public LayuiCommonResponse getProductionOrderById(int productionOrderId) {
+        LayuiCommonResponse response = new LayuiCommonResponse();
+        try {
+           ProductionOrder productionOrder = productionOrderService.selectProductionOrderById(productionOrderId);
+            response.setMsg(HtCode.SUCCESS_GET.getInfo());
+            response.setCode(HtCode.SUCCESS_GET.getCode());
+            response.setData(productionOrder);
+        } catch (Exception e) {
+            e.printStackTrace();
+            response.setCode(HtCode.FAIL_GET.getCode());
+            response.setMsg(HtCode.FAIL_GET.getInfo());
+        }
+        return response;
+    }
+
+    @ApiOperation(value = "更新排产单", notes = "更新排产单", tags = {"@郝腾"})
+    @ApiImplicitParam(name = "productionOrder", value = "销售订单及详情", dataType = "ProductionOrder")
+    @RequestMapping(value = "/updateProductionOrderInfo", method = RequestMethod.POST)
+    @ResponseBody
+    @RequiresPermissions(value = {"updateProductionOrderInfo"})
+    public LayuiCommonResponse updateProductionOrderInfo(@RequestBody ProductionOrder productionOrder) {
+        LayuiCommonResponse response = new LayuiCommonResponse();
+        try {
+            ProductionOrder productionOrder1 = productionOrderService.selectProductionOrderById(productionOrder.getProductionOrderId());
+            if(productionOrder1.getState()==2){
+                response.setCode(HtCode.FAIL_UPDATE_STATE_PART.getCode());
+                response.setMsg(HtCode.FAIL_UPDATE_STATE_PART.getInfo());
+                return response;
+            }
+            if(productionOrder1.getState()==3){
+                response.setCode(HtCode.FAIL_UPDATE_STATE_OVER.getCode());
+                response.setMsg(HtCode.FAIL_UPDATE_STATE_OVER.getInfo());
+                return response;
+            }
+            productionOrderService.updateProductionOrderInfo(productionOrder);
+            if(LogConfig.STATE){
+                String text = BaseToString.BaseEntityToString(productionOrder);
+                Staff staff =(Staff) SecurityUtils.getSubject().getSession().getAttribute("user");
+                int staffId = staff.getStaffId();
+                logService.saveLog(staffId,2,text);
+            }
+            response.setCode(HtCode.SUCCESS_UPDATE.getCode());
+            response.setMsg(HtCode.SUCCESS_UPDATE.getInfo());
+        } catch (Exception e) {
+            e.printStackTrace();
+            response.setCode(HtCode.FAIL_UPDATE.getCode());
+            response.setMsg(HtCode.FAIL_UPDATE.getInfo());
+            return response;
+        }
+        return response;
+    }
+
+    @ApiOperation(value = "删除排产单", notes = "删除排产单", tags = {"@郝腾"})
+    @ApiImplicitParam(name = "productionOrderId", value = "销售订单id", required = true, dataType = "int", paramType = "query")
+    @RequestMapping(value = "/deleteProductionOrderById", method = RequestMethod.POST)
+    @ResponseBody
+    @RequiresPermissions(value = {"deleteProductionOrderById"})
+    public LayuiCommonResponse deleteProductionOrderById(int productionOrderId) {
+        LayuiCommonResponse response = new LayuiCommonResponse();
+        try {
+            ProductionOrder productionOrder = productionOrderService.selectProductionOrderById(productionOrderId);
+            if(productionOrder.getState()==2){
+                response.setCode(HtCode.FAIL_DELETE_STATE_PART.getCode());
+                response.setMsg(HtCode.FAIL_DELETE_STATE_PART.getInfo());
+                return response;
+            }
+            if(productionOrder.getState()==3){
+                response.setCode(HtCode.FAIL_DELETE_STATE_OVER.getCode());
+                response.setMsg(HtCode.FAIL_DELETE_STATE_OVER.getInfo());
+                return response;
+            }
+            productionOrderService.deleteProductionOrderById(productionOrderId);
+            if(LogConfig.STATE){
+                String[] str= new String[]{productionOrderId+""};
+                Map<String, String[]> a_mMap= new HashMap<>();
+                a_mMap.put("salesOrderId",str);
+                String text = BaseToString.MapToString(a_mMap);
+                Staff staff =(Staff) SecurityUtils.getSubject().getSession().getAttribute("user");
+                int staffId = staff.getStaffId();
+                logService.saveLog(staffId,3,text);
+            }
+            response.setCode(HtCode.SUCCESS_DELETE.getCode());
+            response.setMsg(HtCode.SUCCESS_DELETE.getInfo());
+        } catch (Exception e) {
+            e.printStackTrace();
+            response.setCode(HtCode.FAIL_DELETE.getCode());
+            response.setMsg(HtCode.FAIL_DELETE.getInfo());
+            return response;
+        }
+        return response;
+    }
+
+}

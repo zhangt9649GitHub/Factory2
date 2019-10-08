@@ -1,0 +1,7 @@
+.layui-select-title .layui-input{
+    height: 28px;
+}
+
+.layui-table-cell .layui-form-select dl{
+    max-height: 200px;
+}
