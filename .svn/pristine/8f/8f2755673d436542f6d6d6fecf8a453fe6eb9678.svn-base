@@ -14,7 +14,6 @@ import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
 import java.math.BigDecimal;
-import java.text.SimpleDateFormat;
 import java.util.Date;
 import java.util.List;
 
@@ -62,20 +61,17 @@ public class ProductionOrderServiceImpl implements ProductionOrderService {
        /* StaffUserLoginDto userLoginDto =(StaffUserLoginDto) SecurityUtils.getSubject().getSession().getAttribute("user");
         int staffId = userLoginDto.getStaffId();
         productionOrder.setStaffId(staffId);*/
-        //勾选自动生成领料单
+        //勾选自动生成领料单 待修改
         if(productionOrder.getIsCreatePicking()==1){
-            Date date = new Date();
-            SimpleDateFormat sdf = new SimpleDateFormat("yyyy-MM-dd");
-            String d = sdf.format(date);
+            //@@@@@@要后补
             //生成领料单  先遍历需要生成的领料单数据
             for (Picking picking:productionOrder.getPickingList()) {
                 boolean flag = true;
                 String noteDcNumber = "10" + RandomCodeUtil.getRandomCode();
                 picking.setPickingNumber(noteDcNumber);//领料单编号
-                picking.setCreateTime(date);
+                picking.setCreateTime(new Date());
                 picking.setState((byte)1);
                 picking.setIsDelete((byte)0);
-                picking.setAddTime(d);
                 pickingMapper.insert(picking);
                 int pickingId = pickingMapper.selectLastId();
                 int size = picking.getPickingDetailsList().size();
@@ -100,7 +96,6 @@ public class ProductionOrderServiceImpl implements ProductionOrderService {
                             picking.setCreateTime(new Date());
                             picking.setState((byte)1);
                             picking.setIsDelete((byte)0);
-                            picking.setAddTime(d);
                             pickingMapper.insert(picking);
                             pickingId = pickingMapper.selectLastId();
                         }
@@ -158,52 +153,6 @@ public class ProductionOrderServiceImpl implements ProductionOrderService {
         productionOrder1.setStaffId(productionOrder.getStaffId());
         productionOrder1.setUpdateTime(new Date());
         productionOrder1.setAddTime(productionOrder.getAddTime());
-        //勾选自动生成领料单
-        if(productionOrder.getIsCreatePicking()==1){
-            Date date = new Date();
-            SimpleDateFormat sdf = new SimpleDateFormat("yyyy-MM-dd");
-            String d = sdf.format(date);
-            //生成领料单  先遍历需要生成的领料单数据
-            for (Picking picking:productionOrder.getPickingList()) {
-                boolean flag = true;
-                String noteDcNumber = "10" + RandomCodeUtil.getRandomCode();
-                picking.setPickingNumber(noteDcNumber);//领料单编号
-                picking.setCreateTime(date);
-                picking.setState((byte)1);
-                picking.setIsDelete((byte)0);
-                picking.setAddTime(d);
-                pickingMapper.insert(picking);
-                int pickingId = pickingMapper.selectLastId();
-                int size = picking.getPickingDetailsList().size();
-                int i = 0;
-                for (PickingDetails pickingDetails:picking.getPickingDetailsList()){
-                    i = ++i;
-                    if (flag) {
-                        for (PickingDetails pickingDetails1 : pickingDetails.getPickingDetailsList()) {
-                            pickingDetails1.setPickingId(pickingId);
-                            //                    pickingDetails.setPickingId(picking.getPickingId());
-                            pickingDetailsMapper.insert(pickingDetails1);
-                            //根据领料单Id改领料单出入库仓库Id
-                            pickingMapper.updateWarehouseById(pickingId, pickingDetails1.getIntoWarehouseId(), pickingDetails1.getOutWarehouseId());
-                        }
-                        flag = false;
-                    }
-                    if (size!=i) {
-                        if (!flag){
-                            flag = true;
-                            noteDcNumber = "10" + RandomCodeUtil.getRandomCode();
-                            picking.setPickingNumber(noteDcNumber);//领料单编号
-                            picking.setCreateTime(new Date());
-                            picking.setState((byte)1);
-                            picking.setIsDelete((byte)0);
-                            picking.setAddTime(d);
-                            pickingMapper.insert(picking);
-                            pickingId = pickingMapper.selectLastId();
-                        }
-                    }
-                }
-            }
-        }
         productionOrderMapper.updateByPrimaryKey(productionOrder1);
         List<ProductionOrderDetails> productionOrderDetailsList = productionOrderDetailsMapper.selectProductionOrderDetailsById(productionOrder.getProductionOrderId());
         //排产单详情的修改暂定

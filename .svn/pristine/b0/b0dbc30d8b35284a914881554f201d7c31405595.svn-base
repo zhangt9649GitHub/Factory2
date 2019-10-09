@@ -255,7 +255,7 @@ public class ProductionOrderController {
     @ApiImplicitParam(name = "productionOrder", value = "销售订单及详情", dataType = "ProductionOrder")
     @RequestMapping(value = "/updateProductionOrderInfo", method = RequestMethod.POST)
     @ResponseBody
-//    @RequiresPermissions(value = {"updateProductionOrderInfo"})
+    @RequiresPermissions(value = {"updateProductionOrderInfo"})
     public LayuiCommonResponse updateProductionOrderInfo(@RequestBody ProductionOrder productionOrder) {
         LayuiCommonResponse response = new LayuiCommonResponse();
         try {

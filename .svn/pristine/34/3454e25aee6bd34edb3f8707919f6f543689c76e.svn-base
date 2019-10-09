@@ -199,34 +199,20 @@ public class ProductionOrderController {
     {
   "addTime": "2019-10-09 13:49:05",
   "comment": "comment",
-  "isCreatePicking": 1,
+  "isCreatePicking": 0,
   "name": "小王",
   "productionOrderDetailsList": [
   {
-     "goodsId": 15793,
+     "goodsId": 001,
      "totalTaskAmount":2000,
      "salesBooking": 2000,
      "quantity": 100,
      "cycle": "1",
      "shift": "0.003333333",
      "comment": "comment",
-     "isRead": 0,
-     "productionInstructionId": 5
-   }  ],
-  "pickingList": [
-  {
-     "lotNumber":143,
-     "staffId":1,
-     "pickingDetailsList": [
-       { "pickingDetailsList":[
-            {"goodsId": 13892, "quantity": 0, "intoWarehouseId": 2, "outWarehouseId": 1},
-            {"goodsId": 13893, "quantity": 0, "intoWarehouseId": 2, "outWarehouseId": 1}
-        ]},{
-        "pickingDetailsList":[
-            {"goodsId": 14449, "quantity": 0, "intoWarehouseId": 3, "outWarehouseId": 1}
-        ]}
-                              ]
-       }                   ],
+     "isRead": 0
+   }
+  ],
   "productionOrderNumber": "12346789",
   "staffId": 1
 }
@@ -255,7 +241,7 @@ public class ProductionOrderController {
     @ApiImplicitParam(name = "productionOrder", value = "销售订单及详情", dataType = "ProductionOrder")
     @RequestMapping(value = "/updateProductionOrderInfo", method = RequestMethod.POST)
     @ResponseBody
-//    @RequiresPermissions(value = {"updateProductionOrderInfo"})
+    @RequiresPermissions(value = {"updateProductionOrderInfo"})
     public LayuiCommonResponse updateProductionOrderInfo(@RequestBody ProductionOrder productionOrder) {
         LayuiCommonResponse response = new LayuiCommonResponse();
         try {
