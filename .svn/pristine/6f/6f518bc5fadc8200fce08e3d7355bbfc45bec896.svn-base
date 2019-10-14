@@ -1,0 +1,21 @@
+package com.mingyuansoftware.aifactory.mapper;
+
+import com.mingyuansoftware.aifactory.model.FactoryManagement;
+import org.apache.ibatis.annotations.Mapper;
+import org.springframework.stereotype.Repository;
+
+import java.util.List;
+
+@Repository
+@Mapper
+public interface FactoryManagementMapper {
+    int deleteByPrimaryKey(Integer fmId);
+
+    int insert(FactoryManagement record);
+
+    FactoryManagement selectByPrimaryKey(Integer fmId);
+
+    List<FactoryManagement> selectAll();
+
+    int updateByPrimaryKey(FactoryManagement record);
+}

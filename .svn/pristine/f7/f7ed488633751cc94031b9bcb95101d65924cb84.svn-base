@@ -1,0 +1,49 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd" >
+<mapper namespace="com.mingyuansoftware.aifactory.mapper.DispatchingCompanyMapper" >
+  <resultMap id="BaseResultMap" type="com.mingyuansoftware.aifactory.model.DispatchingCompany" >
+    <id column="dc_id" property="dcId" jdbcType="INTEGER" />
+    <result column="insurance_company" property="insuranceCompany" jdbcType="VARCHAR" />
+    <result column="insurance_deduction" property="insuranceDeduction" jdbcType="DECIMAL" />
+    <result column="management_fee" property="managementFee" jdbcType="DECIMAL" />
+    <result column="create_time" property="createTime" jdbcType="TIMESTAMP" />
+    <result column="update_time" property="updateTime" jdbcType="TIMESTAMP" />
+    <result column="is_delete" property="isDelete" jdbcType="TINYINT" />
+  </resultMap>
+  <delete id="deleteByPrimaryKey" parameterType="java.lang.Integer" >
+    delete from dispatching_company
+    where dc_id = #{dcId,jdbcType=INTEGER}
+  </delete>
+  <insert id="insert" parameterType="com.mingyuansoftware.aifactory.model.DispatchingCompany" >
+    <selectKey resultType="java.lang.Integer" keyProperty="dcId" order="AFTER" >
+      SELECT LAST_INSERT_ID()
+    </selectKey>
+    insert into dispatching_company (insurance_company, insurance_deduction, 
+      management_fee, create_time, update_time, 
+      is_delete)
+    values (#{insuranceCompany,jdbcType=VARCHAR}, #{insuranceDeduction,jdbcType=DECIMAL}, 
+      #{managementFee,jdbcType=DECIMAL}, #{createTime,jdbcType=TIMESTAMP}, #{updateTime,jdbcType=TIMESTAMP}, 
+      #{isDelete,jdbcType=TINYINT})
+  </insert>
+  <update id="updateByPrimaryKey" parameterType="com.mingyuansoftware.aifactory.model.DispatchingCompany" >
+    update dispatching_company
+    set insurance_company = #{insuranceCompany,jdbcType=VARCHAR},
+      insurance_deduction = #{insuranceDeduction,jdbcType=DECIMAL},
+      management_fee = #{managementFee,jdbcType=DECIMAL},
+      create_time = #{createTime,jdbcType=TIMESTAMP},
+      update_time = #{updateTime,jdbcType=TIMESTAMP},
+      is_delete = #{isDelete,jdbcType=TINYINT}
+    where dc_id = #{dcId,jdbcType=INTEGER}
+  </update>
+  <select id="selectByPrimaryKey" resultMap="BaseResultMap" parameterType="java.lang.Integer" >
+    select dc_id, insurance_company, insurance_deduction, management_fee, create_time, 
+    update_time, is_delete
+    from dispatching_company
+    where dc_id = #{dcId,jdbcType=INTEGER}
+  </select>
+  <select id="selectAll" resultMap="BaseResultMap" >
+    select dc_id, insurance_company, insurance_deduction, management_fee, create_time, 
+    update_time, is_delete
+    from dispatching_company
+  </select>
+</mapper>

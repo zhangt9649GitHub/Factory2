@@ -1,0 +1,290 @@
+package com.mingyuansoftware.aifactory.controller;
+
+import com.github.pagehelper.PageHelper;
+import com.mingyuansoftware.aifactory.config.LogConfig;
+import com.mingyuansoftware.aifactory.constants.Constants;
+import com.mingyuansoftware.aifactory.enums.HtCode;
+import com.mingyuansoftware.aifactory.model.*;
+import com.mingyuansoftware.aifactory.model.dto.SalesReturnDto;
+import com.mingyuansoftware.aifactory.pojo.LayuiCommonResponse;
+import com.mingyuansoftware.aifactory.service.*;
+import com.mingyuansoftware.aifactory.util.BaseToString;
+import io.swagger.annotations.Api;
+import io.swagger.annotations.ApiImplicitParam;
+import io.swagger.annotations.ApiImplicitParams;
+import io.swagger.annotations.ApiOperation;
+import org.apache.shiro.SecurityUtils;
+import org.apache.shiro.authz.annotation.RequiresPermissions;
+import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.validation.annotation.Validated;
+import org.springframework.web.bind.annotation.*;
+
+import java.math.BigDecimal;
+import java.util.HashMap;
+import java.util.List;
+import java.util.Map;
+
+@Api(value = "SalesReturn", description = "销售退货单API", tags = {"销售退货单"})
+@RestController
+@RequestMapping("/salesReturn")
+public class SalesReturnController {
+
+    @Autowired
+    private SalesReturnService salesReturnService;
+    @Autowired
+    private SalesOrderDetailsService salesOrderDetailsService;
+    @Autowired
+    private SalesOrderService salesOrderService;
+    @Autowired
+    private LogService logService;
+    @Autowired
+    private StockKucunGoodsService stockKucunGoodsService;
+    @Autowired
+    private WarehouseService warehouseService;
+
+    @ApiOperation(value = "获取销售退货单列表", notes = "获取销售退货单列表", tags = {"@郝腾"})
+    @ApiImplicitParams({
+            @ApiImplicitParam(name = "page", value = "第几页", paramType = "query", dataType = "int"),
+            @ApiImplicitParam(name = "limit", value = "每页容量", paramType = "query", dataType = "int"),
+            @ApiImplicitParam(name = "salesReturnDto", value = "销售退货单参数实体类", paramType = "query", dataType = "SalesReturnDto"),
+    })
+    @RequestMapping(value = "/getSalesReturnList", method = RequestMethod.GET)
+    @ResponseBody
+    @RequiresPermissions(value = {"getSalesReturnList"})
+    public LayuiCommonResponse getSalesReturnList(@Validated @RequestParam(defaultValue = "1") int page,
+                                                  @Validated @RequestParam(defaultValue = "10") int limit,
+                                                  @Validated SalesReturnDto salesReturnDto) {
+        LayuiCommonResponse response = new LayuiCommonResponse();
+        try {
+            PageHelper.startPage(page, limit);
+            List<SalesReturn> salesReturnList = salesReturnService.selectSalesReturnList(salesReturnDto);
+            int count = salesReturnService.selectSalesReturnCount(salesReturnDto);
+            response.setMsg(HtCode.SUCCESS_GET.getInfo());
+            response.setCode(HtCode.SUCCESS_GET.getCode());
+            response.setCount(count);
+            response.setData(salesReturnList);
+        } catch (Exception e) {
+            e.printStackTrace();
+            response.setCode(HtCode.FAIL_GET.getCode());
+            response.setMsg(HtCode.FAIL_GET.getInfo());
+        }
+        return response;
+    }
+
+    /*@ApiOperation(value = "获取销售订单列表", notes = "获取销售订单列表", tags = {"@郝腾"})
+    @ApiImplicitParam(name = "customerId", value = "客户id", required = true, paramType = "query", dataType = "int")
+    @RequestMapping(value = "/getSalesOrderListByCustomerId", method = RequestMethod.GET)
+    @ResponseBody
+    public LayuiCommonResponse getSalesOrderListByCustomerId(@Validated int customerId) {
+        LayuiCommonResponse response = new LayuiCommonResponse();
+        try {
+            List<SalesOrder> salesOrdersList = salesOrderDetailsService.selectSalesOrderListByCustomerId(customerId);
+            response.setMsg(HtCode.SUCCESS_GET.getInfo());
+            response.setCode(HtCode.SUCCESS_GET.getCode());
+            response.setData(salesOrdersList);
+        } catch (Exception e) {
+            e.printStackTrace();
+            response.setCode(HtCode.FAIL_GET.getCode());
+            response.setMsg(HtCode.FAIL_GET.getInfo());
+        }
+        return response;
+    }*/
+
+    @ApiOperation(value = "获取销售退货单货物列表", notes = "获取销售退货单货物列表", tags = {"@郝腾"})
+    @ApiImplicitParams({
+            @ApiImplicitParam(name = "page", value = "第几页", paramType = "query", dataType = "int"),
+            @ApiImplicitParam(name = "limit", value = "每页容量", paramType = "query", dataType = "int"),
+            @ApiImplicitParam(name = "partsCd", value = "部品CD", paramType = "query", dataType = "String"),
+            @ApiImplicitParam(name = "goodsName", value = "品名", paramType = "query", dataType = "String"),
+            @ApiImplicitParam(name = "salesOrderId", value = "销售订单id", required = true, dataType = "int", paramType = "query")
+    })
+    @RequestMapping(value = "/getSalesReturnGoodsList", method = RequestMethod.GET)
+    @ResponseBody
+    public LayuiCommonResponse getSalesReturnGoodsList(@Validated @RequestParam(defaultValue = "1") int page,
+                                                       @Validated @RequestParam(defaultValue = "10") int limit,
+                                                       @Validated int salesOrderId, @Validated String partsCd, @Validated String goodsName) {
+        LayuiCommonResponse response = new LayuiCommonResponse();
+        try {
+            PageHelper.startPage(page, limit);
+            List<SalesOrderDetails> salesOrderDetailsList = salesOrderDetailsService.selectSalesReturnGoodsList(salesOrderId, partsCd, goodsName);
+            int count = salesOrderDetailsService.selectSalesReturnGoodsCount(salesOrderId, partsCd, goodsName);
+            response.setMsg(HtCode.SUCCESS_GET.getInfo());
+            response.setCode(HtCode.SUCCESS_GET.getCode());
+            response.setCount(count);
+            response.setData(salesOrderDetailsList);
+        } catch (Exception e) {
+            e.printStackTrace();
+            response.setCode(HtCode.FAIL_GET.getCode());
+            response.setMsg(HtCode.FAIL_GET.getInfo());
+        }
+        return response;
+    }
+
+    @ApiOperation(value = "新增销售退货单", notes = "新增销售退货单", tags = {"@郝腾"})
+    @ApiImplicitParam(name = "salesReturn", value = "销售退货单实体类", required = true, dataType = "SalesReturn")
+    @RequestMapping(value = "/insertSalesReturn", method = RequestMethod.POST)
+    @ResponseBody
+    @RequiresPermissions(value = {"insertSalesReturn"})
+    public LayuiCommonResponse insertSalesReturn(@RequestBody SalesReturn salesReturn) {
+        LayuiCommonResponse response = new LayuiCommonResponse();
+        try {
+            salesReturnService.insertSalesReturn(salesReturn);
+            if (LogConfig.STATE) {
+                String text = BaseToString.BaseEntityToString(salesReturn);
+                Staff staff = (Staff) SecurityUtils.getSubject().getSession().getAttribute("user");
+                int staffId = staff.getStaffId();
+                logService.saveLog(staffId, 1, text);
+            }
+            response.setCode(HtCode.SUCCESS_ADD.getCode());
+            response.setMsg(HtCode.SUCCESS_ADD.getInfo());
+        } catch (Exception e) {
+            e.printStackTrace();
+            response.setCode(HtCode.FAIL_ADD.getCode());
+            response.setMsg(HtCode.FAIL_ADD.getInfo());
+            return response;
+        }
+        return response;
+    }
+
+    @ApiOperation(value = "查看销售退货单", notes = "查看销售退货单", tags = {"@郝腾"})
+    @ApiImplicitParam(name = "salesReturnId", value = "销售退货单id", required = true, dataType = "int", paramType = "query")
+    @RequestMapping(value = "/getSalesReturnById", method = RequestMethod.POST)
+    @ResponseBody
+    public LayuiCommonResponse getSalesReturnById(int salesReturnId) {
+        LayuiCommonResponse response = new LayuiCommonResponse();
+        try {
+            SalesReturn salesReturn = salesReturnService.selectSalesReturnById(salesReturnId);
+            response.setMsg(HtCode.SUCCESS_GET.getInfo());
+            response.setCode(HtCode.SUCCESS_GET.getCode());
+            response.setData(salesReturn);
+        } catch (Exception e) {
+            e.printStackTrace();
+            response.setCode(HtCode.FAIL_GET.getCode());
+            response.setMsg(HtCode.FAIL_GET.getInfo());
+        }
+        return response;
+    }
+
+    @ApiOperation(value = "更新销售退货单", notes = "更新销售退货单", tags = {"@郝腾"})
+    @ApiImplicitParam(name = "salesReturn", value = "销售退货单及详情", dataType = "SalesReturn")
+    @RequestMapping(value = "/updateSalesReturnInfo", method = RequestMethod.POST)
+    @ResponseBody
+    @RequiresPermissions(value = {"updateSalesReturnInfo"})
+    public LayuiCommonResponse updateSalesReturnInfo(@RequestBody SalesReturn salesReturn) {
+        LayuiCommonResponse response = new LayuiCommonResponse();
+        try {
+            SalesReturn salesReturn1 = salesReturnService.selectSalesReturnById(salesReturn.getSalesReturnId());
+            if (salesReturn1.getState() == 2) {
+                response.setCode(HtCode.FAIL_UPDATE_STATE_ING.getCode());
+                response.setMsg(HtCode.FAIL_UPDATE_STATE_ING.getInfo());
+                return response;
+            }
+            if (salesReturn1.getState() == 3) {
+                response.setCode(HtCode.FAIL_UPDATE_STATE_DO.getCode());
+                response.setMsg(HtCode.FAIL_UPDATE_STATE_DO.getInfo());
+                return response;
+            }
+            salesReturnService.updateSalesReturnInfo(salesReturn);
+            if (LogConfig.STATE) {
+                String text = BaseToString.BaseEntityToString(salesReturn);
+                Staff staff = (Staff) SecurityUtils.getSubject().getSession().getAttribute("user");
+                int staffId = staff.getStaffId();
+                logService.saveLog(staffId, 2, text);
+            }
+            response.setCode(HtCode.SUCCESS_UPDATE.getCode());
+            response.setMsg(HtCode.SUCCESS_UPDATE.getInfo());
+        } catch (Exception e) {
+            e.printStackTrace();
+            response.setCode(HtCode.FAIL_UPDATE.getCode());
+            response.setMsg(HtCode.FAIL_UPDATE.getInfo());
+            return response;
+        }
+        return response;
+    }
+
+    @ApiOperation(value = "删除销售退货单", notes = "删除销售退货单", tags = {"@郝腾"})
+    @ApiImplicitParam(name = "salesReturnId", value = "销售退货单id", required = true, dataType = "int", paramType = "query")
+    @RequestMapping(value = "/deleteSalesReturnById", method = RequestMethod.POST)
+    @ResponseBody
+    @RequiresPermissions(value = {"deleteSalesReturnById"})
+    public LayuiCommonResponse deleteSalesReturnById(int salesReturnId) {
+        LayuiCommonResponse response = new LayuiCommonResponse();
+        try {
+            SalesReturn salesReturn = salesReturnService.selectSalesReturnById(salesReturnId);
+            if (salesReturn.getState() == 2) {
+                response.setCode(HtCode.FAIL_DELETE_STATE_DISTRIBUTION.getCode());
+                response.setMsg(HtCode.FAIL_DELETE_STATE_DISTRIBUTION.getInfo());
+                return response;
+            }
+            if (salesReturn.getState() == 3) {
+                response.setCode(HtCode.FAIL_DELETE_STATE_OUT.getCode());
+                response.setMsg(HtCode.FAIL_DELETE_STATE_OUT.getInfo());
+                return response;
+            }
+            salesReturnService.deleteSalesReturnById(salesReturnId);
+            if (LogConfig.STATE) {
+                String[] str = new String[]{salesReturnId + ""};
+                Map<String, String[]> a_mMap = new HashMap<>();
+                a_mMap.put("salesReturnId", str);
+                String text = BaseToString.MapToString(a_mMap);
+                Staff staff = (Staff) SecurityUtils.getSubject().getSession().getAttribute("user");
+                int staffId = staff.getStaffId();
+                logService.saveLog(staffId, 3, text);
+            }
+            response.setCode(HtCode.SUCCESS_DELETE.getCode());
+            response.setMsg(HtCode.SUCCESS_DELETE.getInfo());
+        } catch (Exception e) {
+            e.printStackTrace();
+            response.setCode(HtCode.FAIL_DELETE.getCode());
+            response.setMsg(HtCode.FAIL_DELETE.getInfo());
+            return response;
+        }
+        return response;
+    }
+
+    @ApiOperation(value = "更新销售退货单状态为已入库", notes = "更新销售退货单状态为已入库", tags = {"@郝腾"})
+    @ApiImplicitParam(name = "salesReturnId", value = "销售退货单id", required = true, dataType = "int", paramType = "query")
+    @RequestMapping(value = "/updateSalesReturnState", method = RequestMethod.POST)
+    @ResponseBody
+    @RequiresPermissions(value = {"updateSalesReturnState"})
+    public LayuiCommonResponse updateSalesReturnState(int salesReturnId) {
+        LayuiCommonResponse response = new LayuiCommonResponse();
+        try {
+            salesReturnService.updateSalesReturnState(salesReturnId);
+            SalesReturn salesReturn = salesReturnService.selectSalesReturnById(salesReturnId);
+            List<SalesReturnDetails> salesReturnDetailsList = salesReturn.getSalesReturnDetailsList();
+            for (SalesReturnDetails salesReturnDetails : salesReturnDetailsList
+            ) {
+                Map<String, Object> parameters = new HashMap<>();
+                parameters.put("skgCount", salesReturnDetails.getQuantity());
+                //固定的商品仓库 待修改
+                //获取仓库列表
+                List<Warehouse> warehouseList = warehouseService.selectWarehouseNameList();
+                if (!(warehouseList.isEmpty())) {
+                    for (Warehouse warehouse : warehouseList
+                    ) {
+                        if (warehouse.getWarehouseName().equals("商品仓库")) {
+                            parameters.put("warehouseId", warehouse.getWarehouseId());
+                        }
+                    }
+                }
+                parameters.put("skgType", Constants.MAP_KUCUN.get(Constants.KUCUN_SALES_RETURN_STORAGE));
+                parameters.put("gid", salesReturnDetails.getGoods().getGoodsId());
+                parameters.put("skgDanJia", salesReturnDetails.getGoods().getAveragePrice());
+                parameters.put("skgSerialNumber", salesReturn.getSalesReturnNumber());
+                parameters.put("skgWanglaiDanwei", salesReturn.getCustomer().getCustomerName());
+                parameters.put("changeType", "1");
+                stockKucunGoodsService.insertStockKucunGoods(parameters);
+            }
+            response.setCode(HtCode.SUCCESS_UPDATE.getCode());
+            response.setMsg(HtCode.SUCCESS_UPDATE.getInfo());
+        } catch (Exception e) {
+            e.printStackTrace();
+            response.setCode(HtCode.FAIL_UPDATE.getCode());
+            response.setMsg(HtCode.FAIL_UPDATE.getInfo());
+            return response;
+        }
+        return response;
+    }
+
+}

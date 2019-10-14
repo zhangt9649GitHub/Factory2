@@ -1,0 +1,384 @@
+package com.mingyuansoftware.aifactory.controller;
+
+import com.github.pagehelper.PageHelper;
+import com.mingyuansoftware.aifactory.enums.HtCode;
+import com.mingyuansoftware.aifactory.enums.WlCode;
+import com.mingyuansoftware.aifactory.enums.ZtCode;
+import com.mingyuansoftware.aifactory.model.*;
+import com.mingyuansoftware.aifactory.model.dto.GoodsDto;
+import com.mingyuansoftware.aifactory.model.dto.RequisitionDto;
+import com.mingyuansoftware.aifactory.pojo.LayuiCommonResponse;
+import com.mingyuansoftware.aifactory.service.*;
+import com.mingyuansoftware.aifactory.util.RandomCodeUtil;
+import io.swagger.annotations.Api;
+import io.swagger.annotations.ApiImplicitParam;
+import io.swagger.annotations.ApiImplicitParams;
+import io.swagger.annotations.ApiOperation;
+import org.apache.shiro.crypto.RandomNumberGenerator;
+import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.validation.annotation.Validated;
+import org.springframework.web.bind.annotation.*;
+
+import java.util.List;
+import java.util.Random;
+
+@Api(value = "General", description = "公用接口API", tags = {"公用"})
+@RestController
+@RequestMapping("/general")
+public class GeneralController {
+
+    @Autowired
+    private WarehouseService warehouseService;
+    @Autowired
+    private StaffService staffService;
+    @Autowired
+    private CustomerService customerService;
+    @Autowired
+    private BizDictionaryService bizDictionaryService;
+    @Autowired
+    private SupplierService supplierService;
+    @Autowired
+    private GoodsService goodsService;
+    @Autowired
+    private StockKucunGoodsService stockKucunGoodsService;
+    @Autowired
+    private WarehousePositionService warehousePositionService;
+    @Autowired
+    private ProductionInstructionService productionInstructionService;
+    @Autowired
+    private ProductionInstructionGoodsService productionInstructionGoodsService;
+
+
+    @ApiOperation(value = "获取使用中的仓库列表", notes = "获取使用中的仓库列表", tags = {"@郝腾"})
+    @RequestMapping(value = "/getWarehouseNameList", method = RequestMethod.GET)
+    @ResponseBody
+    public LayuiCommonResponse getWarehouseNameList() {
+        LayuiCommonResponse response = new LayuiCommonResponse();
+        try {
+           List<Warehouse> warehouseList = warehouseService.selectWarehouseNameList();
+            response.setMsg(HtCode.SUCCESS_GET.getInfo());
+            response.setCode(HtCode.SUCCESS_GET.getCode());
+            response.setData(warehouseList);
+        } catch (Exception e) {
+            e.printStackTrace();
+            response.setCode(HtCode.FAIL_GET.getCode());
+            response.setMsg(HtCode.FAIL_GET.getInfo());
+        }
+        return response;
+    }
+
+    @ApiOperation(value = "获取员工姓名列表", notes = "获取员工列表", tags = {"@郝腾"})
+    @RequestMapping(value = "/getStaffNameList", method = RequestMethod.GET)
+    @ResponseBody
+    public LayuiCommonResponse getStaffNameList() {
+        LayuiCommonResponse response = new LayuiCommonResponse();
+        try {
+            List<Staff> list = staffService.getName();
+            response.setMsg(HtCode.SUCCESS_GET.getInfo());
+            response.setCode(HtCode.SUCCESS_GET.getCode());
+            response.setData(list);
+        } catch (Exception e) {
+            e.printStackTrace();
+            response.setCode(HtCode.FAIL_GET.getCode());
+            response.setMsg(HtCode.FAIL_GET.getInfo());
+        }
+        return response;
+    }
+
+    @ApiOperation(value = "获取部门列表", notes = "获取部门列表", tags = {"@王力影"})
+    @RequestMapping(value = "/getDeptNameList", method = RequestMethod.GET)
+    @ResponseBody
+    public LayuiCommonResponse getDeptNameList() {
+        return bizDictionaryService.getListByParentId(5);
+    }
+
+    @ApiOperation(value = "获取岗位列表", notes = "获取岗位列表", tags = {"@王力影"})
+    @RequestMapping(value = "/getPostNameList", method = RequestMethod.GET)
+    @ResponseBody
+    public LayuiCommonResponse getPostNameList() {
+        return bizDictionaryService.getListByParentId(8);
+    }
+
+    @ApiOperation(value = "获取支付方式列表", notes = "获取支付方式列表", tags = {"@王力影"})
+    @RequestMapping(value = "/getPayTypeList", method = RequestMethod.POST)
+    @ResponseBody
+    public LayuiCommonResponse getTypeList() {
+        try {
+            int parentId = 50;
+            List<Bizdictionary> bizdictionaryList =bizDictionaryService.selectListByParentId(parentId);
+            return new LayuiCommonResponse(WlCode.SUCCESS_GET,0,bizdictionaryList);
+        } catch (Exception e) {
+            e.printStackTrace();
+            return new LayuiCommonResponse(WlCode.FAIL_GET,0,"");
+        }
+
+    }
+
+    @ApiOperation(value = "获取工资单的角色列表", notes = "获取工资单的角色列表", tags = {"@王力影"})
+    @RequestMapping(value = "/getPayrollRoleNameList", method = RequestMethod.GET)
+    @ResponseBody
+    public LayuiCommonResponse getPayrollRoleNameList() {
+        LayuiCommonResponse response = new LayuiCommonResponse();
+        try {
+            List<Bizdictionary> bizdictionaryList = bizDictionaryService.selectListByParentId(10);
+            response.setMsg(HtCode.SUCCESS_GET.getInfo());
+            response.setCode(HtCode.SUCCESS_GET.getCode());
+            response.setData(bizdictionaryList);
+        } catch (Exception e) {
+            e.printStackTrace();
+            response.setCode(HtCode.FAIL_GET.getCode());
+            response.setMsg(HtCode.FAIL_GET.getInfo());
+        }
+        return response;
+    }
+
+    @ApiOperation(value = "获取员工的角色列表", notes = "获取员工的角色列表", tags = {"@王力影"})
+    @RequestMapping(value = "/getRoleNameList", method = RequestMethod.GET)
+    @ResponseBody
+    public LayuiCommonResponse getRoleNameList() {
+        LayuiCommonResponse response = new LayuiCommonResponse();
+        try {
+            List<Bizdictionary> bizdictionaryList = bizDictionaryService.selectListByParentId(10);
+            List<Bizdictionary> bizdictionaryList1 = bizDictionaryService.selectListByParentId(11);
+            for (Bizdictionary bizdictionary:bizdictionaryList1
+                 ) {
+                bizdictionary.setId(11);
+                bizdictionaryList.add(bizdictionary);
+            }
+            List<Bizdictionary> bizdictionaryList2 = bizDictionaryService.selectListByParentId(12);
+            for (Bizdictionary bizdictionary:bizdictionaryList2
+            ) {
+                bizdictionary.setId(12);
+                bizdictionaryList.add(bizdictionary);
+            }
+            response.setMsg(HtCode.SUCCESS_GET.getInfo());
+            response.setCode(HtCode.SUCCESS_GET.getCode());
+            response.setData(bizdictionaryList);
+        } catch (Exception e) {
+            e.printStackTrace();
+            response.setCode(HtCode.FAIL_GET.getCode());
+            response.setMsg(HtCode.FAIL_GET.getInfo());
+        }
+        return response;
+    }
+
+    @ApiOperation(value = "获取客户姓名列表", notes = "获取客户姓名列表", tags = {"@郝腾"})
+    @RequestMapping(value = "/getCustomerNameList", method = RequestMethod.GET)
+    @ResponseBody
+    public LayuiCommonResponse getCustomerNameList() {
+        LayuiCommonResponse response = new LayuiCommonResponse();
+        try {
+            List<Customer> customerList = customerService.getCustomerNameList();
+            response.setMsg(HtCode.SUCCESS_GET.getInfo());
+            response.setCode(HtCode.SUCCESS_GET.getCode());
+            response.setData(customerList);
+        } catch (Exception e) {
+            e.printStackTrace();
+            response.setCode(HtCode.FAIL_GET.getCode());
+            response.setMsg(HtCode.FAIL_GET.getInfo());
+        }
+        return response;
+    }
+
+    @ApiOperation(value = "获取供应商姓名列表", notes = "获取供应商姓名列表", tags = {"@郝腾"})
+    @RequestMapping(value = "/getSupplierNameList", method = RequestMethod.GET)
+    @ResponseBody
+    public LayuiCommonResponse getSupplierNameList() {
+        LayuiCommonResponse response = new LayuiCommonResponse();
+        try {
+           List<Supplier> supplierList = supplierService.getSupplierNameList();
+            response.setMsg(HtCode.SUCCESS_GET.getInfo());
+            response.setCode(HtCode.SUCCESS_GET.getCode());
+            response.setData(supplierList);
+        } catch (Exception e) {
+            e.printStackTrace();
+            response.setCode(HtCode.FAIL_GET.getCode());
+            response.setMsg(HtCode.FAIL_GET.getInfo());
+        }
+        return response;
+    }
+
+
+    @ApiOperation(value = "获取表单编号", notes = "获取表单编号", tags = {"@郝腾"})
+    @ApiImplicitParam(name = "type", value = "类型 1.调拨单编号 2.销售订单编号 3.客户编号 4.式样书编号 5.BOM表单编号 " +
+            "6.采购申请单编号 7.出库单编号 8.入库单编号 9.报销单编号 10.领料单编号 " +
+            "11.退料单编号 12.排产单编号 13.采购订单编号 14.库存盘点编号 15.收款单编号"+
+            "16.付款单编号 17.销售退货单编号 18.采购退换货单编号 19.生产入库单编号 20.工资单编号" +
+            "21.注文书编号 22.发货单编号", paramType = "query", dataType = "int")
+    @RequestMapping(value = "/getFormNumber", method = RequestMethod.GET)
+    @ResponseBody
+    public LayuiCommonResponse getFormNumber(int type) {
+        LayuiCommonResponse response = new LayuiCommonResponse();
+        try {
+            RamdomNumber randomNumber = new RamdomNumber();
+            switch (type){
+                case 1: randomNumber.setNumber("01"+ RandomCodeUtil.getRandomCode());break;//1.调拨单编号
+                case 2: randomNumber.setNumber("02"+ RandomCodeUtil.getRandomCode());break;//2.销售订单编号
+                case 3: randomNumber.setNumber("03"+ RandomCodeUtil.getRandomCode());break;//3.客户编号
+                case 4: randomNumber.setNumber("04"+ RandomCodeUtil.getRandomCode());break;//4.式样书编号
+                case 5: randomNumber.setNumber("05"+ RandomCodeUtil.getRandomCode());break;//5.BOM表单编号
+                case 6: randomNumber.setNumber("06"+ RandomCodeUtil.getRandomCode());break;//6.采购申请单编号
+                case 7: randomNumber.setNumber("07"+ RandomCodeUtil.getRandomCode());break;//7.出库单编号
+                case 8: randomNumber.setNumber("08"+ RandomCodeUtil.getRandomCode());break;//8.入库单编号
+                case 9: randomNumber.setNumber("09"+ RandomCodeUtil.getRandomCode());break;//9.报销单编号
+                case 10: randomNumber.setNumber("10"+ RandomCodeUtil.getRandomCode());break;//10.领料单编号
+                case 11: randomNumber.setNumber("11"+ RandomCodeUtil.getRandomCode());break;//11.退料单编号
+                case 12: randomNumber.setNumber("12"+ RandomCodeUtil.getRandomCode());break;//12.排产单编号
+                case 13: randomNumber.setNumber("13"+ RandomCodeUtil.getRandomCode());break;//13.采购订单编号
+                case 14: randomNumber.setNumber("14"+ RandomCodeUtil.getRandomCode());break;//14.库存盘点编号
+                case 15: randomNumber.setNumber("15"+ RandomCodeUtil.getRandomCode());break;//15.收款单编号
+                case 16: randomNumber.setNumber("16"+ RandomCodeUtil.getRandomCode());break;//16.付款单编号
+                case 17: randomNumber.setNumber("17"+ RandomCodeUtil.getRandomCode());break;//17.销售退货单编号
+                case 18: randomNumber.setNumber("18"+ RandomCodeUtil.getRandomCode());break;//18.采购退换货单编号
+                case 19: randomNumber.setNumber("19"+ RandomCodeUtil.getRandomCode());break;//19.生产入库单编号 PDA使用
+                case 20: randomNumber.setNumber("20"+ RandomCodeUtil.getRandomCode());break;//20.工资单编号
+                case 21: randomNumber.setNumber("21"+ RandomCodeUtil.getRandomCode());break;//21.注文书编号
+                case 22: randomNumber.setNumber("22"+ RandomCodeUtil.getRandomCode());break;//22.发货单编号
+            }
+            response.setMsg(HtCode.SUCCESS_GET.getInfo());
+            response.setCode(HtCode.SUCCESS_GET.getCode());
+            response.setData(randomNumber);
+        } catch (Exception e) {
+            e.printStackTrace();
+            response.setCode(HtCode.FAIL_GET.getCode());
+            response.setMsg(HtCode.FAIL_GET.getInfo());
+        }
+        return response;
+    }
+
+    @ApiOperation(value = "获取全部货物列表", notes = "获取全部货物列表", tags = {"@郝腾"})
+    @ApiImplicitParams({
+            @ApiImplicitParam(name = "page", value = "第几页", paramType = "query", dataType = "int"),
+            @ApiImplicitParam(name = "limit", value = "每页容量", paramType = "query", dataType = "int"),
+            @ApiImplicitParam(name = "goodsId", value = "货物id", paramType = "query", dataType = "Integer"),
+            @ApiImplicitParam(name = "partsCd", value = "部品CD", paramType = "query", dataType = "String"),
+            @ApiImplicitParam(name = "goodsName", value = "品名", paramType = "query", dataType = "String")
+    })
+    @RequestMapping(value = "/getAllGoodsList", method = RequestMethod.GET)
+    @ResponseBody
+    public LayuiCommonResponse getAllGoodsList(@Validated @RequestParam(defaultValue = "1") int page,
+                                               @Validated @RequestParam(defaultValue = "10") int limit,
+                                               @Validated Integer goodsId, @Validated String partsCd,@Validated String goodsName) {
+        LayuiCommonResponse response = new LayuiCommonResponse();
+        try {
+            PageHelper.startPage(page, limit);
+            List<KucunGoods> kucunGoodsList = goodsService.selectAllGoodsList(goodsId,partsCd,goodsName);
+            int count = goodsService.selectAllGoodsCount(goodsId,partsCd,goodsName);
+            response.setMsg(HtCode.SUCCESS_GET.getInfo());
+            response.setCode(HtCode.SUCCESS_GET.getCode());
+            response.setCount(count);
+            response.setData(kucunGoodsList);
+        } catch (Exception e) {
+            e.printStackTrace();
+            response.setCode(HtCode.FAIL_GET.getCode());
+            response.setMsg(HtCode.FAIL_GET.getInfo());
+        }
+        return response;
+    }
+
+    @ApiOperation(value = "根据仓库id获取货物列表", notes = "根据仓库id获取货物列表", tags = {"@郝腾"})
+    @ApiImplicitParams({
+            @ApiImplicitParam(name = "page", value = "第几页", paramType = "query", dataType = "int"),
+            @ApiImplicitParam(name = "limit", value = "每页容量", paramType = "query", dataType = "int"),
+            @ApiImplicitParam(name = "goodsId", value = "货物id", paramType = "query", dataType = "Integer"),
+            @ApiImplicitParam(name = "partsCd", value = "部品CD", paramType = "query", dataType = "String"),
+            @ApiImplicitParam(name = "goodsName", value = "品名", paramType = "query", dataType = "String"),
+            @ApiImplicitParam(name = "warehouseId", value = "仓库id", paramType = "query", dataType = "int", required = true)
+    })
+    @RequestMapping(value = "/getGoodsListByWarehouseId", method = RequestMethod.GET)
+    @ResponseBody
+    public LayuiCommonResponse getGoodsListByWarehouseId(@Validated @RequestParam(defaultValue = "1") int page,
+                                               @Validated @RequestParam(defaultValue = "10") int limit,
+                                               @Validated Integer goodsId, @Validated String partsCd,@Validated String goodsName,
+                                                         @Validated int warehouseId) {
+        LayuiCommonResponse response = new LayuiCommonResponse();
+        try {
+            PageHelper.startPage(page, limit);
+            List<KucunGoods> kucunGoodsList = stockKucunGoodsService.getStockKucunGoodsCount(warehouseId,goodsId,partsCd,goodsName);
+            int count = stockKucunGoodsService.getCountStockKucunGoods(warehouseId,goodsId,partsCd,goodsName);
+            response.setMsg(HtCode.SUCCESS_GET.getInfo());
+            response.setCode(HtCode.SUCCESS_GET.getCode());
+            response.setCount(count);
+            response.setData(kucunGoodsList);
+        } catch (Exception e) {
+            e.printStackTrace();
+            response.setCode(HtCode.FAIL_GET.getCode());
+            response.setMsg(HtCode.FAIL_GET.getInfo());
+        }
+        return response;
+    }
+
+    @ApiOperation(value = "获取使用中的仓位列表", notes = "获取使用中的仓位列表", tags = {"@郝腾"})
+    @RequestMapping(value = "/getWpNameList", method = RequestMethod.GET)
+    @ResponseBody
+    public LayuiCommonResponse getWpNameList() {
+        LayuiCommonResponse response = new LayuiCommonResponse();
+        try {
+            List<WarehousePosition> warehousePositionList = warehousePositionService.selectWpNameList();
+            response.setMsg(HtCode.SUCCESS_GET.getInfo());
+            response.setCode(HtCode.SUCCESS_GET.getCode());
+            response.setData(warehousePositionList);
+        } catch (Exception e) {
+            e.printStackTrace();
+            response.setCode(HtCode.FAIL_GET.getCode());
+            response.setMsg(HtCode.FAIL_GET.getInfo());
+        }
+        return response;
+    }
+
+    @ApiOperation(value = "获取生产指示书编号列表", notes = "获取生产指示书编号列表", tags = {"@郝腾"})
+    @RequestMapping(value = "/getSerialNumberList", method = RequestMethod.GET)
+    @ResponseBody
+    public LayuiCommonResponse getSerialNumberList() {
+        LayuiCommonResponse response = new LayuiCommonResponse();
+        try {
+            List<ProductionInstruction> productionInstructionList = productionInstructionService.selectSerialNumberList();
+            response.setMsg(HtCode.SUCCESS_GET.getInfo());
+            response.setCode(HtCode.SUCCESS_GET.getCode());
+            response.setData(productionInstructionList);
+        } catch (Exception e) {
+            e.printStackTrace();
+            response.setCode(HtCode.FAIL_GET.getCode());
+            response.setMsg(HtCode.FAIL_GET.getInfo());
+        }
+        return response;
+    }
+
+    @ApiOperation(value = "根据供应商Id获取货物列表", nickname = "/selectGoodsListBySupplierId", notes = "根据供应商Id获取货物列表", tags = {"@张婷"})
+    @ApiImplicitParam(name = "supplierId", value = "供应商id", required = true, dataType = "int")
+    @RequestMapping(value = "/getNoteDocumentList", method = RequestMethod.GET)
+    @ResponseBody
+    public LayuiCommonResponse getGoodsListBySupplierId(int supplierId) {
+        LayuiCommonResponse response = new LayuiCommonResponse();
+        try {
+            List<Goods> goodsList = goodsService.selectGoodsListBySupplierId(supplierId);
+            response.setCode(ZtCode.SUCCESS_GET.getCode());
+            response.setMsg(ZtCode.SUCCESS_GET.getInfo());
+            response.setData(goodsList);
+        } catch (Exception e) {
+            e.printStackTrace();
+            response.setCode(ZtCode.FAIL_GET.getCode());
+            response.setMsg(ZtCode.FAIL_GET.getInfo());
+        }
+        return response;
+    }
+
+    @ApiOperation(value = "获取货物名称列表", notes = "获取货物名称列表", tags = {"@郝腾"})
+    @ApiImplicitParam(name = "goodsName", value = "品名", paramType = "query", dataType = "String")
+    @RequestMapping(value = "/getGoodsNameList", method = RequestMethod.GET)
+    @ResponseBody
+    public LayuiCommonResponse getGoodsNameList(String goodsName) {
+        LayuiCommonResponse response = new LayuiCommonResponse();
+        try {
+            List<Goods> goodsList= goodsService.selectGoodsNameList(goodsName);
+            response.setMsg(HtCode.SUCCESS_GET.getInfo());
+            response.setCode(HtCode.SUCCESS_GET.getCode());
+            response.setData(goodsList);
+        } catch (Exception e) {
+            e.printStackTrace();
+            response.setCode(HtCode.FAIL_GET.getCode());
+            response.setMsg(HtCode.FAIL_GET.getInfo());
+        }
+        return response;
+    }
+}

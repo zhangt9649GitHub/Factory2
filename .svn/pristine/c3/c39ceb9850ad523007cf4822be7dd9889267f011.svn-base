@@ -1,0 +1,488 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd" >
+<mapper namespace="com.mingyuansoftware.aifactory.mapper.PurchaseOrderMapper" >
+  <resultMap id="BaseResultMap" type="com.mingyuansoftware.aifactory.model.PurchaseOrder" >
+    <id column="purchase_order_id" property="purchaseOrderId" jdbcType="INTEGER" />
+    <result column="purchase_order_number" property="purchaseOrderNumber" jdbcType="VARCHAR" />
+    <result column="sales_order_id" property="salesOrderId" jdbcType="INTEGER" />
+    <result column="supplier_id" property="supplierId" jdbcType="INTEGER" />
+    <result column="delivery_date" property="deliveryDate" jdbcType="DATE" />
+    <result column="define_date" property="defineDate" jdbcType="DATE" />
+    <result column="staff_id" property="staffId" jdbcType="INTEGER" />
+    <result column="order_status" property="orderStatus" jdbcType="TINYINT" />
+    <result column="storage_time" property="storageTime" jdbcType="TIMESTAMP" />
+    <result column="storage_state" property="storageState" jdbcType="TINYINT" />
+    <result column="purchase_amount" property="purchaseAmount" jdbcType="DECIMAL" />
+    <result column="discount_amount" property="discountAmount" jdbcType="DECIMAL" />
+    <result column="actually_paid_amount" property="actuallyPaidAmount" jdbcType="DECIMAL" />
+    <result column="pending_amount" property="pendingAmount" jdbcType="DECIMAL" />
+    <result column="payment_date" property="paymentDate" jdbcType="TIMESTAMP" />
+    <result column="payment_status" property="paymentStatus" jdbcType="TINYINT" />
+    <result column="purchase_type" property="purchaseType" jdbcType="VARCHAR" />
+    <result column="comment" property="comment" jdbcType="VARCHAR" />
+    <result column="create_time" property="createTime" jdbcType="TIMESTAMP" />
+    <result column="update_time" property="updateTime" jdbcType="TIMESTAMP" />
+    <result column="is_delete" property="isDelete" jdbcType="TINYINT" />
+    <result column="capital" property="capital" jdbcType="VARCHAR" />
+    <result column="file_attachment" property="fileAttachment" jdbcType="VARCHAR" />
+    <result column="purchase_return_situation" property="purchaseReturnSituation" jdbcType="TINYINT" />
+    <result column="finance_money_sum" property="financeMoneySum" jdbcType="DECIMAL" />
+    <association column="supplier_id" property="supplier"
+               select="com.mingyuansoftware.aifactory.mapper.SupplierMapper.selectByPrimaryKey"></association>
+  </resultMap>
+  <delete id="deleteByPrimaryKey" parameterType="java.lang.Integer" >
+    delete from purchase_order
+    where purchase_order_id = #{purchaseOrderId,jdbcType=INTEGER}
+  </delete>
+  <insert id="insert" parameterType="com.mingyuansoftware.aifactory.model.PurchaseOrder" >
+    <selectKey resultType="java.lang.Integer" keyProperty="purchaseOrderId" order="AFTER" >
+      SELECT LAST_INSERT_ID()
+    </selectKey>
+    insert into purchase_order (purchase_order_number, sales_order_id,
+      supplier_id, delivery_date, define_date, 
+      staff_id, order_status, storage_time, 
+      storage_state, purchase_amount, discount_amount, 
+      actually_paid_amount, pending_amount, payment_date, 
+      payment_status, purchase_type, `comment`, 
+      create_time, update_time, is_delete, 
+      capital, file_attachment, purchase_return_situation, finance_money_sum)
+    values (#{purchaseOrderNumber,jdbcType=VARCHAR}, #{salesOrderId,jdbcType=INTEGER},
+      #{supplierId,jdbcType=INTEGER}, #{deliveryDate,jdbcType=DATE}, #{defineDate,jdbcType=DATE}, 
+      #{staffId,jdbcType=INTEGER}, #{orderStatus,jdbcType=TINYINT}, #{storageTime,jdbcType=TIMESTAMP}, 
+      #{storageState,jdbcType=TINYINT}, #{purchaseAmount,jdbcType=DECIMAL}, #{discountAmount,jdbcType=DECIMAL}, 
+      #{actuallyPaidAmount,jdbcType=DECIMAL}, #{pendingAmount,jdbcType=DECIMAL}, #{paymentDate,jdbcType=TIMESTAMP}, 
+      #{paymentStatus,jdbcType=TINYINT}, #{purchaseType,jdbcType=VARCHAR}, #{comment,jdbcType=VARCHAR},
+      #{createTime,jdbcType=TIMESTAMP}, #{updateTime,jdbcType=TIMESTAMP}, #{isDelete,jdbcType=TINYINT}, 
+      #{capital,jdbcType=VARCHAR}, #{fileAttachment,jdbcType=VARCHAR}, #{purchaseReturnSituation,jdbcType=TINYINT},
+      #{financeMoneySum,jdbcType=DECIMAL})
+  </insert>
+  <update id="updateByPrimaryKey" parameterType="com.mingyuansoftware.aifactory.model.PurchaseOrder" >
+    update purchase_order
+    set purchase_order_number = #{purchaseOrderNumber,jdbcType=VARCHAR},
+      sales_order_id = #{salesOrderId,jdbcType=INTEGER},
+      supplier_id = #{supplierId,jdbcType=INTEGER},
+      delivery_date = #{deliveryDate,jdbcType=DATE},
+      define_date = #{defineDate,jdbcType=DATE},
+      staff_id = #{staffId,jdbcType=INTEGER},
+      order_status = #{orderStatus,jdbcType=TINYINT},
+      storage_time = #{storageTime,jdbcType=TIMESTAMP},
+      storage_state = #{storageState,jdbcType=TINYINT},
+      purchase_amount = #{purchaseAmount,jdbcType=DECIMAL},
+      discount_amount = #{discountAmount,jdbcType=DECIMAL},
+      actually_paid_amount = #{actuallyPaidAmount,jdbcType=DECIMAL},
+      pending_amount = #{pendingAmount,jdbcType=DECIMAL},
+      payment_date = #{paymentDate,jdbcType=TIMESTAMP},
+      payment_status = #{paymentStatus,jdbcType=TINYINT},
+      purchase_type = #{purchaseType,jdbcType=VARCHAR},
+      `comment` = #{comment,jdbcType=VARCHAR},
+      create_time = #{createTime,jdbcType=TIMESTAMP},
+      update_time = #{updateTime,jdbcType=TIMESTAMP},
+      is_delete = #{isDelete,jdbcType=TINYINT},
+      capital = #{capital,jdbcType=VARCHAR},
+      file_attachment = #{fileAttachment,jdbcType=VARCHAR},
+      purchase_return_situation = #{purchaseReturnSituation,jdbcType=TINYINT},
+      finance_money_sum = #{financeMoneySum,jdbcType=DECIMAL}
+    where purchase_order_id = #{purchaseOrderId,jdbcType=INTEGER}
+  </update>
+  <select id="selectByPrimaryKey" resultMap="BaseResultMap" parameterType="java.lang.Integer" >
+    select purchase_order_id, purchase_order_number, sales_order_id, supplier_id, delivery_date,
+    define_date, staff_id, order_status, storage_time, storage_state, purchase_amount, 
+    discount_amount, actually_paid_amount, pending_amount, payment_date, payment_status, 
+    purchase_type, `comment`, create_time, update_time, is_delete, capital, file_attachment
+    from purchase_order
+    where purchase_order_id = #{purchaseOrderId,jdbcType=INTEGER}
+  </select>
+  <select id="selectAll" resultMap="BaseResultMap" >
+    select purchase_order_id, purchase_order_number, sales_order_id, supplier_id, delivery_date,
+    define_date, staff_id, order_status, storage_time, storage_state, purchase_amount, 
+    discount_amount, actually_paid_amount, pending_amount, payment_date, payment_status, 
+    purchase_type, `comment`, create_time, update_time, is_delete, capital, file_attachment
+    from purchase_order
+  </select>
+  <select id="selectPurchaseOrderList" parameterType="com.mingyuansoftware.aifactory.model.dto.PurchaseOrderDto" resultType="com.mingyuansoftware.aifactory.model.dto.PurchaseOrderDetailsDto" >
+    select po.purchase_order_id, po.purchase_order_number, po.sales_order_id,
+    po.supplier_id,su.supplier_name ,po.staff_id, sf.`name`,
+    po.define_date, po.delivery_date,
+    po.order_status, po.storage_time, po.storage_state, po.purchase_amount,
+    po.discount_amount, po.actually_paid_amount, po.pending_amount, po.payment_date, po.payment_status,
+    po.purchase_type, po.`comment`, po.create_time, po.update_time, po.is_delete, po.capital, po.file_attachment
+    from purchase_order as po
+--     left join purchase_order_details as podl on(po.purchase_order_id = podl.purchase_order_id)
+    left join supplier as su on(po.supplier_id = su.supplier_id)
+    left join staff as sf on(po.staff_id = sf.staff_id)
+    <where>
+      <if test=" purchaseOrderDto.purchaseOrderNumber != null and purchaseOrderDto.purchaseOrderNumber != '' ">
+        and po.purchase_order_number like "%"#{purchaseOrderDto.purchaseOrderNumber}"%"
+      </if>
+      <if test=" purchaseOrderDto.defineDate != null and purchaseOrderDto.defineDate != '' ">
+        and po.define_date like "%"#{purchaseOrderDto.defineDate}"%"
+      </if>
+      <if test=" purchaseOrderDto.name != null and purchaseOrderDto.name != '' ">
+        and sf.`name` like "%"#{purchaseOrderDto.name}"%"
+      </if>
+      <if test=" purchaseOrderDto.supplierName != null and purchaseOrderDto.supplierName != '' ">
+        and su.supplier_name like "%"#{purchaseOrderDto.supplierName}"%"
+      </if>
+      <if test=" purchaseOrderDto.orderStatus != null and purchaseOrderDto.orderStatus != '' ">
+        and po.order_status = #{purchaseOrderDto.orderStatus}
+      </if>
+      <if test=" purchaseOrderDto.deliveryDate != null and purchaseOrderDto.deliveryDate != '' ">
+        and po.delivery_date like "%"#{purchaseOrderDto.deliveryDate}"%"
+      </if>
+      <if test=" purchaseOrderDto.storageTime != null and purchaseOrderDto.storageTime != '' ">
+        and po.storage_time like "%"#{purchaseOrderDto.storageTime}"%"
+      </if>
+      <if test=" purchaseOrderDto.storageState != null and purchaseOrderDto.storageState != '' ">
+        and po.storage_state = #{purchaseOrderDto.storageState}
+      </if>
+      <if test=" purchaseOrderDto.purchaseAmount != null and purchaseOrderDto.purchaseAmount != '' or purchaseOrderDto.purchaseAmount == '0'.toString() ">
+        and po.purchase_amount = #{purchaseOrderDto.purchaseAmount}
+      </if>
+      <if test=" purchaseOrderDto.discountAmount != null and purchaseOrderDto.discountAmount != '' or purchaseOrderDto.discountAmount =='0'.toString() ">
+        and po.discount_amount = #{purchaseOrderDto.discountAmount}
+      </if>
+      <if test=" purchaseOrderDto.actuallyPaidAmount != null and purchaseOrderDto.actuallyPaidAmount != '' or purchaseOrderDto.actuallyPaidAmount == '0'.toString() ">
+        and po.actually_paid_amount = #{purchaseOrderDto.actuallyPaidAmount}
+      </if>
+      <if test=" purchaseOrderDto.pendingAmount != null and purchaseOrderDto.pendingAmount != '' or purchaseOrderDto.pendingAmount == '0'.toString() ">
+        and po.pending_amount = #{purchaseOrderDto.pendingAmount}
+      </if>
+      <if test=" purchaseOrderDto.paymentDate != null and purchaseOrderDto.paymentDate != '' ">
+        and po.payment_date like "%"#{purchaseOrderDto.paymentDate}"%"
+      </if>
+      <if test=" purchaseOrderDto.paymentStatus != null and purchaseOrderDto.paymentStatus != '' ">
+        and po.payment_status = #{purchaseOrderDto.paymentStatus}
+      </if>
+      <if test=" purchaseOrderDto.purchaseType != null and purchaseOrderDto.purchaseType != '' ">
+        and po.purchase_type  like "%"#{purchaseOrderDto.purchaseType}"%"
+      </if>
+      <if test=" purchaseOrderDto.comment != null and purchaseOrderDto.comment != '' ">
+        and po.`comment` like "%"#{purchaseOrderDto.comment}"%"
+      </if>
+      <if test=" purchaseOrderDto.supplierId != null and purchaseOrderDto.supplierId != '' ">
+        and po.supplier_id = #{purchaseOrderDto.supplierId}
+      </if>
+      and po.is_delete = 0
+    </where>
+    order by po.purchase_order_id desc
+  </select>
+  <select id="selectCount" parameterType="com.mingyuansoftware.aifactory.model.dto.PurchaseOrderDto" resultType="java.lang.Integer" >
+    select count(po.purchase_order_id)
+    from purchase_order as po
+--     left join purchase_order_details as podl on(po.purchase_order_id = podl.purchase_order_id)
+    left join supplier as su on(po.supplier_id = su.supplier_id)
+    left join staff as sf on(po.staff_id = sf.staff_id)
+    <where>
+      <if test=" purchaseOrderDto.purchaseOrderNumber != null and purchaseOrderDto.purchaseOrderNumber != '' ">
+        and po.purchase_order_number like "%"#{purchaseOrderDto.purchaseOrderNumber}"%"
+      </if>
+      <if test=" purchaseOrderDto.defineDate != null and purchaseOrderDto.defineDate != '' ">
+        and po.define_date like "%"#{purchaseOrderDto.defineDate}"%"
+      </if>
+      <if test=" purchaseOrderDto.name != null and purchaseOrderDto.name != '' ">
+        and sf.`name` like "%"#{purchaseOrderDto.name}"%"
+      </if>
+      <if test=" purchaseOrderDto.supplierName != null and purchaseOrderDto.supplierName != '' ">
+        and su.supplier_name like "%"#{purchaseOrderDto.supplierName}"%"
+      </if>
+      <if test=" purchaseOrderDto.orderStatus != null and purchaseOrderDto.orderStatus != '' ">
+        and po.order_status = #{purchaseOrderDto.orderStatus}
+      </if>
+      <if test=" purchaseOrderDto.deliveryDate != null and purchaseOrderDto.deliveryDate != '' ">
+        and po.delivery_date like "%"#{purchaseOrderDto.deliveryDate}"%"
+      </if>
+      <if test=" purchaseOrderDto.storageTime != null and purchaseOrderDto.storageTime != '' ">
+        and po.storage_time like "%"#{purchaseOrderDto.storageTime}"%"
+      </if>
+      <if test=" purchaseOrderDto.storageState != null and purchaseOrderDto.storageState != '' ">
+        and po.storage_state = #{purchaseOrderDto.storageState}
+      </if>
+      <if test=" purchaseOrderDto.purchaseAmount != null and purchaseOrderDto.purchaseAmount != '' or purchaseOrderDto.purchaseAmount == '0'.toString() ">
+        and po.purchase_amount = #{purchaseOrderDto.purchaseAmount}
+      </if>
+      <if test=" purchaseOrderDto.discountAmount != null and purchaseOrderDto.discountAmount != '' or purchaseOrderDto.discountAmount == '0'.toString() ">
+        and po.discount_amount = #{purchaseOrderDto.discountAmount}
+      </if>
+      <if test=" purchaseOrderDto.actuallyPaidAmount != null and purchaseOrderDto.actuallyPaidAmount != '' or purchaseOrderDto.actuallyPaidAmount == '0'.toString() ">
+        and po.actually_paid_amount = #{purchaseOrderDto.actuallyPaidAmount}
+      </if>
+      <if test=" purchaseOrderDto.pendingAmount != null and purchaseOrderDto.pendingAmount != '' or purchaseOrderDto.pendingAmount == '0'.toString() ">
+        and po.pending_amount = #{purchaseOrderDto.pendingAmount}
+      </if>
+      <if test=" purchaseOrderDto.paymentDate != null and purchaseOrderDto.paymentDate != '' ">
+        and po.payment_date like "%"#{purchaseOrderDto.paymentDate}"%"
+      </if>
+      <if test=" purchaseOrderDto.paymentStatus != null and purchaseOrderDto.paymentStatus != '' ">
+        and po.payment_status = #{purchaseOrderDto.paymentStatus}
+      </if>
+      <if test=" purchaseOrderDto.purchaseType != null and purchaseOrderDto.purchaseType != '' ">
+        and po.purchase_type  like "%"#{purchaseOrderDto.purchaseType}"%"
+      </if>
+      <if test=" purchaseOrderDto.comment != null and purchaseOrderDto.comment != '' ">
+        and po.`comment` like "%"#{purchaseOrderDto.comment}"%"
+      </if>
+      <if test=" purchaseOrderDto.supplierId != null and purchaseOrderDto.supplierId != '' ">
+        and po.supplier_id = #{purchaseOrderDto.supplierId}
+      </if>
+      and po.is_delete = 0
+    </where>
+    order by po.purchase_order_id desc
+  </select>
+  <select id="selectLastId" resultType="java.lang.Integer">
+    select @@identity
+  </select>
+  <update id="deletePurchaseOrder" parameterType="java.lang.Integer" >
+    update purchase_order
+    set
+    update_time = now(),
+    is_delete = 1
+    where purchase_order_id = #{purchaseOrderId,jdbcType=INTEGER}
+  </update>
+  <select id="selectPurchaseOrderById" parameterType="java.lang.Integer" resultType="com.mingyuansoftware.aifactory.model.PurchaseOrder">
+    select po.purchase_order_id, po.purchase_order_number, po.sales_order_id,so.sales_order_number,
+    po.supplier_id,su.supplier_name ,po.staff_id, sf.`name`,
+    po.define_date, po.delivery_date,
+    po.order_status, po.storage_time, po.storage_state, po.purchase_amount,
+    po.discount_amount, po.actually_paid_amount, po.pending_amount, po.payment_date, po.payment_status,
+    po.purchase_type, po.`comment`, po.create_time, po.update_time, po.is_delete, po.capital, po.file_attachment,
+    po.purchase_return_situation, po.finance_money_sum
+    from purchase_order as po
+    left join supplier as su on(po.supplier_id = su.supplier_id)
+    left join staff as sf on(po.staff_id = sf.staff_id)
+    left join sales_order as so on (po.sales_order_id = so.sales_order_id)
+    where po.purchase_order_id =  #{purchaseOrderId,jdbcType=INTEGER}
+  </select>
+  <select id="selectPurchaseOrderGoodsUpdate" resultType="com.mingyuansoftware.aifactory.model.PurchaseOrderDetails">
+    select podl.goods_id,g.parts_cd,g.goods_name,g.unit,g.a_price
+    from purchase_order as po
+    left join purchase_order_details as podl on (po.purchase_order_id = podl.purchase_order_id)
+    left join goods as g on (podl.goods_id = g.goods_id)
+    left join supplier as su on(po.supplier_id = su.supplier_id)
+    where su.supplier_id = #{supplierId}
+          and podl.purchase_order_id = #{purchaseOrderDetailsId}
+  </select>
+  <select id="selectGoodsUpdateCount" resultType="java.lang.Integer">
+    select count(podl.goods_id)
+    from purchase_order as po
+    left join purchase_order_details as podl on (po.purchase_order_id = podl.purchase_order_id)
+    left join goods as g on (podl.goods_id = g.goods_id)
+    left join supplier as su on(po.supplier_id = su.supplier_id)
+    where su.supplier_id = #{supplierId}
+          and podl.purchase_order_id = #{purchaseOrderDetailsId}
+  </select>
+  <select id="selectPurchaseOrderGoodsInsert" resultType="com.mingyuansoftware.aifactory.model.KucunGoods">
+    select gsu.goods_id, gsu.supplier_id,
+    g.parts_cd,g.goods_name,g.specification,g.unit,g.months_in_stock,
+    IFNULL(g.purchase_order_quantity,0) as purchase_order_quantity,IFNULL(g.a_price,0) as a_price
+    from goods_supplier as gsu
+    left join goods as g on (gsu.goods_id = g.goods_id)
+    <where>
+      <if test="supplierId != null and supplierId != ''">
+        and gsu.supplier_id = #{supplierId}
+      </if>
+      <if test="partsCd != null and partsCd != ''">
+        and g.parts_cd like "%"#{partsCd}"%"
+      </if>
+      <if test="goodsName != null and goodsName != ''">
+        and g.goods_name like "%"#{goodsName}"%"
+      </if>
+    </where>
+  </select>
+  <select id="selectGoodsInsertCount" resultType="java.lang.Integer">
+    select count(gsu.goods_id)
+    from goods_supplier as gsu
+    left join goods as g on (gsu.goods_id = g.goods_id)
+    <where>
+      <if test="supplierId != null and supplierId != ''">
+        and gsu.supplier_id = #{supplierId}
+      </if>
+      <if test="partsCd != null and partsCd != ''">
+        and g.parts_cd like "%"#{partsCd}"%"
+      </if>
+      <if test="goodsName != null and goodsName != ''">
+        and g.goods_name like "%"#{goodsName}"%"
+      </if>
+    </where>
+  </select>
+  <select id="selectExportPurchaseOrderList" resultType="com.mingyuansoftware.aifactory.model.dto.PurchaseOrderDto">
+     select po.purchase_order_number, po.define_date, sf.`name`,su.supplier_name,
+     po.order_status, po.delivery_date, po.storage_time, po.storage_state,
+     po.purchase_amount, po.discount_amount, po.actually_paid_amount, po.pending_amount,
+     po.payment_date, po.payment_status, po.purchase_type, po.`comment`, po.file_attachment
+     from purchase_order as po
+     left join purchase_order_details as podl on(po.purchase_order_id = podl.purchase_order_id)
+     left join supplier as su on(po.supplier_id = su.supplier_id)
+     left join staff as sf on(po.staff_id = sf.staff_id)
+  </select>
+  <update id="updatePurchaseOrderById" parameterType="com.mingyuansoftware.aifactory.model.UploadFileAttachment" >
+    update purchase_order
+    set
+    file_attachment = #{uploadFileAttachment.fileAttachment,jdbcType=VARCHAR}
+    where purchase_order_id = #{uploadFileAttachment.purchaseOrderId,jdbcType=INTEGER}
+  </update>
+  <select id="selectPaymentOrderSupplierList" resultMap="BaseResultMap" >
+   select po.purchase_order_id, po.purchase_order_number,
+    su.supplier_id,su.supplier_name
+    from purchase_order as po
+    left join supplier as su on (po.supplier_id = su.supplier_id)
+    where po.is_delete = 0
+  </select>
+  <select id="selectSuplierCount" resultType="java.lang.Integer" >
+    select count(po.purchase_order_id)
+    from purchase_order as po
+    left join supplier as su on (po.supplier_id = su.supplier_id)
+    where po.is_delete = 0
+  </select>
+  <update id="updateByPurchaseOrderNumber" parameterType="com.mingyuansoftware.aifactory.model.dto.PurchaseOrderDetailsDto">
+   update purchase_order
+    set
+      actually_paid_amount = #{purchaseOrderDetailsDto.actuallyPaidAmount,jdbcType=DECIMAL},
+      payment_date = #{purchaseOrderDetailsDto.paymentDate,jdbcType=TIMESTAMP},
+      payment_status = #{purchaseOrderDetailsDto.paymentStatus,jdbcType=TINYINT},
+      pending_amount = #{purchaseOrderDetailsDto.pendingAmount,jdbcType=DECIMAL},
+      discount_amount = #{purchaseOrderDetailsDto.discountAmount,jdbcType=DECIMAL},
+      update_time = now()
+    where purchase_order_number = #{purchaseOrderDetailsDto.purchaseOrderNumber,jdbcType=VARCHAR}
+  </update>
+  <select id="selectPurchaseOrderBySupplierId" parameterType="java.lang.Integer" resultMap="BaseResultMap" >
+    select po.purchase_order_id, po.purchase_order_number,po.purchase_amount ,po.staff_id
+    from purchase_order as po
+    where po.supplier_id = #{supplierId} and po.is_delete = 0
+  </select>
+  <select id="selectPurchaseOrderCount" parameterType="java.lang.Integer" resultType="java.lang.Integer" >
+    select count(po.purchase_order_id)
+    from purchase_order as po
+    where po.supplier_id = #{supplierId} and po.is_delete = 0
+  </select>
+  <update id="affirmationContract" parameterType="java.lang.Integer" >
+    update purchase_order
+    set
+      order_status = 2,
+      update_time = now()
+    where purchase_order_id = #{purchaseOrderId,jdbcType=INTEGER}
+  </update>
+  <select id="selectPDaPurchaseOrderList" resultMap="BaseResultMap" >
+    select purchase_order_id, purchase_order_number, sales_order_id, supplier_id, delivery_date,
+    define_date, staff_id, order_status, storage_time, storage_state, purchase_amount,
+    discount_amount, actually_paid_amount, pending_amount, payment_date, payment_status,
+    purchase_type, `comment`, create_time, update_time, is_delete, capital, file_attachment
+    from purchase_order
+    where storage_state != 3
+  </select>
+  <select id="selectPDaPurchaseOrderListCount" resultType="java.lang.Integer">
+    select count(purchase_order_id)
+    from purchase_order
+    where storage_state != 3 and is_delete = 0
+  </select>
+  <update id="editFileAttachmentById" parameterType="java.lang.Integer" >
+    update purchase_order
+    set
+      file_attachment = null,
+      update_time = now()
+    where purchase_order_id = #{purchaseOrderId,jdbcType=INTEGER}
+  </update>
+  <update id="updatePurchaseOrderStorageState"  >
+    update purchase_order
+    set
+      storage_state = #{state},
+      staff_id = #{staffId},
+      storage_time = now()
+    where purchase_order_id = #{purchaseOrderId,jdbcType=INTEGER}
+  </update>
+  <select id="selectPDaPurchaseOrderTaskList" resultType="com.mingyuansoftware.aifactory.model.PDAPurchaseStorageTask">
+    select po.purchase_order_id, po.purchase_order_number, po.supplier_id, su.supplier_name
+    from purchase_order as po
+    left join supplier as su on (po.supplier_id = su.supplier_id)
+    where po.storage_state != 3 and po.is_delete = 0
+    <if test=" pdaPurchaseStorageTask.purchaseOrderNumber != null and pdaPurchaseStorageTask.purchaseOrderNumber != '' ">
+      and po.purchase_order_number like "%"#{pdaPurchaseStorageTask.purchaseOrderNumber}"%"
+    </if>
+  </select>
+  <update id="updatePurchaseReturnSituationById"  >
+    update purchase_order
+    set
+    purchase_return_situation = #{state},
+    update_time = now()
+    where purchase_order_id = #{purchaseOrderId,jdbcType=INTEGER}
+  </update>
+  <update id="updateFinanceSum" >
+    update purchase_order
+    set finance_money_sum = #{purchaseOrder.financeMoneySum,jdbcType=DECIMAL}
+    where purchase_order_id = #{purchaseOrder.purchaseOrderId,jdbcType=INTEGER}
+  </update>
+  <select id="selectPurchaseDeliveryDateList" resultType="com.mingyuansoftware.aifactory.model.dto.PurchaseDeliveryDateDto" >
+    select po.purchase_order_id, po.purchase_order_number, po.supplier_id, su.supplier_name, po.define_date, po.delivery_date, po.storage_state,
+    podl.goods_id, gd.parts_cd, gd.goods_name, gd.specification, podl.not_in_quantity as quantity
+    from purchase_order as po
+    left join purchase_order_details as podl on (po.purchase_order_id = podl.purchase_order_id)
+    left join goods as gd on (podl.goods_id = gd.goods_id)
+    left join supplier as su on (po.supplier_id = su.supplier_id)
+    <where>
+      <if test=" purchaseDeliveryDateDto.partsCd != null and purchaseDeliveryDateDto.partsCd != '' ">
+        and gd.parts_cd like "%"#{purchaseDeliveryDateDto.partsCd}"%"
+      </if>
+      <if test=" purchaseDeliveryDateDto.supplierName != null and purchaseDeliveryDateDto.supplierName != '' ">
+        and su.supplier_name like "%"#{purchaseDeliveryDateDto.supplierName}"%"
+      </if>
+      <if test=" purchaseDeliveryDateDto.defineDate != null and purchaseDeliveryDateDto.defineDate != '' ">
+        and po.define_date like "%"#{purchaseDeliveryDateDto.defineDate}"%"
+      </if>
+      <if test=" purchaseDeliveryDateDto.goodsName != null and purchaseDeliveryDateDto.goodsName != '' ">
+        and gd.goods_name like "%"#{purchaseDeliveryDateDto.goodsName}"%"
+      </if>
+      <if test=" purchaseDeliveryDateDto.specification != null and purchaseDeliveryDateDto.specification != '' ">
+        and gd.specification like "%"#{purchaseDeliveryDateDto.specification}"%"
+      </if>
+      <if test=" purchaseDeliveryDateDto.quantity != null and purchaseDeliveryDateDto.quantity != '' or purchaseDeliveryDateDto.quantity == '0'.toString() ">
+        and quantity = #{purchaseDeliveryDateDto.quantity}
+      </if>
+      <if test=" purchaseDeliveryDateDto.deliveryDate != null and purchaseDeliveryDateDto.deliveryDate != '' ">
+        and po.delivery_date like "%"#{purchaseDeliveryDateDto.deliveryDate}"%"
+      </if>
+      <if test=" purchaseDeliveryDateDto.storageState != null and purchaseDeliveryDateDto.storageState != '' ">
+        and po.storage_state = #{purchaseDeliveryDateDto.storageState}
+      </if>
+      <if test=" purchaseDeliveryDateDto.purchaseOrderNumber != null and purchaseDeliveryDateDto.purchaseOrderNumber != '' ">
+        and po.purchase_order_number like "%"#{purchaseDeliveryDateDto.purchaseOrderNumber}"%"
+      </if>
+      and DATEDIFF(po.delivery_date,now()) &lt; 10 and po.storage_state &lt; 3
+    </where>
+  </select>
+  <select id="selectPurchaseDeliveryDateCount" resultType="java.lang.Integer" >
+    select count(podl.goods_id)
+    from purchase_order as po
+    left join purchase_order_details as podl on (po.purchase_order_id = podl.purchase_order_id)
+    left join goods as gd on (podl.goods_id = gd.goods_id)
+    left join supplier as su on (po.supplier_id = su.supplier_id)
+    <where>
+      <if test=" purchaseDeliveryDateDto.partsCd != null and purchaseDeliveryDateDto.partsCd != '' ">
+        and gd.parts_cd like "%"#{purchaseDeliveryDateDto.partsCd}"%"
+      </if>
+      <if test=" purchaseDeliveryDateDto.supplierName != null and purchaseDeliveryDateDto.supplierName != '' ">
+        and su.supplier_name like "%"#{purchaseDeliveryDateDto.supplierName}"%"
+      </if>
+      <if test=" purchaseDeliveryDateDto.defineDate != null and purchaseDeliveryDateDto.defineDate != '' ">
+        and po.define_date like "%"#{purchaseDeliveryDateDto.defineDate}"%"
+      </if>
+      <if test=" purchaseDeliveryDateDto.goodsName != null and purchaseDeliveryDateDto.goodsName != '' ">
+        and gd.goods_name like "%"#{purchaseDeliveryDateDto.goodsName}"%"
+      </if>
+      <if test=" purchaseDeliveryDateDto.specification != null and purchaseDeliveryDateDto.specification != '' ">
+        and gd.specification like "%"#{purchaseDeliveryDateDto.specification}"%"
+      </if>
+      <if test=" purchaseDeliveryDateDto.quantity != null and purchaseDeliveryDateDto.quantity != '' or purchaseDeliveryDateDto.quantity == '0'.toString() ">
+        and quantity = #{purchaseDeliveryDateDto.quantity}
+      </if>
+      <if test=" purchaseDeliveryDateDto.deliveryDate != null and purchaseDeliveryDateDto.deliveryDate != '' ">
+        and po.delivery_date like "%"#{purchaseDeliveryDateDto.deliveryDate}"%"
+      </if>
+      <if test=" purchaseDeliveryDateDto.storageState != null and purchaseDeliveryDateDto.storageState != '' ">
+        and po.storage_state = #{purchaseDeliveryDateDto.storageState}
+      </if>
+      <if test=" purchaseDeliveryDateDto.purchaseOrderNumber != null and purchaseDeliveryDateDto.purchaseOrderNumber != '' ">
+        and po.purchase_order_number like "%"#{purchaseDeliveryDateDto.purchaseOrderNumber}"%"
+      </if>
+      and DATEDIFF(po.delivery_date,now()) &lt; 10 and po.storage_state &lt; 3
+    </where>
+  </select>
+</mapper>

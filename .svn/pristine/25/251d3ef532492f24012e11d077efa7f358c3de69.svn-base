@@ -1,0 +1,118 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd" >
+<mapper namespace="com.mingyuansoftware.aifactory.mapper.WarehouseMapper">
+    <resultMap id="BaseResultMap" type="com.mingyuansoftware.aifactory.model.Warehouse">
+        <id column="warehouse_id" property="warehouseId" jdbcType="INTEGER"/>
+        <result column="warehouse_name" property="warehouseName" jdbcType="VARCHAR"/>
+        <result column="staff_id" property="staffId" jdbcType="INTEGER"/>
+        <result column="state" property="state" jdbcType="TINYINT"/>
+        <result column="create_time" property="createTime" jdbcType="TIMESTAMP"/>
+        <result column="update_time" property="updateTime" jdbcType="TIMESTAMP"/>
+        <result column="comment" property="comment" jdbcType="VARCHAR"/>
+        <result column="is_delete" property="isDelete" jdbcType="TINYINT"/>
+        <result column="type" property="type" jdbcType="TINYINT"/>
+    </resultMap>
+    <insert id="addWarehouse" parameterType="com.mingyuansoftware.aifactory.model.Warehouse">
+    insert into warehouse (warehouse_name, staff_id, state,create_time, comment,`type`)
+    values (#{warehouseName,jdbcType=VARCHAR}, #{staffId,jdbcType=VARCHAR}, #{state,jdbcType=TINYINT},
+      #{createTime,jdbcType=TIMESTAMP}, #{comment,jdbcType=VARCHAR},#{type,jdbcType=TINYINT})
+  </insert>
+  <update id="editWarehouse" parameterType="com.mingyuansoftware.aifactory.model.Warehouse">
+    update warehouse
+    set warehouse_name = #{warehouseName,jdbcType=VARCHAR},
+      staff_id = #{staffId,jdbcType=VARCHAR},
+      state = #{state,jdbcType=TINYINT},
+      update_time = now(),
+      comment = #{comment,jdbcType=VARCHAR},
+      `type` = #{type,jdbcType=TINYINT}
+    where warehouse_id = #{warehouseId,jdbcType=INTEGER}
+  </update>
+    <!--删除 修改仓库状态为空闲 1 状态 1.表示空闲 2.表示使用中"  注意字段 -->
+    <update id="deletetWarehouse" parameterType="com.mingyuansoftware.aifactory.model.Warehouse">
+    update warehouse
+    set
+    update_time = now(),
+    is_delete = 1
+    where warehouse_id = #{warehouseId,jdbcType=INTEGER}
+  </update>
+    <select id="selectEditWarehouse" resultType="com.mingyuansoftware.aifactory.model.Warehouse"
+            parameterType="java.lang.Integer">
+    select warehouse_id, warehouse_name, staff_id, state, create_time, update_time,
+    comment, is_delete,`type`
+    from warehouse
+    where warehouse_id = #{warehouseId,jdbcType=INTEGER}
+  </select>
+    <select id="selectWarehouseAll" parameterType="com.mingyuansoftware.aifactory.model.dto.WarehouseDto"
+            resultMap="BaseResultMap">
+        select
+        w.warehouse_id,w.warehouse_name,s.staff_id,s.`name`,w.state,w.create_time,w.update_time,w.`comment`,w.is_delete
+        from warehouse as w
+        left join staff as s on w.staff_id = s.staff_id
+        where w.is_delete = 0
+        <if test=" warehouseDto.warehouseId != null and warehouseDto.warehouseId != ''">
+            and w.warehouse_id = #{warehouseDto.warehouseId}
+        </if>
+        <if test=" warehouseDto.warehouseName != null  and warehouseDto.warehouseName != ''">
+            and w.warehouse_name like "%"#{warehouseDto.warehouseName}"%"
+        </if>
+        <if test=" warehouseDto.staffId != 0 and warehouseDto.staffId != '' and warehouseDto.staffId != null ">
+            and s.staff_id = #{warehouseDto.staffId}
+        </if>
+        <if test=" warehouseDto.state != null  and warehouseDto.state != ''">
+            and w.state = #{warehouseDto.state}
+        </if>
+        <if test=" warehouseDto.comment != null  and warehouseDto.comment != ''">
+            and w.comment like "%"#{warehouseDto.comment}"%"
+        </if>
+    </select>
+    <!--仓库列表数量-->
+    <select id="count" resultType="java.lang.Integer" parameterType="com.mingyuansoftware.aifactory.model.Warehouse">
+        select count(*)
+        from warehouse as w
+        left join staff as s on w.staff_id = s.staff_id
+        where w.is_delete = 0
+        <if test=" warehouseDto.warehouseId != null and warehouseDto.warehouseId != ''">
+            and w.warehouse_id = #{warehouseDto.warehouseId}
+        </if>
+        <if test=" warehouseDto.warehouseName != null  and warehouseDto.warehouseName != ''">
+            and w.warehouse_name like "%"#{warehouseDto.warehouseName}"%"
+        </if>
+        <if test=" warehouseDto.staffId != 0 and warehouseDto.staffId != '' and warehouseDto.staffId != null ">
+            and s.staff_id = #{warehouseDto.staffId}
+        </if>
+        <if test=" warehouseDto.state != null  and warehouseDto.state != ''">
+            and w.state = #{warehouseDto.state}
+        </if>
+        <if test=" warehouseDto.comment != null  and warehouseDto.comment != ''">
+            and w.comment like "%"#{warehouseDto.comment}"%"
+        </if>
+    </select>
+    <!--查询所有仓库 没有使用 -->
+    <select id="warehouseList" resultType="com.mingyuansoftware.aifactory.model.Warehouse">
+    select *
+    from warehouse
+    where is_delete = 0
+    </select>
+    <select id="selectWarehouseNameList" resultMap="BaseResultMap">
+        <!--
+          WARNING - @mbggenerated
+          This element is automatically generated by MyBatis Generator, do not modify.
+        -->
+        select warehouse_id, warehouse_name
+        from warehouse
+        where is_delete = 0 and `type` = 2
+    </select>
+    <!--根据仓库名字查出仓库id-->
+    <select id="selectWIdByWarehouseName" parameterType="java.lang.String" resultType="java.lang.Integer">
+        select warehouse_id
+        from warehouse
+        where warehouse_name = #{warehouseName}
+    </select>
+    <update id="updateWarehouseStateById" >
+    update warehouse
+    set
+      state = #{state,jdbcType=TINYINT},
+      update_time = now()
+    where warehouse_id = #{warehouseId,jdbcType=INTEGER}
+  </update>
+</mapper>

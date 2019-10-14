@@ -1,0 +1,140 @@
+package com.mingyuansoftware.aifactory.controller;
+
+import com.github.pagehelper.PageHelper;
+import com.mingyuansoftware.aifactory.config.LogConfig;
+import com.mingyuansoftware.aifactory.constants.Constants;
+import com.mingyuansoftware.aifactory.enums.HtCode;
+import com.mingyuansoftware.aifactory.model.*;
+import com.mingyuansoftware.aifactory.model.dto.PDAProductionEntryDto;
+import com.mingyuansoftware.aifactory.pojo.CommonResponse;
+import com.mingyuansoftware.aifactory.service.*;
+import com.mingyuansoftware.aifactory.util.MyException;
+import io.swagger.annotations.Api;
+import io.swagger.annotations.ApiImplicitParam;
+import io.swagger.annotations.ApiImplicitParams;
+import io.swagger.annotations.ApiOperation;
+import net.sf.json.JSONArray;
+import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.validation.annotation.Validated;
+import org.springframework.web.bind.annotation.*;
+
+import java.math.BigDecimal;
+import java.util.HashMap;
+import java.util.List;
+import java.util.Map;
+
+import static java.math.BigDecimal.ROUND_HALF_DOWN;
+
+@Api(value = "PDAProductionEntry", description = "PDA生产入库API", tags = {"PDA生产入库"})
+@RestController
+@RequestMapping("/PdaProductionEntry")
+public class PDAProductionEntryController {
+
+    @Autowired
+    private ProductionEntryService productionEntryService;
+    @Autowired
+    private GoodsService goodsService;
+    @Autowired
+    private StockKucunGoodsService stockKucunGoodsService;
+    @Autowired
+    private ProductionOrderService productionOrderService;
+    @Autowired
+    private BomFormService bomFormService;
+    @Autowired
+    private BomFormDetailService bomFormDetailService;
+
+    /*@ApiOperation(value = "获取未完成的排产单列表", notes = "获取未完成的排产单列表", tags = {"@郝腾"})
+    @ApiImplicitParams({
+            @ApiImplicitParam(name = "page", value = "第几页", paramType = "query", dataType = "int"),
+            @ApiImplicitParam(name = "limit", value = "每页容量", paramType = "query", dataType = "int")
+    })
+    @RequestMapping(value = "/getPdaProductionEntryTaskList", method = RequestMethod.GET)
+    @ResponseBody
+    public CommonResponse getPdaProductionEntryTaskList(@Validated @RequestParam(defaultValue = "1") int page,
+                                                        @Validated @RequestParam(defaultValue = "10") int limit) {
+        CommonResponse response = new CommonResponse();
+        try {
+            PageHelper.startPage(page, limit);
+            List<PDAProductionEntryTask> pdaProductionEntryTasks = productionOrderService.selectPdaProductionEntryTaskList();
+            response.setMessage(HtCode.SUCCESS_GET.getInfo());
+            response.setCode(HtCode.SUCCESS_GET.getCode());
+            response.setData(pdaProductionEntryTasks);
+        } catch (Exception e) {
+            e.printStackTrace();
+            response.setCode(HtCode.FAIL_GET.getCode());
+            response.setMessage(HtCode.FAIL_GET.getInfo());
+        }
+        return response;
+    }*/
+
+    @ApiOperation(value = "保存提交", notes = "保存提交", tags = {"@郝腾"})
+    @ApiImplicitParam(name = "pdaProductionEntryDtoList", value = "生产入库详情实体类", required = true, dataType = "String")
+    @RequestMapping(value = "/insertPdaProductionEntryList", method = RequestMethod.POST)
+    @ResponseBody
+    public CommonResponse insertPdaProductionEntryList(String pdaProductionEntryDtoList) {
+        CommonResponse response = new CommonResponse();
+        try {
+            JSONArray jsonArray = JSONArray.fromObject(pdaProductionEntryDtoList);
+            //Java集合
+            List<PDAProductionEntryDto> pdaProductionEntryDtoList1 = (List<PDAProductionEntryDto>) jsonArray.toCollection(jsonArray, PDAProductionEntryDto.class);
+            //生产入库单编号
+            String productionEntryNumber = productionEntryService.insertPdaProductionEntryList(pdaProductionEntryDtoList1);
+            if (!(pdaProductionEntryDtoList.isEmpty()) && productionEntryNumber != null) {
+                for (PDAProductionEntryDto pdaProductionEntryDto : pdaProductionEntryDtoList1
+                ) {
+                    Goods goods = goodsService.selectGoodsById(pdaProductionEntryDto.getGoodsId());
+                    Map<String, Object> parameters = new HashMap<>();
+                    parameters.put("skgCount", pdaProductionEntryDto.getAmount());
+                    if(LogConfig.warehouseType==1){
+                        //如果仓库类型是1,就是天津总库
+                        parameters.put("warehouseId", Constants.WAREHOUSE_ID);
+                    }else if(LogConfig.warehouseType==2) {
+                        parameters.put("warehouseId", pdaProductionEntryDto.getWarehouseId());
+                    }
+                    parameters.put("skgType", Constants.MAP_KUCUN.get(Constants.KUCUN_PRODUCTION_ENTRY_STORAGE));
+                    parameters.put("gid", pdaProductionEntryDto.getGoodsId());
+                    parameters.put("skgDanJia", goods.getAveragePrice());
+                    parameters.put("skgSerialNumber", productionEntryNumber);
+                    parameters.put("skgWanglaiDanwei", "");
+                    parameters.put("changeType", "1");
+                    stockKucunGoodsService.insertStockKucunGoods(parameters);
+                    BomForm bomForm = bomFormService.selectBomFormByGoodsId(pdaProductionEntryDto.getGoodsId());
+                    List<BomFormDetail> bomFormDetailList = bomFormDetailService.selectBomFormDetailById(bomForm.getBomId());
+                    for (BomFormDetail bomFormDetail : bomFormDetailList
+                    ) {
+                        //计算需要货物比例
+                        BigDecimal quantity = bomFormDetail.getQuantity().multiply(pdaProductionEntryDto.getAmount());
+                        Goods goods1 = goodsService.selectGoodsById(bomFormDetail.getGoodId());
+                        Map<String, Object> parameters1 = new HashMap<>();
+                        parameters1.put("skgCount", quantity.multiply(new BigDecimal(-1)));
+                        if(LogConfig.warehouseType==1){
+                            //如果仓库类型是1,就是天津总库
+                            parameters.put("warehouseId",Constants.WAREHOUSE_ID);
+                        }else if(LogConfig.warehouseType==2) {
+                            parameters1.put("warehouseId", pdaProductionEntryDto.getWarehouseId());
+                        }
+                        parameters1.put("skgType", Constants.MAP_KUCUN.get(Constants.KUCUN_PRODUCTION_ENTRY_STORAGE));
+                        parameters1.put("gid", bomFormDetail.getGoodId());
+                        parameters1.put("skgDanJia", goods1.getAveragePrice());
+                        parameters1.put("skgSerialNumber", productionEntryNumber);
+                        parameters1.put("skgWanglaiDanwei", "");
+                        parameters1.put("changeType", "1");
+                        stockKucunGoodsService.insertStockKucunGoods(parameters1);
+                    }
+                }
+            }
+            response.setMessage(HtCode.SUCCESS_SAVE.getInfo());
+            response.setCode(HtCode.SUCCESS_SAVE.getCode());
+        } catch (MyException e) {
+            e.printStackTrace();
+            response.setCode(HtCode.FAIL_SAVE.getCode());
+            response.setMessage(e.getMessage());
+        } catch (Exception e) {
+            e.printStackTrace();
+            response.setCode(HtCode.FAIL_SAVE.getCode());
+            response.setMessage(HtCode.FAIL_SAVE.getInfo());
+        }
+        return response;
+    }
+
+}

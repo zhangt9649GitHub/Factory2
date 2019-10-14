@@ -1,0 +1,21 @@
+package com.mingyuansoftware.aifactory.mapper;
+
+import com.mingyuansoftware.aifactory.model.DispatchingCompany;
+import org.apache.ibatis.annotations.Mapper;
+import org.springframework.stereotype.Repository;
+
+import java.util.List;
+
+@Repository
+@Mapper
+public interface DispatchingCompanyMapper {
+    int deleteByPrimaryKey(Integer dcId);
+
+    int insert(DispatchingCompany record);
+
+    DispatchingCompany selectByPrimaryKey(Integer dcId);
+
+    List<DispatchingCompany> selectAll();
+
+    int updateByPrimaryKey(DispatchingCompany record);
+}

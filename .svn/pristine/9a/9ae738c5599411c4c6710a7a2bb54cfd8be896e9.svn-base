@@ -1,0 +1,211 @@
+package com.mingyuansoftware.aifactory.model.dto;
+
+import io.swagger.annotations.ApiModel;
+import io.swagger.annotations.ApiModelProperty;
+
+import java.io.Serializable;
+import java.math.BigDecimal;
+
+@ApiModel(description = "郝腾")
+public class ProductionOrderDetailsDto  implements Serializable {
+
+    private static final long serialVersionUID = 1L;
+
+    @ApiModelProperty(value = "排产单详情id", example = "1")
+    private Integer productionOrderDetailsId;
+
+    @ApiModelProperty(value = "部品CD", example = "部品CD")
+    private String partsCd;
+
+    @ApiModelProperty(value = "品名", example = "品名")
+    private String goodsName;
+
+    @ApiModelProperty(value = "规格", example = "规格")
+    private String specification;
+
+    @ApiModelProperty(value = "单位", example = "单位")
+    private String unit;
+
+    @ApiModelProperty(value = "总任务量", example = "1")
+    private BigDecimal totalTaskAmount;
+
+    @ApiModelProperty(value = "销售预定数", example = "1")
+    private BigDecimal salesBooking;
+
+    @ApiModelProperty(value = "库存数", example = "1")
+    private BigDecimal skgCount;
+
+    @ApiModelProperty(value = "排产数量", example = "1")
+    private BigDecimal quantity;
+
+    @ApiModelProperty(value = "生产周期", example = "1")
+    private String cycle;
+
+    @ApiModelProperty(value = "班次", example = "shift")
+    private String shift;
+
+    @ApiModelProperty(value = "有无新增 1有 0无", example = "isNew")
+    private String isNew;
+
+    @ApiModelProperty(value = "生产指示书编号", example = "serialNumber")
+    private String serialNumber;
+
+
+    @ApiModelProperty(value = "排产单编号", example = "productionOrderNumber")
+    private String productionOrderNumber;
+
+    @ApiModelProperty(value = "是否已读  1.是 0.否", example = "0")
+    private byte isRead;
+
+    @ApiModelProperty(value = "货物类别", example = "1")
+    private Byte category;
+
+    public Integer getProductionOrderDetailsId() {
+        return productionOrderDetailsId;
+    }
+
+    public void setProductionOrderDetailsId(Integer productionOrderDetailsId) {
+        this.productionOrderDetailsId = productionOrderDetailsId;
+    }
+
+    public String getPartsCd() {
+        return partsCd;
+    }
+
+    public void setPartsCd(String partsCd) {
+        this.partsCd = partsCd;
+    }
+
+    public String getGoodsName() {
+        return goodsName;
+    }
+
+    public void setGoodsName(String goodsName) {
+        this.goodsName = goodsName;
+    }
+
+    public String getSpecification() {
+        return specification;
+    }
+
+    public void setSpecification(String specification) {
+        this.specification = specification;
+    }
+
+    public String getUnit() {
+        return unit;
+    }
+
+    public void setUnit(String unit) {
+        this.unit = unit;
+    }
+
+    public BigDecimal getTotalTaskAmount() {
+        return totalTaskAmount;
+    }
+
+    public void setTotalTaskAmount(BigDecimal totalTaskAmount) {
+        this.totalTaskAmount = totalTaskAmount;
+    }
+
+    public BigDecimal getSalesBooking() {
+        return salesBooking;
+    }
+
+    public void setSalesBooking(BigDecimal salesBooking) {
+        this.salesBooking = salesBooking;
+    }
+
+    public BigDecimal getSkgCount() {
+        return skgCount;
+    }
+
+    public void setSkgCount(BigDecimal skgCount) {
+        this.skgCount = skgCount;
+    }
+
+    public BigDecimal getQuantity() {
+        return quantity;
+    }
+
+    public void setQuantity(BigDecimal quantity) {
+        this.quantity = quantity;
+    }
+
+    public String getCycle() {
+        return cycle;
+    }
+
+    public void setCycle(String cycle) {
+        this.cycle = cycle;
+    }
+
+    public String getShift() {
+        return shift;
+    }
+
+    public void setShift(String shift) {
+        this.shift = shift;
+    }
+
+    public String getIsNew() {
+        return isNew;
+    }
+
+    public void setIsNew(String isNew) {
+        this.isNew = isNew;
+    }
+
+    public String getSerialNumber() {
+        return serialNumber;
+    }
+
+    public void setSerialNumber(String serialNumber) {
+        this.serialNumber = serialNumber;
+    }
+
+    public String getProductionOrderNumber() {
+        return productionOrderNumber;
+    }
+
+    public void setProductionOrderNumber(String productionOrderNumber) {
+        this.productionOrderNumber = productionOrderNumber;
+    }
+
+    public byte getIsRead() {
+        return isRead;
+    }
+
+    public void setIsRead(byte isRead) {
+        this.isRead = isRead;
+    }
+
+    public Byte getCategory() {
+        return category;
+    }
+
+    public void setCategory(Byte category) {
+        this.category = category;
+    }
+
+    @Override
+    public String toString() {
+        return "ProductionOrderDetailsDto{" +
+                "productionOrderDetailsId=" + productionOrderDetailsId +
+                ", partsCd='" + partsCd + '\'' +
+                ", goodsName='" + goodsName + '\'' +
+                ", specification='" + specification + '\'' +
+                ", unit='" + unit + '\'' +
+                ", totalTaskAmount=" + totalTaskAmount +
+                ", salesBooking=" + salesBooking +
+                ", skgCount=" + skgCount +
+                ", quantity=" + quantity +
+                ", cycle='" + cycle + '\'' +
+                ", shift='" + shift + '\'' +
+                ", isNew='" + isNew + '\'' +
+                ", serialNumber='" + serialNumber + '\'' +
+                ", productionOrderNumber='" + productionOrderNumber + '\'' +
+                ", isRead=" + isRead +
+                '}';
+    }
+}
